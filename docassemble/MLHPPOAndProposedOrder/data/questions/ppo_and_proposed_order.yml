@@ -20,7 +20,7 @@ sections:
   - review_intro: "Introduction"
   - review_petitioner_info: "Petitioner Information"
   - review_respondent_info: "Respondent Information"
-  - review_children_info: "Children"
+  - review_abuse_history_info: "History of Abuse"
 ---
 code: |
   al_form_type = "existing_case"
@@ -61,17 +61,64 @@ code: |
 
   nav.set_section("review_petitioner_info")
   users.gather()
-  petitioner_lives_in_michigan
-  users[0].birthdate
   if petitioner_is_minor and (not minor_has_next_friend):
     minor_kickout
   respondent_lives_in_michigan
   knows_respondents_birthdate
   ppo_type
+  petitioner_respondent_relationship
+  county_choice
+  safe_contact_info_notice
 
   nav.set_section("review_respondent_info")
+  respondent_intro_screen
+  other_parties.gather()
+  petitioner_and_respondent_living_together
+  for other_party in other_parties:
+    other_party.phone_number
+    other_party.race
+    other_party.gender
+    other_party.height_feet
+    other_party.height
+    other_party.weight
+    other_party.hair_color
+    other_party.eye_color
+    other_party.license_number
+    other_party.other_identifying_info
+    other_party.carries_gun_for_work
+  if pending_actions.there_are_any:
+    pending_actions.gather()
+    for action in pending_actions:
+      action.court_name
+      action.court_county
+      action.court_state
+      action.judge
+  if orders_judgments.there_are_any:
+    orders_judgments.gather()
+    for order in orders_judgments:
+      order.court_name
+      order.court_county
+      order.court_state
+      order.judge
 
-  nav.set_section("review_children_info")
+  nav.set_section("review_abuse_history_info")
+  abuse_history_intro
+  abuse_history_intro_2
+  abuse_history_intro_3
+  abuse_history_intro_4
+  incidents.gather()
+  for incident in incidents:
+    incident.date
+    incident.location
+    incident.other_party_actions
+    incident.emotional_effect
+    if incident.petitioner_injured:
+      incident.physical_injury
+    incident.had_witnesses
+    if incident.had_police:
+      incident.police_actions
+    incidents_outro
+  other_details
 
   interview_ppo_and_proposed_order = True
 ---
@@ -83,10 +130,78 @@ code: |
   users.there_is_another = False
 ---
 code: |
+  other_parties.there_is_another = False
+---
+code: |
   if users[0].age_in_years() < 18:
     petitioner_is_minor = True
   else:
     petitioner_is_minor = False
+---
+#NOTE: last item (petitioner_respondent_parent_child) not yet connected to anything in PDF templates
+code: |
+  if petitioner_respondent_relationship['married']:
+    petitioner_respondent_married = True
+
+  if petitioner_respondent_relationship['was_married']:
+    petitioner_respondent_prev_married = True
+
+  if petitioner_respondent_relationship['have_child']:
+    petitioner_respondent_have_child = True
+
+  if petitioner_respondent_relationship['dating']:
+    petitioner_respondent_dating = True
+
+  if petitioner_respondent_relationship['live_together']:
+    petitioner_respondent_share_household = True
+
+  if petitioner_respondent_relationship['parent']:
+    petitioner_respondent_parent_child = True
+---
+code: |
+  other_parties[0].height = other_parties[0].height_feet + other_parties[0].height_inches
+---
+code: |
+  if other_parties[0].carries_gun_for_work == 'yes':
+    respondent_carries_firearm_for_work_known = True
+  
+  if other_parties[0].carries_gun_for_work == 'unknown':
+    respondent_carries_firearm_for_work_unknown = True
+---
+code: |
+  if pending_actions.there_are_any:
+    pending_actions_between_parties_yes = True
+  else:
+    pending_actions_between_parties_no = True
+---
+code: |
+  if pending_actions[i].court_name and pending_actions[i].court_county:
+    pending_actions[i].court_info_line = str(pending_actions[i].court_name) + ", " + str(pending_actions[i].court_county)
+  elif pending_actions[i].court_name:
+    pending_actions[i].court_info_line = str(pending_actions[i].court_name)
+  elif pending_actions[i].court_county:
+    pending_actions[i].court_info_line = str(pending_actions[i].court_county)
+  else:
+    pending_actions[i].court_info_line = ""
+---
+code: |
+  if orders_judgments.there_are_any:
+    orders_judgments_re_parties_yes = True
+  else:
+    orders_judgments_re_parties_no = True
+---
+code: |
+  if orders_judgments[i].court_name and orders_judgments[i].court_county:
+    orders_judgments[i].court_info_line = str(orders_judgments[i].court_name) + ", " + str(orders_judgments[i].court_county)
+  elif orders_judgments[i].court_name:
+    orders_judgments[i].court_info_line = str(orders_judgments[i].court_name)
+  elif orders_judgments[i].court_county:
+    orders_judgments[i].court_info_line = str(orders_judgments[i].court_county)
+  else:
+    orders_judgments[i].court_info_line = ""
+---
+code: |
+  incidents.there_are_any = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -97,10 +212,27 @@ code: |
   x.complete = True
 ---
 code: |
+  users[i].name.first
+  users[i].address.address
+  users[i].birthdate
+  users[i].complete = True
+---
+code: |
   other_parties[i].name.first
   other_parties[i].address.address
-  other_parties[i].pronouns
   other_parties[i].complete = True
+---
+code: |
+  pending_actions[i].docket_number
+  pending_actions[i].complete = True
+---
+code: |
+  orders_judgments[i].docket_number
+  orders_judgments[i].complete = True
+---
+code: |
+  incidents[i].date
+  incidents[i].complete = True
 ---
 #################### Overridden AL Questions Start #####################
 ---
@@ -115,6 +247,30 @@ question: |
 fields:
   - code: |
       users[0].name_fields()
+---
+id: respondent name
+sets:
+  - other_parties[0].name.first
+  - other_parties[0].name.middle
+  - other_parties[0].name.last
+  - other_parties[0].name.suffix
+question: |
+  Enter the Respondent's name
+fields:
+  - code: |
+      other_parties[0].name_fields()
+---
+id: respondent phone number
+sets:
+  - other_parties[0].phone_number
+question: |
+  Enter ${ other_parties[0].name }'s telephone number
+subquestion: |
+  If none or unknown, leave blank.
+fields:
+  - no label: other_parties[0].phone_number
+    datatype: al_international_phone
+    required: False
 ---
 #################### Overridden AL Questions End #####################
 ---
@@ -186,12 +342,13 @@ subquestion: |
 
   If you made a mistake, click **Go Back** to change your answer. Otherwise, click **Exit**. You can use the ${ MLH_GUIDE_FULL } to search for a lawyer or legal services in your area.
 ---
-id: petitioner living in michigan
-question: |
-  Do you live in Michigan?
-fields:
-  - no label: petitioner_lives_in_michigan
-    datatype: yesnoradio
+#NOTE: Removed for now because users.gather() takes care of this already
+# id: petitioner living in michigan
+# question: |
+#   Do you live in Michigan?
+# fields:
+#   - no label: petitioner_lives_in_michigan
+#     datatype: yesnoradio
 ---
 id: user birthdate
 question: |
@@ -283,6 +440,495 @@ content: |
   3. A **Personal Protection Order - Nondomestic Sexual Assault** is for someone who does **not** have a domestic relationship with the Respondent.
 
       A nondomestic sexual assault personal protection order is used to protect someone from sexual assault and/or threats of sexual assault.
+---
+id: relationship to respondent
+question: |
+  What kind of relationship do/did you have with the Respondent?
+fields:
+  - Select **all** that apply: petitioner_respondent_relationship
+    datatype: checkboxes
+    choices:
+      - I am married to them: married
+      - I was once married to them: was_married
+      - We have a child together: have_child
+      - We live together or used to live together: live_together
+      - We dated or are dating: dating
+      - They are my parent and we live together (or used to live together): parent
+---
+id: relationship to respondent kickout
+question: |
+  We're sorry, but if you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for domestic relationship personal protection order.
+subquestion: |
+  There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article Overview of Personal Protection Orders  to learn if there is a different kind of protection order for you.
+
+  If you made a mistake, click the **Go Back** button to change your answer. Otherwise, click **Exit**.
+---
+id: ppo court county_choice
+question: |
+  Please select the county you want to file your PPO case in
+subquestion: |
+  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the Respondent lives, because there may be future hearings to attend.
+
+  If the Respondent doesn’t know what county you live in and you want to keep your location a secret, it’s probably best to file in a different county.
+fields:
+  - Choose from this list: county_choice
+    code: court_list._load_courts()["address_county"].unique()
+---
+id: safe_contact_info_notice
+question: |
+  For the following, please enter a **SAFE** address and phone number where the court can contact you.
+subquestion: |
+  **DO NOT** enter an address or phone number that you want to keep confidential, because the address and phone number will be part of the court file and will be on the forms given to the Respondent.
+
+  If you don't want the Respondent to know your current address and phone number, you can use a post office box or the address and telephone number of a relative or friend who has agreed to let you do this.
+
+continue button field: safe_contact_info_notice
+---
+id: petitioner contact info
+sets:
+  - users[0].address.address
+  - users[0].address.city
+  - users[0].address.zip
+  - users[0].address.unit
+  - users[0].address.state
+  - users[0].phone_number
+question: |
+  Enter your address and a phone number where the court can reach you
+fields:
+  - Street Address or P.O. Box: users[0].address.address
+    required: True
+  - Apartment, suite, etc.: users[0].address.unit
+  - City: users[0].address.city
+    required: True
+  - State: users[0].address.state
+    required: True
+  - Zip: users[0].address.zip
+    required: True
+  - Phone: users[0].phone_number
+    required: True
+---
+id: respondent intro screen
+question: |
+  Now we're going to ask you questions about the Respondent, the person you want to be protected from.
+subquestion: |
+  Answer the questions as best you can. If you don't know the exact answers, in most places it is OK to estimate or to give the best information you have.
+continue button field: respondent_intro_screen
+---
+id: petitioner and respondent living together
+question: |
+  Do you and ${ other_parties[0].name.first } live together?
+fields:
+  - no label: petitioner_and_respondent_living_together
+    datatype: yesnoradio
+---
+id: respondent race
+question: |
+  Enter ${ other_parties[0].name }'s race
+fields:
+  - no label: other_parties[0].race
+    required: True
+    choices:
+      - White, not Hispanic or Latino: white
+      - Hispanic or Latino: latino
+      - American Indian or Alaskan Native: native
+      - Asian: asian
+      - African American: african_american
+      - Native Hawaiian or Other Pacific Islander: pacific
+      - Other race: other
+---
+id: respondent gender
+question: |
+  Enter ${ other_parties[0].name }'s gender
+fields:
+  - no label: other_parties[0].gender
+    datatype: radio
+    choices:
+      - Male: male
+      - Female: female
+---
+id: respondent height
+question: |
+  Enter ${ other_parties[0].name }'s approximate height
+subquestion: |
+  ${ collapse_template(respondent_height_explained) }
+fields:
+  - Feet: other_parties[0].height_feet
+    datatype: integer
+    required: True
+  - Inches: other_parties[0].height_inches
+    datatype: integer
+    required: True
+    max: 11
+---
+template: respondent_height_explained
+subject: |
+  What if I don't know an exact height?
+content: |
+  An exact height is not required. Provide your best guess.
+---
+id: respondent wight
+question: |
+  Enter ${ other_parties[0].name }'s approximate weight in pounds (lbs)
+subquestion: |
+  ${ collapse_template(respondent_weight_explained) }
+fields:
+  - Weight: other_parties[0].weight
+    datatype: integer
+    required: True
+---
+template: respondent_weight_explained
+subject: |
+  What if I don't know an exact weight?
+content: |
+  An exact weight is not required. Provide your best guess.
+---
+id: respondent hair color
+question: |
+  Enter ${ other_parties[0].name }'s hair color
+subquestion: |
+  If unknown, select "Unknown."
+fields:
+  - no label: other_parties[0].hair_color
+    required: True
+    choices:
+      - Bald: bald
+      - Black: black
+      - Blonde or Strawberry: blonde
+      - Brown: brown
+      - Gray or Partially Gray: gray
+      - Red or Auburn: red
+      - Sandy: sandy
+      - White: white
+      - Unknown: unknown
+---
+id: respondent eye color
+question: |
+  Enter ${ other_parties[0].name }'s eye color
+subquestion: |
+  If unknown, select "Unknown."
+fields:
+  - no label: other_parties[0].eye_color
+    required: True
+    choices:
+      - Black: black
+      - Blue: blue
+      - Brown: brown
+      - Gray: gray
+      - Green: green
+      - Hazel: hazel
+      - Unknown: unknown
+---
+id: respondent license number
+question: |
+  Enter ${ other_parties[0].name }'s driver's license number
+subquestion: |
+  If none or unknown, leave blank.
+fields:
+  - no label: other_parties[0].license_number
+    required: False
+---
+id: respondent other identifying info
+question: |
+  Other identifying information
+subquestion: |
+  In 50 characters or less, describe any other identifying information about ${ other_parties[0].name }, such as scars or tattoos, if any.
+
+  If none, leave blank.
+fields:
+  - no label: other_parties[0].other_identifying_info
+    required: False
+    input type: area
+    maxlength: 50
+---
+id: respondent required to carry gun for work
+question: | 
+  Is ${ other_parties[0].name } required to carry a gun for work?
+fields:
+  - no label: other_parties[0].carries_gun_for_work
+    datatype: radio
+    choices:
+      - Yes: yes
+      - No: no
+      - I don't know: unknown
+---
+id: pending_actions there_are_any
+question: |
+  Are there any pending legal cases between you and ${ other_parties[0].name }?
+subquestion: |
+  Includes court cases, including divorce, custody, PPO, a criminal case, or others.
+fields:
+  - no label: pending_actions.there_are_any
+    datatype: yesnoradio
+---
+id: pending_actions docket number
+sets:
+  - pending_actions[i].docket_number
+question: |
+  Enter the case number
+fields:
+  - no label: pending_actions[i].docket_number
+---
+id: pending_actions court and county
+question: |
+  Enter the name of the court and county where the case was filed, if known.
+fields:
+  - Court name: pending_actions[i].court_name
+    required: False
+  - Court county: pending_actions[i].court_county
+    required: False
+  - Court state: pending_actions[i].court_state
+    required: False
+---
+id: pending_actions judge
+question: |
+  Enter the name of the judge in the case, if known
+fields:
+  - Judge name: pending_actions[i].judge
+    required: False
+---
+id: pending_actions there_is_another
+question: |
+  Are there any more pending legal cases between you and ${ other_parties[0].name }?
+fields: 
+  - no label: pending_actions.there_is_another
+    datatype: yesnoradio
+---
+id: orders_judgments there_are_any
+question: |
+  Are there any court orders or judgments entered in any court regarding you and ${ other_parties[0].name }?
+subquestion: |
+  Includes divorce, custody, previous protection orders, criminal convictions, or others.
+fields:
+  - no label: orders_judgments.there_are_any
+    datatype: yesnoradio
+---
+id: orders_judgments docket number
+sets:
+  - orders_judgments[i].docket_number
+question: |
+  Enter the case number
+fields:
+  - no label: orders_judgments[i].docket_number
+---
+id: orders_judgments court and county
+question: |
+  Enter the name of the court and county where the case was filed, if known.
+fields:
+  - Court name: orders_judgments[i].court_name
+    required: False
+  - Court county: orders_judgments[i].court_county
+    required: False
+  - Court state: orders_judgments[i].court_state
+    required: False
+---
+id: orders_judgments judge
+question: |
+  Enter the name of the judge in the case, if known
+fields:
+  - Judge name: orders_judgments[i].judge
+    required: False
+---
+id: orders_judgments there_is_another
+question: |
+  Are there any more court orders or judgments entered between you and ${ other_parties[0].name }?
+fields: 
+  - no label: orders_judgments.there_is_another
+    datatype: yesnoradio
+---
+id: abuse history intro
+question: |
+  The following questions are about what has happened between you and ${ other_parties[0].name }.
+subquestion: |
+  Your answers will help the judge understand why you need protection.
+
+  Explain the most recent abusive event first, then the next most recent event, and continue in that way. You do not need to list every incident of abuse, especially if there are many. Focus on the most recent events and the most severe events.
+
+  Your answers to these questions will create the statement of facts to go with your *Petition for Personal Protection Order*. This is important because it helps the judge to understand what Jane Lorca has done to you and why you need protection.
+
+continue button field: abuse_history_intro
+---
+id: abuse history intro 2
+question: |
+  The following questions are about what has happened between you and ${ other_parties[0].name }.
+subquestion: |
+  ${ other_parties[0].name } will receive a copy of the petition and statement of facts, and they will also be put in the court file. If there is a hearing on your petition, you will be required to testify about the events in your statement of facts, so it is important to tell the truth and be as accurate as possible.
+
+  Be as specific as you can about facts like dates and locations. However, if you are not sure of a date or other fact, do not guess. It is okay to give an approximate date or time, or to put a time of year, like "last summer."
+
+continue button field: abuse_history_intro_2
+---
+id: abuse history intro 3
+question: |
+  The following questions are about what has happened between you and ${ other_parties[0].name }.
+subquestion: |
+  If you have any documents you want to show the judge, you should attach copies to your petition. However, even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
+
+  If you have audio or video evidence, include descriptions about what is in the evidence when you are typing your descriptions of the incidents in the following screens. Save any audio/video evidence you have. If there will be a hearing for your case, you can submit the audio/video evidence to the court directly.
+
+continue button field: abuse_history_intro_3
+---
+id: abuse history intro 4
+question: |
+  The following questions are about what has happened between you and ${ other_parties[0].name }.
+subquestion: |
+  The following questions will apply to the most recent incident of violence, threat of violence, or other abuse.
+
+continue button field: abuse_history_intro_4
+---
+id: incidents date
+sets:
+  - incidents[i].date
+question: |
+  Complete this sentence
+subquestion: |
+  ${ collapse_template(incident_date_explained) }
+fields:
+  - One incident occurred on or about...: incidents[i].date
+---
+template: incident_date_explained
+subject: |
+  Do I need an exact date?
+content: |
+  Fill in the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time 2022."
+---
+id: incidents location
+question: |
+  Complete this sentence
+subquestion: |
+  ${ collapse_template(incident_location_explained) }
+fields:
+  - The incident occurred at the following location: incidents[i].location
+    required: False
+---
+template: incident_location_explained
+subject: |
+  Do I need the address?
+content: |
+  Describe the location and fill in an address, if you know it. Examples: "At my mother's house, at 123 N. Main Street, Toledo, Ohio" or "At the Chili's restaurant near my house." 
+---
+id: incidents other party actions
+question: |
+  Please describe what happened during the incident
+subquestion: |
+  Be sure to use complete sentences and be as descriptive as you can. List as many details as you can remember.
+
+  ${ collapse_template(incident_other_party_actions_explained) }
+fields:
+  - no label: incidents[i].other_party_actions
+    input type: area
+---
+template: incident_other_party_actions_explained
+subject: |
+  Can I see some examples?
+content: |
+  Here are two examples to help you understand how to write a good description of the incident:
+  
+  A poor example:
+
+  "We were fighting and he pushed me."
+
+  A good example:
+
+  "We were eating dinner, and he was complaining that his food was cold. I got angry, so I grabbed his plate and went to the kitchen to put it in the microwave. He followed me and grabbed my arm and told me I was not supposed to leave the dinner table without his permission, and that I was a bad example for our daughter. I told him to leave me alone and he pushed me down on the ground and dumped the plate of food on my legs. He told me that one day he would leave me alone for good and I would be sorry because no one would ever want me again."
+---
+id: incidents emotional effect
+question: |
+  Describe how you felt during and after the incident.
+subquestion: |
+  Finish this sentence:
+fields:
+  - Because of this incident I felt...: incidents[i].emotional_effect
+    input type: area
+---
+id: incidents physical injury
+question: |
+  Were you physically injured?
+subquestion: |
+  Being physically injured includes being sore or bruised, having other injuries you took care of yourself, or having injuries that were seen by a doctor.
+
+  ${ collapse_template(incident_injury_explained) }
+fields:
+  - no label: incidents[i].petitioner_injured
+    datatype: yesnoradio
+---
+template: incident_injury_explained
+subject: |
+  What if I wasn't injured?
+content: |
+  There is no requirement that you be physically injured to get a personal protection order. This is just information that can help the judge understand what happened to you and why you need to be protected from Jane Lorca.
+---
+id: incidents physical injury description
+question: |
+  Describe your injuries
+fields:
+  - no label: incidents[i].physical_injury
+    input type: area
+---
+id: incidents witnesses
+question: |
+  Were there any witnesses to the incident?
+subquestion: |
+  You don't have to list the names of witnesses here, but if there are witnesses, it is possible the judge will want to hear from them if there is a court hearing.
+
+  ${ collapse_template(incident_witnesses_explained) }
+fields:
+  - no label: incidents[i].had_witnesses
+    datatype: yesnoradio
+---
+template: incident_witnesses_explained
+subject: |
+  What if there were no witnesses?
+content: |
+  There is no requirement that you have witnesses to get a personal protection order. This is just information that can help the judge understand what happened to you and why you need protection from ${ other_parties[0].name }.
+---
+id: incidents police
+question: |
+  Were the police called?
+subquestion: |
+  ${ collapse_template(incident_police_explained) }
+fields:
+  - no label: incidents[i].had_police
+    datatype: yesnoradio
+---
+template: incident_police_explained
+subject: |
+  Why is this important?
+content: |
+  There is no requirement that the police were called to get a personal protection order. This is just information that can help the judge understand what happened to you and why you need protection from ${ other_parties[0].name }.
+---
+id: incidents police actions
+question: |
+  What did the police do?
+fields:
+  - no label: incidents[i].police_actions
+    input type: area
+---
+id: incidents outro
+question: |
+  Important! If there is a police report for this incident, get a copy to include with your petition.
+subquestion: |
+  A police report can help show the judge what happened and why you need a PPO.
+
+  Note that only including a police report number or incident number in your petition does **not** automatically allow the court to access the police report. It must be filed with your petition if you want the court to be able to see it.
+
+continue button field: incidents_outro
+---
+id: incidents there_is_another
+question: |
+  Is there another incident of violence, threat of violence, or other abuse?
+fields:
+  - no label: incidents.there_is_another
+    datatype: yesnoradio
+---
+id: other details
+question: |
+  Include anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }
+subquestion: |
+  You can use this space to tell the judge other things about Jane Lorca that make you feel threatened, abused, or afraid.
+fields:
+  - no label: other_details
+    input type: area
+    required: False
 ---
 id: efile note question
 question: |
@@ -613,4 +1259,3 @@ attachments:
 ---
 #################### Documents End #####################
 ---
-
