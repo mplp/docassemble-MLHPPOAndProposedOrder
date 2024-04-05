@@ -26,6 +26,7 @@ sections:
   - review_respondent_info: "Respondent Information"
   - review_abuse_history_info: "History of Abuse"
   - review_relief_requested_info: "Relief to be Requested"
+  - review_instructions_info: "Instructions"
 ---
 code: |
   al_form_type = "existing_case"
@@ -42,7 +43,7 @@ objects:
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
-  - ppo_threat_protectees: ALPeopleList.using(auto_gather=True, complete_attribute="complete")
+  - ppo_threat_protectees: ALPeopleList.using(complete_attribute="complete")
   - mc_97_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - mc_97a_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - mc_97a_pii_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete")
@@ -101,6 +102,26 @@ code: |
   wants_no_harming_petitioner
   if ppo_harm_protectees.there_are_any:
     ppo_harm_protectees.gather()
+  wants_no_removing_minor
+  no_stalking_choices
+  wants_no_children_property_removal_interference
+  wants_no_threatening_petitioner
+  if ppo_threat_protectees.there_are_any:
+    ppo_threat_protectees.gather()
+  wants_no_work_education_interference
+  wants_no_access_to_personal_info_records
+  no_mental_distress_or_control_choices
+  wants_no_firearm_purchase_or_possession
+  wants_other_request
+  ex_parte_info_screen
+  if wants_ex_parte_order:
+    ex_parte_yes_screen
+
+  nav.set_section("review_instructions_info")
+  efile_notice
+  if esign:
+    signature_date
+  motion_re_change_of_domicile_download
 
   interview_ppo_and_proposed_order = True
 ---
@@ -209,6 +230,56 @@ code: |
   if ppo_harm_protectees.there_are_any:
     wants_no_harming_people = True
 ---
+code: |
+  if no_stalking_choices['following']:
+    stalking_includes_following_appearing_in_sight = True
+    wants_no_stalking = True
+
+  if no_stalking_choices['communications']:
+    stalking_includes_sending_communications
+    wants_no_stalking = True
+
+  if no_stalking_choices['approaching']:
+    stalking_includes_approaching_confronting_in_public
+    wants_no_stalking = True
+
+  if no_stalking_choices['entering_property']:
+    stalking_includes_being_on_petitioners_property
+    wants_no_stalking = True
+
+  if no_stalking_choices['placing_object']:  
+    stalking_includes_leaving_object
+    wants_no_stalking = True
+
+  if no_stalking_choices['appear_work_residence']:  
+    stalking_includes_appearing_at_petitioners_work
+    wants_no_stalking = True
+
+  if no_stalking_choices['phone_contact']:  
+    stalking_includes_phone_contact
+    wants_no_stalking = True
+---
+code: |
+  if wants_no_threatening_petitioner:
+    wants_no_threatening_people = True
+---
+code: |
+  if ppo_threat_protectees.there_are_any:
+    wants_no_threatening_others = True
+---
+code: |
+  if no_mental_distress_or_control_choices['harming_animal']:
+    intentional_mental_distress_includes_animal_harm = True
+    wants_no_intentional_mental_distress_or_control = True
+
+  if no_mental_distress_or_control_choices['removing_animal']:
+    intentional_mental_distress_includes_removing_animal
+    wants_no_intentional_mental_distress_or_control = True
+
+  if no_mental_distress_or_control_choices['keeping_animal']:
+    intentional_mental_distress_includes_retaining_animal
+    wants_no_intentional_mental_distress_or_control = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -274,6 +345,10 @@ code: |
 code: |
   ppo_harm_protectees[i].name.first
   ppo_harm_protectees[i].complete = True
+---
+code: |
+  ppo_threat_protectees[i].name.first
+  ppo_threat_protectees[i].complete = True
 ---
 #################### Overridden AL Questions Start #####################
 ---
@@ -354,6 +429,18 @@ question: |
 fields:
   - code: |
       ppo_harm_protectees[i].name_fields()
+---
+id: ppo_threat_protectees name
+sets:
+  - ppo_threat_protectees[i].name.first
+  - ppo_threat_protectees[i].name.middle
+  - ppo_threat_protectees[i].name.last
+  - ppo_threat_protectees[i].name.suffix
+question: |
+  Provide the name of the ${ ordinal(i) } other person you want protected from threats of physical injury or death
+fields:
+  - code: |
+      ppo_threat_protectees[i].name_fields()
 ---
 #################### Overridden AL Questions End #####################
 ---
@@ -1031,14 +1118,14 @@ id: wants_no_entering_residential_property
 question: |
   Do you want the judge to order ${ other_parties[0].name } not to enter the property where you live?
 fields:
-  - no label: other_properties.there_are_any
+  - no label: wants_no_entering_residential_property
     datatype: yesnoradio
 ---
-id: wants_no_entering_other_property
+id: wants no entering other property
 question: |
   Do you want the judge to order ${ other_parties[0].name } not to enter other property (not your residence)?
 fields:
-  - no label: wants_no_entering_other_property
+  - no label: other_properties.there_are_any
     datatype: yesnoradio
 ---
 template: wants_no_entering_other_property_explained
@@ -1079,6 +1166,197 @@ subquestion: |
 fields:
   - no label: ppo_harm_protectees.there_is_another
     datatype: yesnoradio
+---
+id: wants_no_removing_minor
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to remove your minor child(ren) from your custody?
+subquestion: |
+  This protection **will not** prohibit ${ other_parties[0].name } from removing your minor children if ${ other_parties[0].name } is allowed to have the children based on a custody or parenting time order and if the visitation or transfer of the children does not violate other conditions of the personal protection order.
+fields:
+  - no label: wants_no_removing_minor
+    datatype: yesnoradio
+---
+id: no_stalking_choices
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to stalk you, including the following behaviors?
+subquestion: |
+  ${ collapse_template(wants_no_stalking_explained) }
+fields:
+  - Check all that apply: no_stalking_choices
+    datatype: checkboxes
+    choices:
+      - Following you or appearing within your sight: following
+      - Sending mail or other communications to you: communications
+      - Approaching or confronting you in a public place or on private property: approaching
+      - Entering onto or staying on property you own, lease, or occupy: entering_property
+      - Placing an object on or delivering an object to property you own, lease, or occupy: placing_object
+      - Appearing at your workplace or residence: appear_work_residence
+      - Contacting you by telephone: phone_contact
+---
+template: wants_no_stalking_explained
+subject: |
+  When should I answer yes?
+content: |
+  You might ask for some or all of the following stalking protections if you believe these behaviors by ${ other_parties[0].name } interfere with your personal freedom or if the behaviors make you afraid.
+
+  What some of the choices mean:
+
+    * Sending mail or other communications to you
+    * Approaching or confronting you in a public place or on private property
+---
+id: wants_no_children_property_removal_interference
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to interfere with your efforts to remove your children or personal property from a place that ${ other_parties[0].name } owns or leases?
+subquestion: |
+  ${ collapse_template(wants_no_children_property_removal_interference_explained) }
+fields:
+  - no label: wants_no_children_property_removal_interference
+    datatype: yesnoradio
+---
+template: wants_no_children_property_removal_interference_explained
+subject: |
+  When should I answer yes?
+content: |
+  You might ask for this protection if you left a home where you lived with ${ other_parties[0].name } and you need to return to get your children or personal belongings.
+---
+id: wants no threatening petitioner
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure you?
+fields:
+  - no label: wants_no_threatening_petitioner
+    datatype: yesnoradio
+---
+id: wants no threatening others
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person?
+subquestion: |
+  ${ collapse_template(wants_no_threatening_others_explained) }
+fields:
+  - no label: ppo_threat_protectees.there_are_any
+    datatype: yesnoradio
+---
+template: wants_no_threatening_others_explained
+subject: |
+  When should I answer yes?
+content: |
+  You might answer Yes to this if there are other people ${ other_parties[0].name } has threatened to kill or physically injure, such as your children, specific relatives, or specific friends.
+---
+id: ppo_threat_protectees there_is_another
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person not yet listed?
+subquestion: |
+  % if len(ppo_threat_protectees.complete_elements()) > 0:
+  So far, you have listed:
+
+  % if wants_no_threatening_petitioner:
+    - Yourself
+  % endif
+
+  % for object in ppo_threat_protectees.complete_elements():
+    - ${ object }
+  % endfor
+  % endif
+fields:
+  - no label: ppo_threat_protectees.there_is_another
+    datatype: yesnoradio
+---
+id: wants_no_work_education_interference
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?
+fields:
+  - no label: wants_no_work_education_interference
+    datatype: yesnoradio
+---
+id: wants_no_access_to_personal_info_records
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to have access to information in your child's records that shows your (or your child's) home address, phone number, or work address?
+subquestion: |
+  ${ collapse_template(wants_no_access_to_personal_info_records_explained) }
+fields:
+  - no label: wants_no_access_to_personal_info_records
+    datatype: yesnoradio
+---
+template: wants_no_access_to_personal_info_records_explained
+subject: |
+  When should I answer yes?
+content: |
+  You might ask for this protection if you and ${ other_parties[0].name } have a child or children in common and you don't want ${ other_parties[0].name } to know your address or other contact information. This protection applies to records such as school records, Friend of the Court records, records kept by your child's doctor, and other records that contain this information.
+---
+id: no_mental_distress_or_control_choices
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to intentionally cause you mental distress or control you, including the following behaviors?
+fields:
+  - Check all that apply: no_mental_distress_or_control_choices
+    datatype: checkboxes
+    choices:
+      - Injuring, killing, torturing, or neglecting any animal that you own, or threatening to do any of those things: harming_animal
+      - Removing any animal you own from your possession: removing_animal
+      - Keeping any animal you own from you, or taking possession of it: keeping_animal
+---
+id: wants_no_firearm_purchase_or_possession
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to buy or have a gun?
+fields:
+  - no label: wants_no_firearm_purchase_or_possession
+    datatype: yesnoradio
+---
+id: wants_other_request
+question: |
+  Is there anything else you want the judge to order in the PPO?
+subquestion: |
+  ${ collapse_template(wants_other_request_explained) }
+fields:
+  - no label: wants_other_request
+    datatype: yesnoradio
+  - List the other things you want the judge to order ${ other_parties[0].name } not to do, and/or the exceptions you want the judge to make: other_request_exp
+    input type: area
+    show if:
+      variable: wants_other_request
+      is: True
+---
+template: wants_other_request_explained
+subject: |
+  What are some examples?
+content: |
+  This is the place where you can ask the judge to prohibit other behavior you did not already ask for and/or where you can ask the judge to make exceptions for some situations.
+
+  For example, prohibit ${ other_parties[0].name } from:
+
+    * Interfering with access to your driver's license or other important papers
+
+    * Interfering with your use of a vehicle or removing your vehicle from you
+
+    * Contacting you by telephone except for sending you text messages to arrange parenting time
+---
+id: ex_parte_info_screen
+question: |
+  An **ex parte** order is an order that the judge signs without having a court hearing first.
+subquestion: |
+  If you ask for an ex parte order, the judge will consider your petition and decide whether to grant you a personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
+
+  You should request an ex parte order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when she gets notice that you are asking for a PPO.
+continue button field: ex_parte_info_screen
+---
+id: wants_ex_parte_order
+question: |
+  Would you like an {ex parte} order?
+terms:
+  ex parte: |
+    An ex parte order is an order that the judge signs without having a court hearing first.
+
+    If you ask for an ex parte order, the judge will consider your petition and decide whether to grant your personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
+
+    You should request an ex parte order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when she gets notice that you are asking for a PPO.
+fields:
+  - no label: wants_ex_parte_order
+    datatype: yesnoradio
+---
+id: ex_parte_yes_screen
+question: |
+  After you file your petition, the judge will consider it without a hearing and decide whether to grant you a personal protection order.
+subquestion: |
+  In many courts this will not take longer than 24 hours, but in some courts it can take up to 72 hours. For information about how long it could take in your court, read the instructions that you will get with your forms.
+continue button field: ex_parte_yes_screen
 ---
 id: efile note question
 question: |
@@ -1146,7 +1424,7 @@ objects:
   - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="cc_375_statement_of_facts.docx", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_375_personal_protection_order_domestic.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_375_petition_for_personal_protection_order_domestic.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -1259,7 +1537,7 @@ attachments:
   variable name: ppo_cc_376[i]
   skip undefined: True
   editable: False
-  pdf template file: cc_375_personal_protection_order_domestic.pdf
+  pdf template file: cc_375_petition_for_personal_protection_order_domestic.pdf
   fields:
     - users1_name__1: ${ users[0].name }
     - users1_address_block: ${ users[0].address_block }
