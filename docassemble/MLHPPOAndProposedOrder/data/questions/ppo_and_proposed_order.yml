@@ -73,6 +73,7 @@ code: |
   knows_respondents_birthdate
   ppo_type
   petitioner_respondent_relationship
+  set_petitioner_respondent_relationship
   county_choice
   for user in users:
     safe_contact_info_notice
@@ -81,10 +82,13 @@ code: |
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
+  respondent_carries_firearm_for_work_asked
   if pending_actions.there_are_any:
     pending_actions.gather()
+  pending_actions_asked
   if orders_judgments.there_are_any:
     orders_judgments.gather()
+  orders_judgments_asked
 
   nav.set_section("review_abuse_history_info")
   abuse_history_intro
@@ -99,18 +103,25 @@ code: |
   wants_no_entering_residential_property
   if other_properties.there_are_any:
     other_properties.gather()
+  wants_no_entering_other_property
   wants_no_harming_petitioner
   if ppo_harm_protectees.there_are_any:
     ppo_harm_protectees.gather()
+  wants_no_harming_people
+  ppo_harm_protectees_list
   wants_no_removing_minor
   no_stalking_choices
+  set_stalking_options
   wants_no_children_property_removal_interference
   wants_no_threatening_petitioner
   if ppo_threat_protectees.there_are_any:
     ppo_threat_protectees.gather()
+  wants_no_threatening_others
+  ppo_threat_protectees_list
   wants_no_work_education_interference
   wants_no_access_to_personal_info_records
   no_mental_distress_or_control_choices
+  set_mental_distress_control_options
   wants_no_firearm_purchase_or_possession
   wants_other_request
   ex_parte_info_screen
@@ -160,6 +171,8 @@ code: |
 
   if petitioner_respondent_relationship['parent']:
     petitioner_respondent_parent_child = True
+  
+  set_petitioner_respondent_relationship = True
 ---
 code: |
   if petitioner_and_respondent_living_together:
@@ -179,12 +192,15 @@ code: |
 
   if other_parties[0].carries_gun_for_work == 'unknown':
     respondent_carries_firearm_for_work_unknown = True
+  
+  respondent_carries_firearm_for_work_asked = True
 ---
 code: |
   if pending_actions.there_are_any:
     pending_actions_between_parties_yes = True
   else:
     pending_actions_between_parties_no = True
+  pending_actions_asked = True
 ---
 code: |
   if pending_actions[i].court_name and pending_actions[i].court_county:
@@ -201,6 +217,7 @@ code: |
     orders_judgments_re_parties_yes = True
   else:
     orders_judgments_re_parties_no = True
+  orders_judgments_asked = True
 ---
 code: |
   if orders_judgments[i].court_name and orders_judgments[i].court_county:
@@ -223,12 +240,18 @@ code: |
     wants_no_entering_other_property = True
 ---
 code: |
-  if wants_no_harming_petitioner:
+  if wants_no_harming_petitioner or ppo_harm_protectees.there_are_any:
     wants_no_harming_people = True
 ---
+#NOTE: gives list of ppo_harm_protectees, formatted for the PDF template
 code: |
-  if ppo_harm_protectees.there_are_any:
-    wants_no_harming_people = True
+  if wants_no_harming_petitioner and ppo_harm_protectees.there_are_any:
+    if len(ppo_harm_protectees.complete_elements()) > 1:
+      ppo_harm_protectees_list = str(users[0].name) + ", " + comma_and_list(ppo_harm_protectees)
+    else:
+      ppo_harm_protectees_list = str(users[0].name) + ", and " + comma_and_list(ppo_harm_protectees)
+  else:
+    ppo_harm_protectees_list = comma_and_list(ppo_harm_protectees)
 ---
 code: |
   if no_stalking_choices['following']:
@@ -236,36 +259,44 @@ code: |
     wants_no_stalking = True
 
   if no_stalking_choices['communications']:
-    stalking_includes_sending_communications
+    stalking_includes_sending_communications = True
     wants_no_stalking = True
 
   if no_stalking_choices['approaching']:
-    stalking_includes_approaching_confronting_in_public
+    stalking_includes_approaching_confronting_in_public = True
     wants_no_stalking = True
 
   if no_stalking_choices['entering_property']:
-    stalking_includes_being_on_petitioners_property
+    stalking_includes_being_on_petitioners_property = True
     wants_no_stalking = True
 
   if no_stalking_choices['placing_object']:  
-    stalking_includes_leaving_object
+    stalking_includes_leaving_object = True
     wants_no_stalking = True
 
   if no_stalking_choices['appear_work_residence']:  
-    stalking_includes_appearing_at_petitioners_work
+    stalking_includes_appearing_at_petitioners_work = True
     wants_no_stalking = True
 
   if no_stalking_choices['phone_contact']:  
-    stalking_includes_phone_contact
+    stalking_includes_phone_contact = True
     wants_no_stalking = True
+  
+  set_stalking_options = True
 ---
 code: |
-  if wants_no_threatening_petitioner:
-    wants_no_threatening_people = True
----
-code: |
-  if ppo_threat_protectees.there_are_any:
+  if wants_no_threatening_petitioner or ppo_threat_protectees.there_are_any:
     wants_no_threatening_others = True
+---
+#NOTE: gives list of ppo_threat_protectees, formatted for the PDF template
+code: |
+  if wants_no_threatening_petitioner and ppo_threat_protectees.there_are_any:
+    if len(ppo_threat_protectees.complete_elements()) > 1:
+      ppo_threat_protectees_list = str(users[0].name) + ", " + comma_and_list(ppo_threat_protectees)
+    else:
+      ppo_threat_protectees_list = str(users[0].name) + ", and " + comma_and_list(ppo_threat_protectees)
+  else:
+    ppo_threat_protectees_list = comma_and_list(ppo_threat_protectees)
 ---
 code: |
   if no_mental_distress_or_control_choices['harming_animal']:
@@ -273,12 +304,14 @@ code: |
     wants_no_intentional_mental_distress_or_control = True
 
   if no_mental_distress_or_control_choices['removing_animal']:
-    intentional_mental_distress_includes_removing_animal
+    intentional_mental_distress_includes_removing_animal = True
     wants_no_intentional_mental_distress_or_control = True
 
   if no_mental_distress_or_control_choices['keeping_animal']:
-    intentional_mental_distress_includes_retaining_animal
+    intentional_mental_distress_includes_retaining_animal = True
     wants_no_intentional_mental_distress_or_control = True
+  
+  set_mental_distress_control_options = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -287,6 +320,10 @@ generic object: ALIndividual
 code: |
   x.name.first
   x.complete = True
+---
+# Tells court_index which court to choose
+code: |
+  court_index = next(court_list.filter_courts_by_2([county_choice], ['circuit'], column_1='address_county', column_2='type'))[0]
 ---
 code: |
   users[i].name.first
@@ -1424,6 +1461,9 @@ objects:
   - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="cc_375_statement_of_facts.docx", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="cc_375_attachment.docx", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_375_petition_for_personal_protection_order_domestic.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -1436,7 +1476,7 @@ objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="cc_381_notice_of_hearing.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, ppo_cc_376, ppo_mc_97, ppo_mc_97a, ppo_cc_381], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_mc_97, ppo_mc_97a, ppo_cc_381], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship)
@@ -1448,23 +1488,28 @@ attachments:
   fields:
     - users1_name__1: ${ users[0].name }
     - users1_name__2: ${ users[0].name }
-    - users1_address_block: ${ users[0].address_block }
+    - users1_address: ${ users[0].address }
     - users1_phone_number: ${ users[0].phone_number }
-    - users1_age: ${ users[0].age }
+    - users1_age: ${ users[0].age_in_years() }
+    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - signature_date: ${ signature_date if esign else "" }
 
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
-    - other_parties1_address_block: ${ other_parties[0].address_block }
+    - other_parties1_address: ${ other_parties[0].address }
+    - other_parties1_address_block: ${ other_parties[0].address_block() }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
-    - other_parties1_age: ${ other_parties[0].age }
+    - other_parties1_age: ${ other_parties[0].age_in_years() }
 
-    - trial_court: ${ trial_court }
-    - trial_court_county: ${ county_choice }
-    - docket_number: ${ docket_number }
-    - trial_court_address_on_one_line: ${ trial_court.address.on_one_line() }
-    - trial_court_phone_number: ${ trial_court.phone_number }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - docket_number__1: ${ docket_number }
+    - docket_number__2: ${ docket_number }
+    - docket_number__3: ${ docket_number }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
 
-    - other_properties1_address: ${ other_properties[0].address }
+    - other_properties1_address: ${ other_properties[0].on_one_line() }
 
     - pending_actions1_docket_number: ${ pending_actions[0].docket_number }
     - pending_actions1_court_info_line: ${ pending_actions[0].court_info_line }
@@ -1472,6 +1517,10 @@ attachments:
     - pending_actions1_court_county: ${ pending_actions[0].court_county }
     - pending_actions1_court_state: ${ pending_actions[0].court_state }
     - pending_actions1_court_judge: ${ pending_actions[0].court_judge }
+    - pending_actions_see_attached: |
+        % if pending_actions.there_are_any == True:
+        See attachment.
+        % endif
 
     - orders_judgments1_docket_number: ${ orders_judgments[0].docket_number }
     - orders_judgments1_court_info_line: ${ orders_judgments[0].court_info_line }
@@ -1479,6 +1528,13 @@ attachments:
     - orders_judgments1_court_county: ${ orders_judgments[0].court_county }
     - orders_judgments1_court_state: ${ orders_judgments[0].court_state }
     - orders_judgments1_court_judge: ${ orders_judgments[0].court_judge }
+    - orders_judgments_see_attached: |
+        % if orders_judgments.there_are_any == True:
+        See attachment.
+        % endif
+  
+    - ppo_explanation_see_attached: |
+        Please see attached "Statement of Facts".
 
     - ppo_harm_protectees_list: ${ ppo_harm_protectees_list }
     - ppo_threat_protectees_list: ${ ppo_threat_protectees_list }
@@ -1517,6 +1573,10 @@ attachments:
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
     - wants_other_request: ${ wants_other_request }
     - other_request_exp: ${ other_request_exp }
+    - other_request_see_attached: |
+        % if wants_other_request:
+        Please see attached "Statement of Facts".
+        % endif
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
 
@@ -1527,6 +1587,15 @@ attachments:
   filename: cc_375_statement_of_facts
   docx template file: cc_375_statement_of_facts.docx
   variable name: cc_375_addendum[i]
+  skip undefined: True
+  valid formats:
+    - pdf
+---
+attachments:
+  name: Petition for Personal Protection Order (Domestic Relationship) Attachment
+  filename: cc_375_attachment
+  docx template file: cc_375_attachment.docx
+  variable name: cc_375_attachment[i]
   skip undefined: True
   valid formats:
     - pdf
@@ -1687,4 +1756,3 @@ attachments:
 ---
 #################### Documents End #####################
 ---
-
