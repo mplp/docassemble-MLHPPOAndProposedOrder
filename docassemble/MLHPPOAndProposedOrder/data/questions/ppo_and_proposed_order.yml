@@ -71,11 +71,15 @@ code: |
     minor_kickout
   respondent_lives_in_michigan
   knows_respondents_birthdate
-  ppo_type
+  if ppo_type == "nondomestic":
+    ppo_nondomestic_intro
+    if not has_two_separate_noncontinuous_incidents:
+      separate_noncontinuous_incidents_kickout
+  if ppo_type == "domestic":
+    petitioner_respondent_relationship
+    set_petitioner_respondent_relationship
   set_doc_being_filed_with_mc_97
   set_doc_being_filed_with_mc_97a
-  petitioner_respondent_relationship
-  set_petitioner_respondent_relationship
   county_choice
   for user in users:
     safe_contact_info_notice
@@ -94,10 +98,18 @@ code: |
   orders_judgments_asked
 
   nav.set_section("review_abuse_history_info")
-  abuse_history_intro
-  abuse_history_intro_2
-  abuse_history_intro_3
-  abuse_history_intro_4
+  if ppo_type == "domestic":
+    abuse_history_intro
+    abuse_history_intro_2
+    abuse_history_intro_3
+    abuse_history_intro_4
+
+  if ppo_type == "nondomestic":
+    stalking_harassing_intro
+    abuse_history_intro_2
+    abuse_history_intro_3
+    stalking_history_intro
+
   incidents.gather()
   other_details
 
@@ -392,6 +404,8 @@ code: |
   incidents[i].date
   incidents[i].location
   incidents[i].other_party_actions
+  if ppo_type == "nondomestic":
+    incident[i].reason_other_party_responsible
   incidents[i].emotional_effect
   incidents[i].petitioner_injured
   incidents[i].had_witnesses
@@ -681,6 +695,51 @@ content: |
 
       A nondomestic sexual assault personal protection order is used to protect someone from sexual assault and/or threats of sexual assault.
 ---
+id: ppo nondomestic intro
+question: |
+  You have chosen a type of PPO that is for someone who does not have a domestic relationship with the Respondent.
+subquestion: |
+  A domestic relationship means:
+
+    * You are/were married to the Respondent;
+    * You are dating/dated the Respondent;
+    * You live/lived with the Respondent; or
+    * You have one or more children with the Respondent.
+
+  If you **do** have a domestic relationship with the Respondent, you cannot use this type of PPO. You should select **Undo** to return to the prior screen and choose **Personal Protection Order - Domestic Relationship**.
+
+  If you **do not** have a domestic relationship with the Respondent, you can continue.
+
+continue button field: ppo_nondomestic_intro
+---
+id: two or more noncontinuous incidents
+question: |
+  Were there two or more **separate**, **noncontinuous** incidents where the respondent stalked or harassed you?
+subquestion: |
+  ${ collapse_template(separate_noncontinuous_incidents_explained) }
+fields:
+  - no label: has_two_separate_noncontinuous_incidents
+    datatype: yesnoradio
+---
+template: separate_noncontinuous_incidents_explained
+subject: |
+  What are separate, noncontinuous incidents?
+content: |
+  There must be at least two separate, noncontinuous incidents of stalking or harassing behavior in order to get a nondomestic PPO. This means that the respondent’s actions against you had to be separate from one another in time and space. Actions that are part of a single event are not separate and noncontinuous. 
+
+  For example, if the respondent approached you, physically harmed you, and then made a verbal threat — and these actions followed immediately one after the other — this would count as only one incident of stalking or harassment, and would not be enough to get a nondomestic PPO.
+---
+id: separate noncontinuous incidents kickout
+event: separate_noncontinuous_incidents_kickout
+question: |
+  We're sorry, but your answers indicate you don't qualify for a nondomestic (stalking) PPO.
+subquestion: |
+  To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
+
+  If you made a mistake, select the *Undo* button to change your answer.
+
+  Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders).
+---
 id: relationship to respondent
 question: |
   What kind of relationship do/did you have with the Respondent?
@@ -966,6 +1025,40 @@ subquestion: |
 
 continue button field: abuse_history_intro
 ---
+id: stalking harassing behavior intro
+question: |
+  The following questions are about ${ other_parties[0].name }'s stalking and/or harassing behavior.
+subquestion: |
+  Your answers will help the judge understand why you need protection.
+
+  To qualify for a PPO when you do not have a domestic relationship with ${ other_parties[0].name }, you must show that ${ other_parties[0].name } has engaged in a "willful course of conduct" that involves repeated or continuing harassment of you. The harassment must be behavior that:
+
+    * Involves two or more separate, noncontinuous acts,
+    * Would cause a reasonable person to feel terrorized, frightened, intimidated, threatened, harassed, or molested, and
+    * Actually caused you to feel terrorized, frightened, intimidated, threatened, harassed, or molested.
+
+  ${ collapse_template(stalking_harassing_explained) }
+
+continue button field: stalking_harassing_intro
+---
+template: stalking_harassing_explained
+subject: |
+  Learn more about stalking behavior.
+content: |
+  Stalking and/or harassing behavior takes many forms. Generally, stalking is contact you don't consent to that scares you or harasses you. Examples of stalking behavior include:
+
+    * Following you or appearing within your sight
+    * Showing up at your home or work
+    * Approaching you or confronting you in public or on private property
+    * Coming onto property you own, lease, and/or where you live
+    * Sending you mail, email, or other communications
+    * Calling or texting you
+    * Placing or delivering an object on property you own, lease, and/or where you live
+    * Threatening to kill you or hurt you
+    * Posting a message to you or about you on the Internet, a computer, or any other electronic means
+
+  Your answers to these questions will create the statement of facts to go with your *Petition for Personal Protection Order*. This is important because it helps the judge understand what ${ other_parties[0].name } has done to you and why you need protection.
+---
 id: abuse history intro 2
 question: |
   ${ other_parties[0].name } will receive a copy of the petition and statement of facts, and they will also be put in the court file
@@ -991,6 +1084,12 @@ question: |
   The following questions will apply to the most recent incident of violence, threat of violence, or other abuse
 
 continue button field: abuse_history_intro_4
+---
+id: stalking history intro
+question: |
+  The following questions will apply to the most recent incident of stalking, harassing, or threatening behavior
+
+continue button field: stalking_history_intro
 ---
 id: incidents date
 sets:
@@ -1063,6 +1162,33 @@ fields:
   - Because of this incident I felt...: incidents[i].emotional_effect
     input type: area
 ---
+id: incidents reason other party responsible
+question: |
+  How do you know ${ other_parties[0].name } was responsible?
+subquestion: |
+  You may not need to complete this field if it is obvious from your description of the incident that ${ other_parties[0].name } was responsible for the behavior. Click the link below for more information.
+
+  ${ collapse_template(other_party_responsible_explained) }
+fields:
+  - Because of this incident I felt...: incidents[i].reason_other_party_responsible
+    input type: area
+---
+template: other_party_responsible_explained
+subject: |
+  Can I get some examples?
+content: |
+  If ${ other_parties[0].name }'s behavior was not in person, it may be helpful to the judge to understand why you believe ${ other_parties[0].name } was involved. This might be the case if ${ other_parties[0].name }'s behavior was over the phone, by text, or through the Internet.
+
+  Here are two examples to help you understand how to tell the judge you know ${ other_parties[0].name } was responsible for the behavior.
+
+  A poor example:
+
+  "I know it was him calling because no one else would call me and hang up."
+
+  A good example:
+
+  "I know it was him calling because the number was blocked, and each time he called before he blocked the number. Also, he has a pattern of calling me in the evening between 6:00 and 9:00 and repeatedly hanging up when I answer the phone."
+---
 id: incidents physical injury
 question: |
   Were you physically injured?
@@ -1134,7 +1260,11 @@ continue button field: incidents_outro
 ---
 id: incidents there_is_another
 question: |
+  % if ppo_type == "nondomestic":
+  Is there another incident of stalking, harassing, or threatening behavior?
+  % elif ppo_type == "domestic":
   Is there another incident of violence, threat of violence, or other abuse?
+  % endif
 fields:
   - no label: incidents.there_is_another
     datatype: yesnoradio
@@ -1483,6 +1613,9 @@ objects:
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship)", filename="cc_375_petition_for_personal_protection_order_domestic.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship)", filename="cc_377_petition_for_personal_protection_order_nondomestic.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="cc_375_statement_of_facts.docx", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -1504,7 +1637,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_mc_97, ppo_mc_97a, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship)
@@ -1521,14 +1654,12 @@ attachments:
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
     - signature_date: ${ signature_date if esign else "" }
-
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address: ${ other_parties[0].address }
     - other_parties1_address_block: ${ other_parties[0].address_block() }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_age: ${ other_parties[0].age_in_years() }
-
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
     - docket_number__1: ${ docket_number }
@@ -1536,9 +1667,7 @@ attachments:
     - docket_number__3: ${ docket_number }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
-
     - other_properties1_address: ${ other_properties[0].on_one_line() }
-
     - pending_actions1_docket_number: ${ pending_actions[0].docket_number }
     - pending_actions1_court_info_line: ${ pending_actions[0].court_info_line }
     - pending_actions1_court_name: ${ pending_actions[0].court_name }
@@ -1549,7 +1678,6 @@ attachments:
         % if pending_actions.there_are_any == True:
         See attachment.
         % endif
-
     - orders_judgments1_docket_number: ${ orders_judgments[0].docket_number }
     - orders_judgments1_court_info_line: ${ orders_judgments[0].court_info_line }
     - orders_judgments1_court_name: ${ orders_judgments[0].court_name }
@@ -1560,13 +1688,10 @@ attachments:
         % if orders_judgments.there_are_any == True:
         See attachment.
         % endif
-
     - ppo_explanation_see_attached: |
         Please see attached "Statement of Facts".
-
     - ppo_harm_protectees_list: ${ ppo_harm_protectees_list }
     - ppo_threat_protectees_list: ${ ppo_threat_protectees_list }
-
     - petitioner_respondent_married: ${ petitioner_respondent_married }
     - petitioner_respondent_prev_married: ${ petitioner_respondent_prev_married }
     - petitioner_respondent_have_child: ${ petitioner_respondent_have_child }
@@ -1605,6 +1730,7 @@ attachments:
         % if wants_other_request:
         Please see attached "Statement of Facts".
         % endif
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
 ---
 attachments:
@@ -1634,12 +1760,10 @@ attachments:
   pdf template file: cc_376_personal_protection_order_domestic.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-
     - users1_name__1: ${ users[0].name }
     - users1_address: ${ users[0].address }
     - users1_phone_number: ${ users[0].phone_number }
     - users1_age: ${ users[0].age }
-
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
@@ -1656,7 +1780,6 @@ attachments:
     - other_parties1_hair_color: ${ other_parties[0].hair_color }
     - other_parties1_eye_color: ${ other_parties[0].eye_color }
     - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
-
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
     - docket_number: ${ docket_number }
@@ -1673,20 +1796,16 @@ attachments:
   fields:
     - users1_name__1: ${ users[0].name }
     - users1_name__2: ${ users[0].name }
-
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_birthdate: ${ other_parties[0].birthdate }
     - other_parties1_license_number: ${ other_parties[0].license_number }
-
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
     - docket_number: ${ docket_number }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
     - judicial_district: ${ trial_court.judicial_district }
-    - in_matter_of: ${ trial_court.in_matter_of }
-
     - doc_being_filed_with_mc_97: ${ doc_being_filed_with_mc_97 }
     - date_completed: ${ today() }
 ---
@@ -1699,44 +1818,16 @@ attachments:
   pdf template file: mc_97a_protected_pii_addendum.pdf
   fields:
     - users1_name__1: ${ users[0].name }
-
-    - other_parties1_name__1: ${ other_parties[0].name }
-
-    - mc_97a_pii_parties1_name: ${ mc_97a_pii_parties[0].name }
-    - mc_97a_pii_parties2_name: ${ mc_97a_pii_parties[1].name }
-    - mc_97a_pii_parties3_name: ${ mc_97a_pii_parties[2].name }
-    - mc_97a_pii_parties4_name: ${ mc_97a_pii_parties[3].name }
-    - mc_97a_pii_parties5_name: ${ mc_97a_pii_parties[4].name }
-    - mc_97a_pii_parties6_name: ${ mc_97a_pii_parties[5].name }
-    - mc_97a_pii_parties7_name: ${ mc_97a_pii_parties[6].name }
-    - mc_97a_pii_parties8_name: ${ mc_97a_pii_parties[7].name }
-    - mc_97a_pii_parties9_name: ${ mc_97a_pii_parties[8].name }
-    - mc_97a_pii_parties1_birthdate: ${ mc_97a_pii_parties[0].birthdate }
-    - mc_97a_pii_parties2_birthdate: ${ mc_97a_pii_parties[1].birthdate }
-    - mc_97a_pii_parties3_birthdate: ${ mc_97a_pii_parties[2].birthdate }
-    - mc_97a_pii_parties4_birthdate: ${ mc_97a_pii_parties[3].birthdate }
-    - mc_97a_pii_parties5_birthdate: ${ mc_97a_pii_parties[4].birthdate }
-    - mc_97a_pii_parties6_birthdate: ${ mc_97a_pii_parties[5].birthdate }
-    - mc_97a_pii_parties7_birthdate: ${ mc_97a_pii_parties[6].birthdate }
-    - mc_97a_pii_parties8_birthdate: ${ mc_97a_pii_parties[7].birthdate }
-    - mc_97a_pii_parties9_birthdate: ${ mc_97a_pii_parties[8].birthdate }
-    - mc_97a_pii_parties1_other_pii: ${ mc_97a_pii_parties[0].other_pii }
-    - mc_97a_pii_parties2_other_pii: ${ mc_97a_pii_parties[1].other_pii }
-    - mc_97a_pii_parties3_other_pii: ${ mc_97a_pii_parties[2].other_pii }
-    - mc_97a_pii_parties4_other_pii: ${ mc_97a_pii_parties[3].other_pii }
-    - mc_97a_pii_parties5_other_pii: ${ mc_97a_pii_parties[4].other_pii }
-    - mc_97a_pii_parties6_other_pii: ${ mc_97a_pii_parties[5].other_pii }
-    - mc_97a_pii_parties7_other_pii: ${ mc_97a_pii_parties[6].other_pii }
-    - mc_97a_pii_parties8_other_pii: ${ mc_97a_pii_parties[7].other_pii }
-    - mc_97a_pii_parties9_other_pii: ${ mc_97a_pii_parties[8].other_pii }
-
-    - trial_court: ${ trial_court }
-    - trial_court_county: ${ county_choice }
+    - users1_name__2: ${ users[0].name }
+    - users1_name__3: ${ users[0].name }
+    - other_parties1_name: ${ other_parties[0].name }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
     - docket_number: ${ docket_number }
-    - trial_court_address_on_one_line: ${ trial_court.address.on_one_line() }
-    - trial_court_phone_number: ${ trial_court.phone_number }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
     - judicial_district: ${ trial_court.judicial_district }
-    - in_matter_of: ${ trial_court.in_matter_of }
+    - date_completed: ${ today() }
     - doc_being_filed_with_mc_97a: ${ doc_being_filed_with_mc_97a }
 ---
 attachments:
@@ -1771,6 +1862,67 @@ attachments:
     - users1_email: ${ users[0].email }
     - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
     - signature_date: ${ signature_date if esign else "" }
+---
+attachments:
+  name: Petition for Personal Protection Order (Non-Domestic Relationship)
+  filename: cc_377_petition_for_personal_protection_order_nondomestic
+  variable name: ppo_cc_377[i]
+  skip undefined: True
+  editable: False
+  pdf template file: cc_377_petition_for_personal_protection_order_nondomestic.pdf
+  fields:
+    - users1_name__1: ${ users[0].name }
+    - users1_name__2: ${ users[0].name }
+    - users1_address: ${ users[0].address }
+    - users1_phone_number: ${ users[0].phone_number }
+    - users1_age: ${ users[0].age_in_years() }
+    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - signature_date: ${ signature_date if esign else "" }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_address_block: ${ other_parties[0].address_block() }
+    - other_parties1_phone_number: ${ other_parties[0].phone_number }
+    - other_parties1_age: ${ other_parties[0].age_in_years() }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - docket_number__1: ${ docket_number }
+    - docket_number__2: ${ docket_number }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+    - pending_actions_see_attached: |
+        % if pending_actions.there_are_any == True:
+        See attachment.
+        % endif
+    - orders_judgments_see_attached: |
+        % if orders_judgments.there_are_any == True:
+        See attachment.
+        % endif
+    - ppo_explanation_see_attached: |
+        Please see attached "Statement of Facts".
+
+    - respondent_carries_firearm_for_work_known: ${ respondent_carries_firearm_for_work_known }
+    - respondent_carries_firearm_for_work_unknown: ${ respondent_carries_firearm_for_work_unknown }
+    - pending_actions_between_parties_yes: ${ pending_actions_between_parties_yes }
+    - pending_actions_between_parties_no: ${ pending_actions_between_parties_no }
+    - orders_judgments_re_parties_yes: ${ orders_judgments_re_parties_yes }
+    - orders_judgments_re_parties_no: ${ orders_judgments_re_parties_no }
+    - wants_no_stalking: ${ wants_no_stalking }
+    - stalking_includes_following_appearing_in_sight: ${ stalking_includes_following_appearing_in_sight }
+    - stalking_includes_sending_communications: ${ stalking_includes_sending_communications }
+    - stalking_includes_approaching_confronting_in_public: ${ stalking_includes_approaching_confronting_in_public }
+    - stalking_includes_being_on_petitioners_property: ${ stalking_includes_being_on_petitioners_property }
+    - stalking_includes_leaving_object: ${ stalking_includes_leaving_object }
+    - stalking_includes_appearing_at_petitioners_work: ${ stalking_includes_appearing_at_petitioners_work }
+    - stalking_includes_phone_contact: ${ stalking_includes_phone_contact }
+    - wants_no_threatening_self: ${ wants_no_threatening_self }
+    - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
+    - wants_other_request: ${ wants_other_request }
+    - other_request_see_attached: |
+        % if wants_other_request:
+        Please see attached "Statement of Facts".
+        % endif
+    - wants_no_message_posting: ${ wants_no_message_posting }
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+    - has_next_friend_petitioning: ${ has_next_friend_petitioning }
 ---
 #################### Documents End #####################
 ---
