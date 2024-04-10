@@ -72,6 +72,8 @@ code: |
   respondent_lives_in_michigan
   knows_respondents_birthdate
   ppo_type
+  set_doc_being_filed_with_mc_97
+  set_doc_being_filed_with_mc_97a
   petitioner_respondent_relationship
   set_petitioner_respondent_relationship
   county_choice
@@ -82,6 +84,7 @@ code: |
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
+  other_party_address_set_to_user_address
   respondent_carries_firearm_for_work_asked
   if pending_actions.there_are_any:
     pending_actions.gather()
@@ -171,7 +174,7 @@ code: |
 
   if petitioner_respondent_relationship['parent']:
     petitioner_respondent_parent_child = True
-  
+
   set_petitioner_respondent_relationship = True
 ---
 code: |
@@ -182,9 +185,10 @@ code: |
     other_parties[0].address.state = users[0].address.state
     other_parties[0].address.zip = users[0].address.zip
     other_parties[0].address.country = users[0].address.country
+  other_party_address_set_to_user_address = True
 ---
 code: |
-  other_parties[0].height = other_parties[0].height_feet + other_parties[0].height_inches
+  other_parties[0].height = str(other_parties[0].height_feet) + " ft, " + str(other_parties[0].height_inches) + " in"
 ---
 code: |
   if other_parties[0].carries_gun_for_work == 'yes':
@@ -192,7 +196,7 @@ code: |
 
   if other_parties[0].carries_gun_for_work == 'unknown':
     respondent_carries_firearm_for_work_unknown = True
-  
+
   respondent_carries_firearm_for_work_asked = True
 ---
 code: |
@@ -281,7 +285,7 @@ code: |
   if no_stalking_choices['phone_contact']:  
     stalking_includes_phone_contact = True
     wants_no_stalking = True
-  
+
   set_stalking_options = True
 ---
 code: |
@@ -310,8 +314,28 @@ code: |
   if no_mental_distress_or_control_choices['keeping_animal']:
     intentional_mental_distress_includes_retaining_animal = True
     wants_no_intentional_mental_distress_or_control = True
-  
+
   set_mental_distress_control_options = True
+---
+code: |
+  if ppo_type == "domestic":
+    doc_being_filed_with_mc_97 = "Personal Protection Order (Domestic)"
+  elif ppo_type == "nondomestic":
+    doc_being_filed_with_mc_97 = "Personal Protection Order (Non-Domestic)"
+  elif ppo_type == "nondomestic_sexual_assault":
+    doc_being_filed_with_mc_97 = "Personal Protection Order (Non-Domestic Sexual Assault)"
+
+  set_doc_being_filed_with_mc_97 = True
+---
+code: |
+  if ppo_type == "domestic":
+    doc_being_filed_with_mc_97a = "Personal Protection Order (Domestic)"
+  elif ppo_type == "nondomestic":
+    doc_being_filed_with_mc_97a = "Personal Protection Order (Non-Domestic)"
+  elif ppo_type == "nondomestic_sexual_assault":
+    doc_being_filed_with_mc_97a = "Personal Protection Order (Non-Domestic Sexual Assault)"
+
+  set_doc_being_filed_with_mc_97a = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -720,13 +744,13 @@ question: |
 fields:
   - no label: other_parties[0].race
     choices:
-      - White, not Hispanic or Latino: white
-      - Hispanic or Latino: latino
-      - American Indian or Alaskan Native: native
-      - Asian: asian
-      - African American: african_american
-      - Native Hawaiian or Other Pacific Islander: pacific
-      - Other race: other
+      - White, not Hispanic or Latino: White
+      - Hispanic or Latino: Hispanic/Latino
+      - American Indian or Alaskan Native: American Indian/AK Native
+      - Asian: Asian
+      - African American: African American
+      - Native Hawaiian or Other Pacific Islander: HI Native/Pacific Islander
+      - Other race: Other
 ---
 id: respondent gender
 question: |
@@ -735,8 +759,8 @@ fields:
   - no label: other_parties[0].gender
     datatype: radio
     choices:
-      - Male: male
-      - Female: female
+      - Male: M
+      - Female: F
 ---
 id: respondent height
 question: |
@@ -781,15 +805,15 @@ subquestion: |
 fields:
   - no label: other_parties[0].hair_color
     choices:
-      - Bald: bald
-      - Black: black
-      - Blonde or Strawberry: blonde
-      - Brown: brown
-      - Gray or Partially Gray: gray
-      - Red or Auburn: red
-      - Sandy: sandy
-      - White: white
-      - Unknown: unknown
+      - Bald: Bald
+      - Black: Black
+      - Blonde or Strawberry: Blonde
+      - Brown: Brown
+      - Gray or Partially Gray: Gray
+      - Red or Auburn: Red
+      - Sandy: Sandy
+      - White: White
+      - Unknown: Unknown
 ---
 id: respondent eye color
 question: |
@@ -799,13 +823,13 @@ subquestion: |
 fields:
   - no label: other_parties[0].eye_color
     choices:
-      - Black: black
-      - Blue: blue
-      - Brown: brown
-      - Gray: gray
-      - Green: green
-      - Hazel: hazel
-      - Unknown: unknown
+      - Black: Black
+      - Blue: Blue
+      - Brown: Brown
+      - Gray: Gray
+      - Green: Green
+      - Hazel: Hazel
+      - Unknown: Unknown
 ---
 id: respondent license number
 question: |
@@ -1229,6 +1253,7 @@ fields:
       - Placing an object on or delivering an object to property you own, lease, or occupy: placing_object
       - Appearing at your workplace or residence: appear_work_residence
       - Contacting you by telephone: phone_contact
+    none of the above: False
 ---
 template: wants_no_stalking_explained
 subject: |
@@ -1464,7 +1489,7 @@ objects:
   - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="cc_375_attachment.docx", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_375_petition_for_personal_protection_order_domestic.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_376_personal_protection_order_domestic.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -1476,7 +1501,10 @@ objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="cc_381_notice_of_hearing.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_mc_97, ppo_mc_97a, ppo_cc_381], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_mc_97, ppo_mc_97a, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship)
@@ -1532,7 +1560,7 @@ attachments:
         % if orders_judgments.there_are_any == True:
         See attachment.
         % endif
-  
+
     - ppo_explanation_see_attached: |
         Please see attached "Statement of Facts".
 
@@ -1577,10 +1605,7 @@ attachments:
         % if wants_other_request:
         Please see attached "Statement of Facts".
         % endif
-    - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
-
-    - ppo_attachments_list: ${ ppo_attachments_list }
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) Statement of Facts
@@ -1606,10 +1631,12 @@ attachments:
   variable name: ppo_cc_376[i]
   skip undefined: True
   editable: False
-  pdf template file: cc_375_petition_for_personal_protection_order_domestic.pdf
+  pdf template file: cc_376_personal_protection_order_domestic.pdf
   fields:
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+
     - users1_name__1: ${ users[0].name }
-    - users1_address_block: ${ users[0].address_block }
+    - users1_address: ${ users[0].address }
     - users1_phone_number: ${ users[0].phone_number }
     - users1_age: ${ users[0].age }
 
@@ -1618,26 +1645,23 @@ attachments:
     - other_parties1_name__3: ${ other_parties[0].name }
     - other_parties1_name__4: ${ other_parties[0].name }
     - other_parties1_name__5: ${ other_parties[0].name }
-    - other_parties1_address_block: ${ other_parties[0].address_block }
+    - other_parties1_address_block: ${ other_parties[0].address_block() }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_birthdate: ${ other_parties[0].birthdate }
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
     - other_parties1_weight: ${ other_parties[0].weight }
     - other_parties1_race: ${ other_parties[0].race }
-    - other_parties1_sex: ${ other_parties[0].sex }
+    - other_parties1_gender: ${ other_parties[0].gender }
     - other_parties1_hair_color: ${ other_parties[0].hair_color }
     - other_parties1_eye_color: ${ other_parties[0].eye_color }
     - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
 
-    - trial_court: ${ trial_court }
-    - trial_court_county: ${ county_choice }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
     - docket_number: ${ docket_number }
-    - trial_court_address_on_one_line: ${ trial_court.address.on_one_line() }
-    - trial_court_phone_number: ${ trial_court.phone_number }
-
-    - ppo_attachments_list__1: ${ ppo_attachments_list }
-    - ppo_attachments_list__2: ${ ppo_attachments_list }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
   name: Protected Personal Identifying Information
@@ -1648,38 +1672,23 @@ attachments:
   pdf template file: mc_97_protected_pii.pdf
   fields:
     - users1_name__1: ${ users[0].name }
+    - users1_name__2: ${ users[0].name }
 
     - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_birthdate: ${ other_parties[0].birthdate }
     - other_parties1_license_number: ${ other_parties[0].license_number }
-    - other_parties1_last_four_ssn: ${ other_parties[0].last_four_ssn }
-    - other_parties1_passport_number: ${ other_parties[0].passport_number }
-    - other_parties1_other_pii: ${ other_parties[0].other_pii }
 
-    - mc_97_form_fillers1_name__1: ${ mc_97_form_fillers[0].name }
-
-    - accounts1_institution: ${ accounts[0].institution }
-    - accounts2_institution: ${ accounts[1].institution }
-    - accounts3_institution: ${ accounts[2].institution }
-    - accounts4_institution: ${ accounts[3].institution }
-    - accounts1_account_number: ${ accounts[0].account_number }
-    - accounts2_account_number: ${ accounts[1].account_number }
-    - accounts3_account_number: ${ accounts[2].account_number }
-    - accounts4_account_number: ${ accounts[3].account_number }
-    - accounts1_paragraph_number: ${ accounts[0].paragraph_number }
-    - accounts2_paragraph_number: ${ accounts[1].paragraph_number }
-    - accounts3_paragraph_number: ${ accounts[2].paragraph_number }
-    - accounts4_paragraph_number: ${ accounts[3].paragraph_number }
-
-    - trial_court: ${ trial_court }
-    - trial_court_county: ${ county_choice }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
     - docket_number: ${ docket_number }
-    - trial_court_address_on_one_line: ${ trial_court.address.on_one_line() }
-    - trial_court_phone_number: ${ trial_court.phone_number }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
     - judicial_district: ${ trial_court.judicial_district }
     - in_matter_of: ${ trial_court.in_matter_of }
+
     - doc_being_filed_with_mc_97: ${ doc_being_filed_with_mc_97 }
-    - mc_97_form_date: ${ mc_97_form_date }
+    - date_completed: ${ today() }
 ---
 attachments:
   name: Protected Personal Identifying Information Addendum
@@ -1692,8 +1701,6 @@ attachments:
     - users1_name__1: ${ users[0].name }
 
     - other_parties1_name__1: ${ other_parties[0].name }
-
-    - mc_97a_form_fillers1_name__1: ${ mc_9a_form_fillers[0].name }
 
     - mc_97a_pii_parties1_name: ${ mc_97a_pii_parties[0].name }
     - mc_97a_pii_parties2_name: ${ mc_97a_pii_parties[1].name }
@@ -1731,7 +1738,6 @@ attachments:
     - judicial_district: ${ trial_court.judicial_district }
     - in_matter_of: ${ trial_court.in_matter_of }
     - doc_being_filed_with_mc_97a: ${ doc_being_filed_with_mc_97a }
-    - mc_97_form_date: ${ mc_97_form_date }
 ---
 attachments:
   name: Notice of Hearing
@@ -1748,11 +1754,24 @@ attachments:
     - trial_court_phone_number: ${ trial_court.phone_number }
     - judicial_district: ${ trial_court.judicial_district }
     - in_matter_of: ${ trial_court.in_matter_of }
-
-    - ppo_attachments_list__1: ${ ppo_attachments_list }
-    - ppo_attachments_list__2: ${ ppo_attachments_list }
-    - ppo_attachments_list__3: ${ ppo_attachments_list }
-    - ppo_attachments_list__4: ${ ppo_attachments_list }
+---
+attachments:
+  name: PPO Contact Information Sheet
+  filename: ppo_contact_information_sheet
+  variable name: ppo_contact_information_sheet[i]
+  skip undefined: True
+  editable: False
+  pdf template file: ppo_contact_information_sheet.pdf
+  fields:
+    - users1_name: ${ users[0].name }
+    - users1_address: ${ users[0].address.address }
+    - users1_city_state_zip: |
+        ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
+    - users1_phone_number: ${ users[0].phone_number }
+    - users1_email: ${ users[0].email }
+    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - signature_date: ${ signature_date if esign else "" }
 ---
 #################### Documents End #####################
 ---
+
