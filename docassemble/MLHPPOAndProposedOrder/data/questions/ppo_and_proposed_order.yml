@@ -71,13 +71,16 @@ code: |
     minor_kickout
   respondent_lives_in_michigan
   knows_respondents_birthdate
+
   if ppo_type == "nondomestic":
     ppo_nondomestic_intro
     if not has_two_separate_noncontinuous_incidents:
       separate_noncontinuous_incidents_kickout
+
   if ppo_type == "domestic":
     petitioner_respondent_relationship
     set_petitioner_respondent_relationship
+
   set_doc_being_filed_with_mc_97
   set_doc_being_filed_with_mc_97a
   county_choice
@@ -88,7 +91,10 @@ code: |
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
-  other_party_address_set_to_user_address
+
+  if ppo_type == "domestic":
+    other_party_address_set_to_user_address
+
   respondent_carries_firearm_for_work_asked
   if pending_actions.there_are_any:
     pending_actions.gather()
@@ -111,33 +117,49 @@ code: |
     stalking_history_intro
 
   incidents.gather()
+  if ppo_type == "nondomestic" and len(incidents.complete_elements()) < 2:
+    separate_noncontinuous_incidents_kickout
+
   other_details
 
   nav.set_section("review_relief_requested_info")
   relief_requested_intro
-  wants_no_entering_residential_property
-  if other_properties.there_are_any:
-    other_properties.gather()
-  wants_no_entering_other_property
-  wants_no_harming_petitioner
-  if ppo_harm_protectees.there_are_any:
-    ppo_harm_protectees.gather()
-  wants_no_harming_people
-  ppo_harm_protectees_list
-  wants_no_removing_minor
+
+  if ppo_type == "domestic":
+    wants_no_entering_residential_property
+    if other_properties.there_are_any:
+      other_properties.gather()
+    wants_no_entering_other_property
+    wants_no_harming_petitioner
+    if ppo_harm_protectees.there_are_any:
+      ppo_harm_protectees.gather()
+    wants_no_harming_people
+    ppo_harm_protectees_list
+    wants_no_removing_minor
+
   no_stalking_choices
   set_stalking_options
-  wants_no_children_property_removal_interference
+
+  if ppo_type == "domestic":
+    wants_no_children_property_removal_interference
+
   wants_no_threatening_petitioner
-  if ppo_threat_protectees.there_are_any:
-    ppo_threat_protectees.gather()
-  wants_no_threatening_others
-  ppo_threat_protectees_list
-  wants_no_work_education_interference
-  wants_no_access_to_personal_info_records
-  no_mental_distress_or_control_choices
-  set_mental_distress_control_options
+
+  if ppo_type == "domestic":
+    if ppo_threat_protectees.there_are_any:
+      ppo_threat_protectees.gather()
+    wants_no_threatening_others
+    ppo_threat_protectees_list
+    wants_no_work_education_interference
+    wants_no_access_to_personal_info_records
+    no_mental_distress_or_control_choices
+    set_mental_distress_control_options
+
   wants_no_firearm_purchase_or_possession
+
+  if ppo_type == "nondomestic":
+    wants_no_message_posting
+
   wants_other_request
   ex_parte_info_screen
   if wants_ex_parte_order:
@@ -368,8 +390,9 @@ code: |
 ---
 code: |
   other_parties[i].name.first
-  if not petitioner_and_respondent_living_together:
-    other_parties[i].address.address
+  if ppo_type == "domestic":
+    if not petitioner_and_respondent_living_together:
+      other_parties[i].address.address
   other_parties[i].phone_number
   other_parties[i].race
   other_parties[i].gender
@@ -401,11 +424,13 @@ code: |
   orders_judgments[i].complete = True
 ---
 code: |
+  if ppo_type == "nondomestic" and len(incidents.complete_elements()) > 0:
+    nondomestic_second_incident_intro
   incidents[i].date
   incidents[i].location
   incidents[i].other_party_actions
   if ppo_type == "nondomestic":
-    incident[i].reason_other_party_responsible
+    incidents[i].reason_other_party_responsible
   incidents[i].emotional_effect
   incidents[i].petitioner_injured
   incidents[i].had_witnesses
@@ -909,7 +934,6 @@ subquestion: |
 fields:
   - no label: other_parties[0].other_identifying_info
     required: False
-    input type: area
     maxlength: 50
 ---
 id: respondent required to carry gun for work
@@ -1269,6 +1293,12 @@ fields:
   - no label: incidents.there_is_another
     datatype: yesnoradio
 ---
+id: nondomestic_second_incident_intro
+question: |
+  The following questions will apply to the **${ ordinal(i) }** most recent incident of stalking, harassing, or threatening behavior.
+
+continue button field: nondomestic_second_incident_intro
+---
 id: other details
 question: |
   Include anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }
@@ -1490,6 +1520,15 @@ question: |
   Do you want the judge to order ${ other_parties[0].name } not to buy or have a gun?
 fields:
   - no label: wants_no_firearm_purchase_or_possession
+    datatype: yesnoradio
+---
+id: wants_no_message_posting
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to post or send messages by any method, including the Internet or any electronic medium?
+subquestion: |
+  This includes sending you messages through social media such as Facebook or Twitter, or falsely using your name to send messages to other people in order to harass you.
+fields:
+  - no label: wants_no_message_posting
     datatype: yesnoradio
 ---
 id: wants_other_request
@@ -1873,14 +1912,16 @@ attachments:
   fields:
     - users1_name__1: ${ users[0].name }
     - users1_name__2: ${ users[0].name }
-    - users1_address: ${ users[0].address }
-    - users1_phone_number: ${ users[0].phone_number }
+    - users1_address_block: |
+        ${ users[0].address_block() }
+        ${ users[0].phone_number }
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
     - signature_date: ${ signature_date if esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_address_block: ${ other_parties[0].address_block() }
-    - other_parties1_phone_number: ${ other_parties[0].phone_number }
+    - other_parties1_address_block: | 
+        ${ other_parties[0].address_block() }
+        ${ other_parties[0].phone_number }
     - other_parties1_age: ${ other_parties[0].age_in_years() }
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
@@ -1913,7 +1954,7 @@ attachments:
     - stalking_includes_leaving_object: ${ stalking_includes_leaving_object }
     - stalking_includes_appearing_at_petitioners_work: ${ stalking_includes_appearing_at_petitioners_work }
     - stalking_includes_phone_contact: ${ stalking_includes_phone_contact }
-    - wants_no_threatening_self: ${ wants_no_threatening_self }
+    - wants_no_threatening_petitioner: ${ wants_no_threatening_petitioner }
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
     - wants_other_request: ${ wants_other_request }
     - other_request_see_attached: |
@@ -1926,4 +1967,3 @@ attachments:
 ---
 #################### Documents End #####################
 ---
-
