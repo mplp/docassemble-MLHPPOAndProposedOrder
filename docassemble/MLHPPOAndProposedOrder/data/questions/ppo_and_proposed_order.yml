@@ -83,6 +83,8 @@ code: |
   
   set_ppo_type_full
 
+  check_if_any_protectees
+
   set_doc_being_filed_with_mc_97
   set_doc_being_filed_with_mc_97a
   county_choice
@@ -96,8 +98,7 @@ code: |
   respondent_intro_screen
   other_parties.gather()
 
-  if ppo_type == "domestic":
-    other_party_address_set_to_user_address
+  other_party_address_set_to_user_address
 
   respondent_carries_firearm_for_work_asked
   if pending_actions.there_are_any:
@@ -147,6 +148,7 @@ code: |
   if ppo_type == "domestic":
     wants_no_children_property_removal_interference
 
+  wants_no_harming_petitioner
   wants_no_threatening_petitioner
 
   if ppo_type == "domestic":
@@ -396,6 +398,13 @@ code: |
     ppo_type_full = "Personal Protection Order (Non-Domestic Sexual Assault)"
 
   set_ppo_type_full = True
+---
+code: |
+  if ppo_type == "nondomestic":
+    ppo_harm_protectees.there_are_any = False
+    ppo_threat_protectees.there_are_any = False
+
+  check_if_any_protectees = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -1222,7 +1231,7 @@ subquestion: |
 
   ${ collapse_template(other_party_responsible_explained) }
 fields:
-  - Because of this incident I felt...: incidents[i].reason_other_party_responsible
+  - I know ${ other_parties[0].name } is responsible because...: incidents[i].reason_other_party_responsible
     input type: area
 ---
 template: other_party_responsible_explained
@@ -1689,6 +1698,9 @@ objects:
   - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="cc_375_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="cc_377_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing Attachment (Domestic Relationship)", filename="ppo_domestic_instructions_after_hearing_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -1710,10 +1722,10 @@ objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="cc_381_notice_of_hearing.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, cc_377_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 code: |
   if ppo_type == "domestic":
@@ -1740,6 +1752,12 @@ code: |
     cc_375_attachment.enabled = False
 ---
 code: |
+  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+    cc_377_attachment.enabled = True
+  else:
+    cc_377_attachment.enabled = False
+---
+code: |
   if ppo_type == "nondomestic":
     ppo_cc_381.enabled = True
     ppo_cc_380.enabled = True
@@ -1748,6 +1766,12 @@ code: |
     ppo_cc_380.enabled = False
     ppo_cc_381.enabled = False
     ppo_cc_377.enabled = False
+---
+code: |
+  if str(county_choice) == "Oakland":
+    ppo_contact_information_sheet.enabled = True
+  else:
+    ppo_contact_information_sheet.enabled = False
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship)
@@ -1867,6 +1891,15 @@ attachments:
   filename: cc_375_attachment
   docx template file: cc_375_attachment.docx
   variable name: cc_375_attachment[i]
+  skip undefined: True
+  valid formats:
+    - pdf
+---
+attachments:
+  name: Petition for Personal Protection Order (Non-Domestic Relationship) Attachment
+  filename: cc_377_attachment
+  docx template file: cc_377_attachment.docx
+  variable name: cc_377_attachment[i]
   skip undefined: True
   valid formats:
     - pdf
