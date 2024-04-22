@@ -80,6 +80,8 @@ code: |
   if ppo_type == "domestic":
     petitioner_respondent_relationship
     set_petitioner_respondent_relationship
+  
+  set_ppo_type_full
 
   set_doc_being_filed_with_mc_97
   set_doc_being_filed_with_mc_97a
@@ -384,6 +386,16 @@ code: |
     doc_being_filed_with_mc_97a = "Personal Protection Order (Non-Domestic Sexual Assault)"
 
   set_doc_being_filed_with_mc_97a = True
+---
+code: |
+  if ppo_type == "domestic":
+    ppo_type_full = "Personal Protection Order (Domestic)"
+  elif ppo_type == "nondomestic":
+    ppo_type_full = "Personal Protection Order (Non-Domestic)"
+  elif ppo_type == "nondomestic_sexual_assault":
+    ppo_type_full = "Personal Protection Order (Non-Domestic Sexual Assault)"
+
+  set_ppo_type_full = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -1677,7 +1689,16 @@ objects:
   - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="cc_375_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing Attachment (Domestic Relationship)", filename="ppo_domestic_instructions_after_hearing_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - ppo_domestic_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions Attachment (Domestic Relationship)", filename="ppo_domestic_ex_parte_instructions_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_376_personal_protection_order_domestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship)", filename="cc_380_personal_protection_order_nondomestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -1692,17 +1713,25 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 code: |
   if ppo_type == "domestic":
     ppo_cc_375.enabled = True
     ppo_cc_376.enabled = True
     cc_375_addendum.enabled = True
+    ppo_domestic_instructions_after_hearing_attachment.enabled = True
   else:
     ppo_cc_375.enabled = False
     ppo_cc_376.enabled = False
     cc_375_addendum.enabled = False
+    ppo_domestic_instructions_after_hearing_attachment.enabled = False
+---
+code: |
+  if ppo_type == "domestic" and wants_ex_parte_order:
+    ppo_domestic_ex_parte_instructions_attachment.enabled = True
+  else:
+    ppo_domestic_ex_parte_instructions_attachment.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
@@ -1713,8 +1742,10 @@ code: |
 code: |
   if ppo_type == "nondomestic":
     ppo_cc_381.enabled = True
+    ppo_cc_380.enabled = True
     ppo_cc_377.enabled = True
   else:
+    ppo_cc_380.enabled = False
     ppo_cc_381.enabled = False
     ppo_cc_377.enabled = False
 ---
@@ -1841,6 +1872,28 @@ attachments:
     - pdf
 ---
 attachments:
+  name: Instructions After Hearing Attachment (Domestic Relationship)
+  filename: ppo_domestic_instructions_after_hearing_attachment
+  pdf template file: ppo_domestic_instructions_after_hearing_attachment.pdf
+  variable name: ppo_domestic_instructions_after_hearing_attachment[i]
+  skip undefined: True
+  editable: False
+  fields:
+    - instructions_heading: |
+        ${ county_choice } Instructions - How to Ask for a ${ ppo_type_full } after a Hearing
+---
+attachments:
+  name: Ex Parte Instructions Attachment (Domestic Relationship)
+  filename: ppo_domestic_ex_parte_instructions_attachment
+  pdf template file: ppo_domestic_ex_parte_instructions_attachment.pdf
+  variable name: ppo_domestic_ex_parte_instructions_attachment[i]
+  skip undefined: True
+  editable: False
+  fields:
+    - instructions_heading: |
+        ${ county_choice } Instructions - How to Ask for an Ex Parte ${ ppo_type_full }
+---
+attachments:
   name: Personal Protection Order (Domestic Relationship)
   filename: cc_376_personal_protection_order_domestic
   variable name: ppo_cc_376[i]
@@ -1867,6 +1920,44 @@ attachments:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
+    - other_parties1_birthdate: ${ other_parties[0].birthdate }
+    - other_parties1_license_number: ${ other_parties[0].license_number }
+    - other_parties1_height: ${ other_parties[0].height }
+    - other_parties1_weight: ${ other_parties[0].weight }
+    - other_parties1_race: ${ other_parties[0].race }
+    - other_parties1_gender: ${ other_parties[0].gender }
+    - other_parties1_hair_color: ${ other_parties[0].hair_color }
+    - other_parties1_eye_color: ${ other_parties[0].eye_color }
+    - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+---
+attachments:
+  name: Personal Protection Order (Non-Domestic Relationship)
+  filename: cc_380_personal_protection_order_nondomestic
+  variable name: ppo_cc_380[i]
+  skip undefined: True
+  editable: False
+  pdf template file: cc_380_personal_protection_order_nondomestic.pdf
+  fields:
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+    - users1_name: ${ users[0].name }
+    - users1_address_block: | 
+        ${ users[0].address }
+        % if users[0].phone_number:
+        ${ phone_number_formatted(users[0].phone_number) }
+        % endif
+    - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_name__3: ${ other_parties[0].name }
+    - other_parties1_name__4: ${ other_parties[0].name }
+    - other_parties1_address_block: |
+        ${ other_parties[0].address_block() }
+        % if other_parties[0].phone_number:
+        ${ phone_number_formatted(other_parties[0].phone_number) }
+        % endif
     - other_parties1_birthdate: ${ other_parties[0].birthdate }
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
