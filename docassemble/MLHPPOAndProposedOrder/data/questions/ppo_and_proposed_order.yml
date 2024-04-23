@@ -72,6 +72,9 @@ code: |
   respondent_lives_in_michigan
   knows_respondents_birthdate
 
+  if ppo_type == "nondomestic_sexual_assault":
+    ppo_nondomestic_intro
+
   if ppo_type == "nondomestic":
     ppo_nondomestic_intro
     if not has_two_separate_noncontinuous_incidents:
@@ -80,7 +83,7 @@ code: |
   if ppo_type == "domestic":
     petitioner_respondent_relationship
     set_petitioner_respondent_relationship
-  
+
   set_ppo_type_full
 
   check_if_any_protectees
@@ -98,7 +101,7 @@ code: |
   respondent_intro_screen
   other_parties.gather()
 
-  other_party_address_set_to_user_address
+  check_other_party_address_set_to_user_address
 
   respondent_carries_firearm_for_work_asked
   if pending_actions.there_are_any:
@@ -121,8 +124,14 @@ code: |
     abuse_history_intro_3
     stalking_history_intro
 
+  if ppo_type == "nondomestic_sexual_assault":
+    stalking_harassing_intro
+    abuse_history_intro_2
+    abuse_history_intro_3
+    abuse_history_intro_4
+
   incidents.gather()
-  if ppo_type == "nondomestic" and len(incidents.complete_elements()) < 2:
+  if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and len(incidents.complete_elements()) < 2:
     separate_noncontinuous_incidents_kickout
 
   other_details
@@ -148,7 +157,9 @@ code: |
   if ppo_type == "domestic":
     wants_no_children_property_removal_interference
 
-  wants_no_harming_petitioner
+  if ppo_type == "nondomestic":
+    wants_no_harming_petitioner
+
   wants_no_threatening_petitioner
 
   if ppo_type == "domestic":
@@ -163,7 +174,7 @@ code: |
 
   wants_no_firearm_purchase_or_possession
 
-  if ppo_type == "nondomestic":
+  if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
     wants_no_message_posting
 
   wants_other_request
@@ -173,7 +184,6 @@ code: |
 
   nav.set_section("review_instructions_info")
   efile_notice
-  check_ppo_harm_protectees_list
   if esign:
     signature_date
   motion_re_change_of_domicile_download
@@ -219,14 +229,15 @@ code: |
   set_petitioner_respondent_relationship = True
 ---
 code: |
-  if petitioner_and_respondent_living_together:
+  if (ppo_type == "domestic") and (petitioner_and_respondent_living_together):
     other_parties[0].address.address = users[0].address.address
     other_parties[0].address.unit = users[0].address.unit
     other_parties[0].address.city = users[0].address.city
     other_parties[0].address.state = users[0].address.state
     other_parties[0].address.zip = users[0].address.zip
     other_parties[0].address.country = users[0].address.country
-  other_party_address_set_to_user_address = True
+    
+  check_other_party_address_set_to_user_address = True
 ---
 code: |
   other_parties[0].height = str(other_parties[0].height_feet) + " ft, " + str(other_parties[0].height_inches) + " in"
@@ -351,7 +362,7 @@ code: |
     ppo_threat_protectees_list = comma_and_list(ppo_threat_protectees)
   elif wants_no_threatening_petitioner and (not ppo_threat_protectees.there_are_any):
     ppo_threat_protectees_list = str(users[0].name)
-  
+
   check_ppo_threat_protectees_list = True
 ---
 code: |
@@ -400,7 +411,7 @@ code: |
   set_ppo_type_full = True
 ---
 code: |
-  if ppo_type == "nondomestic":
+  if ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault":
     ppo_harm_protectees.there_are_any = False
     ppo_threat_protectees.there_are_any = False
 
@@ -428,6 +439,8 @@ code: |
   if ppo_type == "domestic":
     if not petitioner_and_respondent_living_together:
       other_parties[i].address.address
+  else:
+    other_parties[i].address.address
   other_parties[i].phone_number
   other_parties[i].race
   other_parties[i].gender
@@ -459,15 +472,16 @@ code: |
   orders_judgments[i].complete = True
 ---
 code: |
-  if ppo_type == "nondomestic" and len(incidents.complete_elements()) > 0:
-    nondomestic_second_incident_intro
+  if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and len(incidents.complete_elements()) > 0:
+    nondomestic_subsequent_incident_intro
   incidents[i].date
   incidents[i].location
   incidents[i].other_party_actions
-  if ppo_type == "nondomestic":
+  if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
     incidents[i].reason_other_party_responsible
   incidents[i].emotional_effect
-  incidents[i].petitioner_injured
+  if ppo_type != "nondomestic_sexual_assault":
+    incidents[i].petitioner_injured
   incidents[i].had_witnesses
   incidents[i].had_police
   incidents_outro
@@ -1321,7 +1335,7 @@ continue button field: incidents_outro
 ---
 id: incidents there_is_another
 question: |
-  % if ppo_type == "nondomestic":
+  % if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
   Is there another incident of stalking, harassing, or threatening behavior?
   % elif ppo_type == "domestic":
   Is there another incident of violence, threat of violence, or other abuse?
@@ -1330,11 +1344,11 @@ fields:
   - no label: incidents.there_is_another
     datatype: yesnoradio
 ---
-id: nondomestic_second_incident_intro
+id: nondomestic_subsequent_incident_intro
 question: |
   The following questions will apply to the **${ ordinal(i) }** most recent incident of stalking, harassing, or threatening behavior.
 
-continue button field: nondomestic_second_incident_intro
+continue button field: nondomestic_subsequent_incident_intro
 ---
 id: other details
 question: |
@@ -1713,10 +1727,10 @@ objects:
   - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship)", filename="cc_380_personal_protection_order_nondomestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_mc_97a: ALDocument.using(title="Protected Personal Identifying Information Addendum", filename="mc_97a_protected_pii_addendum.pdf", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_mc_97a: ALDocument.using(title="Protected Personal Identifying Information Addendum", filename="mc_97a_protected_pii_addendum.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="cc_381_notice_of_hearing.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -1733,11 +1747,15 @@ code: |
     ppo_cc_376.enabled = True
     cc_375_addendum.enabled = True
     ppo_domestic_instructions_after_hearing_attachment.enabled = True
+    ppo_mc_97.enabled = True
+    ppo_mc_97a.enabled = True
   else:
     ppo_cc_375.enabled = False
     ppo_cc_376.enabled = False
     cc_375_addendum.enabled = False
     ppo_domestic_instructions_after_hearing_attachment.enabled = False
+    ppo_mc_97.enabled = False
+    ppo_mc_97a.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and wants_ex_parte_order:
@@ -1752,7 +1770,7 @@ code: |
     cc_375_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+  if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
     cc_377_attachment.enabled = True
   else:
     cc_377_attachment.enabled = False
@@ -1760,11 +1778,15 @@ code: |
 code: |
   if ppo_type == "nondomestic":
     ppo_cc_381.enabled = True
+  else:
+    ppo_cc_381.enabled = False
+---
+code: |
+  if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
     ppo_cc_380.enabled = True
     ppo_cc_377.enabled = True
   else:
     ppo_cc_380.enabled = False
-    ppo_cc_381.enabled = False
     ppo_cc_377.enabled = False
 ---
 code: |
@@ -1783,7 +1805,7 @@ attachments:
   fields:
     - users1_name__1: ${ users[0].name }
     - users1_name__2: ${ users[0].name }
-    - users1_address_block: | 
+    - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
         ${ phone_number_formatted(users[0].phone_number) }
@@ -1936,7 +1958,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: ${ users[0].name }
-    - users1_address_block: | 
+    - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
         ${ phone_number_formatted(users[0].phone_number) }
@@ -1977,7 +1999,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: ${ users[0].name }
-    - users1_address_block: | 
+    - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
         ${ phone_number_formatted(users[0].phone_number) }
@@ -2100,7 +2122,7 @@ attachments:
     - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
     - signature_date: ${ signature_date if esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_address_block: | 
+    - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         % if other_parties[0].phone_number:
         ${ phone_number_formatted(other_parties[0].phone_number) }
