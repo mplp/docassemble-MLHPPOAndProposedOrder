@@ -2009,7 +2009,7 @@ attachments:
     - other_parties1_name__3: ${ other_parties[0].name }
     - other_parties1_name__4: ${ other_parties[0].name }
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].address }
         % if other_parties[0].phone_number:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
