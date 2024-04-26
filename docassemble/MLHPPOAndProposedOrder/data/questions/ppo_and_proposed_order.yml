@@ -973,6 +973,7 @@ fields:
   - no label: other_parties[0].license_number
     required: False
 ---
+mandatory: True
 id: respondent other identifying info
 question: |
   Other identifying information
@@ -981,9 +982,35 @@ subquestion: |
 
   If none, leave blank.
 fields:
+  - note: |
+      <div id="show_maxlength"> </div>
   - no label: other_parties[0].other_identifying_info
     required: False
     maxlength: 50
+script: |
+  <script>
+  $(document).ready(function() {
+      var inputField = $('#b3RoZXJfcGFydGllc1swXS5vdGhlcl9pZGVudGlmeWluZ19pbmZv');
+      var maxLength = 50;
+      var inputLength = inputField.val().length;
+      var remainingChars = maxLength - inputLength;
+      $('#show_maxlength').text(remainingChars + " " + pluralizeWord("character", "characters", remainingChars) + " remaining").css('font-weight', '500');
+
+      inputField.on('input', function() {
+        inputLength = $(this).val().length;
+        remainingChars = maxLength - inputLength;
+        if (remainingChars < 0) {
+          $('#show_maxlength').text("You are over the limit by " + Math.abs(remainingChars) + " " + pluralizeWord("character", "characters", Math.abs(remainingChars))).css('font-weight', '500').css('color', 'red');
+        } else {
+          $('#show_maxlength').text(remainingChars + " " + pluralizeWord("character", "characters", remainingChars) + " remaining").css('font-weight', '500').css('color', 'black');
+        }
+      });
+  });
+
+  function pluralizeWord(singularWord, pluralWord, count) {
+    return count == 1 ? singularWord : pluralWord;
+  }
+  </script>
 ---
 id: respondent required to carry gun for work
 question: |
@@ -1450,32 +1477,27 @@ fields:
 ---
 id: no_stalking_choices
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to stalk you, including the following behaviors?
+  You can ask the judge to order ${ other_parties[0].name } not to stalk you
 subquestion: |
-  ${ collapse_template(wants_no_stalking_explained) }
+  Stalking includes any of the behaviors listed below.
+
+  You may ask to be protected from some or all of these behaviors by Jane Lorca if they **interfere with your personal freedom** or **make you afraid**. 
 fields:
   - Check all that apply: no_stalking_choices
     datatype: checkboxes
     choices:
       - Following you or appearing within your sight: following
       - Sending mail or other communications to you: communications
+        help: |
+          This includes sending you email or text messages, sending you messages through social media such as Facebook or Twitter, or sending messages to you through a third party such as your children or friends.
       - Approaching or confronting you in a public place or on private property: approaching
+        help: |
+          This prohibits Jane Lorca from coming up to you or trying to talk to you at a public place. For example, if you ran into Jane Lorca at a store or restaurant, Jane Lorca would be prohibited from coming up to you.
       - Entering onto or staying on property you own, lease, or occupy: entering_property
       - Placing an object on or delivering an object to property you own, lease, or occupy: placing_object
       - Appearing at your workplace or residence: appear_work_residence
       - Contacting you by telephone: phone_contact
     none of the above: False
----
-template: wants_no_stalking_explained
-subject: |
-  When should I answer yes?
-content: |
-  You might ask for some or all of the following stalking protections if you believe these behaviors by ${ other_parties[0].name } interfere with your personal freedom or if the behaviors make you afraid.
-
-  What some of the choices mean:
-
-    * Sending mail or other communications to you
-    * Approaching or confronting you in a public place or on private property
 ---
 id: wants_no_children_property_removal_interference
 question: |
