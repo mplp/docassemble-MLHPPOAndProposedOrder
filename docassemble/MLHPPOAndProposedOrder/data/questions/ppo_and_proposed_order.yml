@@ -44,6 +44,7 @@ objects:
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
   - ppo_threat_protectees: ALPeopleList.using(complete_attribute="complete")
+  - ppo_sexual_assault_threat_protectees: ALPeopleList.using(complete_attribute="complete")
   - mc_97_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - mc_97a_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - mc_97a_pii_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete")
@@ -125,16 +126,22 @@ code: |
     stalking_history_intro
 
   if ppo_type == "nondomestic_sexual_assault":
-    stalking_harassing_intro
-    abuse_history_intro_2
-    abuse_history_intro_3
-    abuse_history_intro_4
+    sexual_assault_intro
 
-  incidents.gather()
-  if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and len(incidents.complete_elements()) < 2:
-    separate_noncontinuous_incidents_kickout
+    if respondent_sexual_assault_conviction:
+      orders_judgments_include_sa_conviction
+    else:
+      if fears_future_sexual_assault:
+        potential_sexual_assault_exp
+      else:
+        no_past_or_potential_sexual_assault_kickout
 
-  other_details
+  if ppo_type != "nondomestic_sexual_assault":
+    incidents.gather()
+    if ppo_type == "nondomestic" and len(incidents.complete_elements()) < 2:
+      separate_noncontinuous_incidents_kickout
+
+    other_details
 
   nav.set_section("review_relief_requested_info")
   relief_requested_intro
@@ -150,9 +157,26 @@ code: |
     check_wants_no_harming_people
     check_ppo_harm_protectees_list
     wants_no_removing_minor
+  
+  if ppo_type == "nondomestic_sexual_assault":
+    if wants_no_entering_residential_property:
+      if not has_property_interest_in_home:
+        if respondent_has_property_interest_in_home:
+          respondent_property_interest_kickout
+    
+    if other_properties.there_are_any:
+      other_properties.gather()
+    check_wants_no_entering_other_property
 
-  no_stalking_choices
-  set_stalking_options
+    wants_no_sexual_assault_threats
+    if ppo_sexual_assault_threat_protectees.there_are_any:
+      ppo_sexual_assault_threat_protectees.gather()
+    check_wants_no_sexual_assault_threatening_others
+    check_ppo_sexual_assault_threat_protectees_list
+
+  if ppo_type != "nondomestic_sexual_assault":
+    no_stalking_choices
+    set_stalking_options
 
   if ppo_type == "domestic":
     wants_no_children_property_removal_interference
@@ -160,7 +184,8 @@ code: |
   if ppo_type == "nondomestic":
     wants_no_harming_petitioner
 
-  wants_no_threatening_petitioner
+  if ppo_type != "nondomestic_sexual_assault":
+    wants_no_threatening_petitioner
 
   if ppo_type == "domestic":
     if ppo_threat_protectees.there_are_any:
@@ -174,7 +199,13 @@ code: |
 
   wants_no_firearm_purchase_or_possession
 
-  if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
+  if ppo_type == "nondomestic_sexual_assault":
+    wants_no_children_property_removal_interference
+    wants_no_work_education_interference
+    no_stalking_choices
+    set_stalking_options
+
+  if ppo_type != "domestic":
     wants_no_message_posting
 
   wants_other_request
@@ -351,6 +382,11 @@ code: |
     wants_no_threatening_others = True
   check_wants_no_threatening_others = True
 ---
+code: |
+  if wants_no_sexual_assault_threats or ppo_sexual_assault_threat_protectees.there_are_any:
+    wants_no_sexual_assault_threatening_others = True
+  check_wants_no_sexual_assault_threatening_others = True
+---
 #NOTE: gives list of ppo_threat_protectees, formatted for the PDF template
 code: |
   if wants_no_threatening_petitioner and ppo_threat_protectees.there_are_any:
@@ -364,6 +400,20 @@ code: |
     ppo_threat_protectees_list = str(users[0].name)
 
   check_ppo_threat_protectees_list = True
+---
+#NOTE: gives list of ppo_sexual_assault_threat_protectees, formatted for the PDF template
+code: |
+  if wants_no_sexual_assault_threats and ppo_sexual_assault_threat_protectees.there_are_any:
+    if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 1:
+      ppo_sexual_assault_threat_protectees_list = str(users[0].name) + ", " + comma_and_list(ppo_sexual_assault_threat_protectees)
+    else:
+      ppo_sexual_assault_threat_protectees_list = str(users[0].name) + ", and " + comma_and_list(ppo_sexual_assault_threat_protectees)
+  elif (not wants_no_sexual_assault_threats) and ppo_sexual_assault_threat_protectees.there_are_any:
+    ppo_sexual_assault_threat_protectees_list = comma_and_list(ppo_sexual_assault_threat_protectees)
+  elif wants_no_sexual_assault_threats and (not ppo_sexual_assault_threat_protectees.there_are_any):
+    ppo_sexual_assault_threat_protectees_list = str(users[0].name)
+
+  check_ppo_sexual_assault_threat_protectees_list = True
 ---
 code: |
   if no_mental_distress_or_control_choices['harming_animal']:
@@ -444,7 +494,6 @@ code: |
   other_parties[i].phone_number
   other_parties[i].race
   other_parties[i].gender
-  other_parties[i].pronouns
   other_parties[i].height_feet
   other_parties[i].height
   other_parties[i].weight
@@ -499,6 +548,10 @@ code: |
   ppo_threat_protectees[i].name.first
   ppo_threat_protectees[i].complete = True
 ---
+code: |
+  ppo_sexual_assault_threat_protectees[i].name.first
+  ppo_sexual_assault_threat_protectees[i].complete = True
+---
 #################### Overridden AL Questions Start #####################
 ---
 id: your name
@@ -528,6 +581,29 @@ fields:
       users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=True)
   - Phone: users[0].phone_number
     required: True
+---
+id: respondent contact info
+sets:
+  - other_parties[0].address.address
+  - other_parties[0].address.city
+  - other_parties[0].address.zip
+  - other_parties[0].address.unit
+  - other_parties[0].address.state
+question: |
+  What is ${ other_parties[0].name }'s address?
+fields:
+  - Street Address or P.O. Box: other_parties[0].address.address
+    required: False
+  - Apartment, suite, etc.: other_parties[0].address.unit
+    required: False
+  - City: other_parties[0].address.city
+    required: False
+  - State: other_parties[0].address.state
+    required: False
+  - Zip or Postal Code: other_parties[0].address.zip
+    required: False
+  - Country: other_parties[0].country
+    required: False
 ---
 id: respondent name
 sets:
@@ -590,6 +666,18 @@ question: |
 fields:
   - code: |
       ppo_threat_protectees[i].name_fields()
+---
+id: ppo_sexual_assault_threat_protectees name
+sets:
+  - ppo_sexual_assault_threat_protectees[i].name.first
+  - ppo_sexual_assault_threat_protectees[i].name.middle
+  - ppo_sexual_assault_threat_protectees[i].name.last
+  - ppo_sexual_assault_threat_protectees[i].name.suffix
+question: |
+  Provide the name of the ${ ordinal(i) } other person you want protected from threats of sexual assault, physical injury, or death
+fields:
+  - code: |
+      ppo_sexual_assault_threat_protectees[i].name_fields()
 ---
 #################### Overridden AL Questions End #####################
 ---
@@ -832,7 +920,7 @@ id: relationship to respondent kickout
 question: |
   We're sorry, but if you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for domestic relationship personal protection order.
 subquestion: |
-  There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article Overview of Personal Protection Orders  to learn if there is a different kind of protection order for you.
+  There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
   If you made a mistake, click the **Go Back** button to change your answer. Otherwise, click **Exit**.
 ---
@@ -915,7 +1003,7 @@ subject: |
 content: |
   An exact height is not required. Provide your best guess.
 ---
-id: respondent wight
+id: respondent weight
 question: |
   Enter ${ other_parties[0].name }'s approximate weight in pounds (lbs)
 subquestion: |
@@ -973,6 +1061,7 @@ fields:
   - no label: other_parties[0].license_number
     required: False
 ---
+mandatory: True
 id: respondent other identifying info
 question: |
   Other identifying information
@@ -981,9 +1070,35 @@ subquestion: |
 
   If none, leave blank.
 fields:
+  - note: |
+      <div id="show_maxlength"> </div>
   - no label: other_parties[0].other_identifying_info
     required: False
     maxlength: 50
+script: |
+  <script>
+  $(document).ready(function() {
+      var inputField = $('#b3RoZXJfcGFydGllc1swXS5vdGhlcl9pZGVudGlmeWluZ19pbmZv');
+      var maxLength = 50;
+      var inputLength = inputField.val().length;
+      var remainingChars = maxLength - inputLength;
+      $('#show_maxlength').text(remainingChars + " " + pluralizeWord("character", "characters", remainingChars) + " remaining").css('font-weight', '500');
+
+      inputField.on('input', function() {
+        inputLength = $(this).val().length;
+        remainingChars = maxLength - inputLength;
+        if (remainingChars < 0) {
+          $('#show_maxlength').text("You are over the limit by " + Math.abs(remainingChars) + " " + pluralizeWord("character", "characters", Math.abs(remainingChars))).css('font-weight', '500').css('color', 'red');
+        } else {
+          $('#show_maxlength').text(remainingChars + " " + pluralizeWord("character", "characters", remainingChars) + " remaining").css('font-weight', '500').css('color', 'black');
+        }
+      });
+  });
+
+  function pluralizeWord(singularWord, pluralWord, count) {
+    return count == 1 ? singularWord : pluralWord;
+  }
+  </script>
 ---
 id: respondent required to carry gun for work
 question: |
@@ -1116,6 +1231,114 @@ subquestion: |
 
 continue button field: stalking_harassing_intro
 ---
+id: sexual assault intro
+question: |
+  The following questions are about what ${ other_parties[0].name } has done to you
+subquestion: |
+  Your answers will help the judge understand why you need protection.
+
+continue button field: sexual_assault_intro
+---
+id: respondent sexual assault conviction
+question: |
+  Was ${ other_parties[0].name } convicted of sexual assault against you?
+fields:
+  - no label: respondent_sexual_assault_conviction
+    datatype: yesnoradio
+---
+#NOTE: need to link this question to new entry in orders_judgments
+id: sexual assault conviction listed in orders and judgments
+question: |
+  Did you list this case when asked about orders or judgments between you and ${ other_parties[0].name }?
+fields:
+  - no label: orders_judgments_include_sa_conviction
+    datatype: yesnoradio
+---
+# id: unlisted sexual assault conviction kickout
+# question: |
+#   You will need to include ${ other_parties[0].name }'s sexual assault conviction before you can continue with the interview
+# subquestion: |
+#   Select **Undo** to return to the prior orders screen. You will be asked for the case number, name of court and county, and the name of the judge in that case.
+# fields:
+#   - no label: orders_judgments_include_sa_conviction
+#     datatype: yesnoradio
+---
+id: fear of future sexual assault
+question: |
+  Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?
+fields: 
+  - no label: fears_future_sexual_assault
+    datatype: yesnoradio
+---
+id: potential sexual assault explained
+question: |
+  Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }
+subquestion: |
+  ${ collapse_template(fears_future_sexual_assault_explained) }
+fields:
+  - no label: potential_sexual_assault_exp
+    input type: area
+---
+template: fears_future_sexual_assault_explained
+subject: |
+  More information about how to answer this question.
+content: |
+  Be as specific as you can about facts like dates and locations. However, if you are not sure of a date or other fact, do not guess. It is okay to give an approximate date or time, or to put a time of year, like "last summer."
+
+  If you have any documents you want to show the judge, such as police reports, medical records, photos, copies of letters, texts, or email messages, you can attach copies to your petition. However, this is not necessary. The judge shouldn't deny a petition just because you don't have any documents to attach.
+---
+id: no past or potential sexual assault kickout
+event: no_past_or_potential_sexual_assault_kickout
+question: |
+  We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*
+subquestion: |
+  There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
+
+  If you made a mistake, click the **${ MLH_back_button_label }** button to change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+---
+id: petitioner property interest 
+question: |
+  Do you have a property interest in this home?
+subquestion: |
+  ${ collapse_template(property_interest_explained) }
+fields:
+  - no label: has_property_interest_in_home
+    datatype: yesnoradio
+---
+id: respondent property interest 
+question: |
+  Does ${ other_parties[0].name } have a property interest in this home?
+fields:
+  - no label: respondent_has_property_interest_in_home
+    datatype: yesnoradio
+---
+template: property_interest_explained
+subject: |
+  What is a property interest?
+content: |
+  Michigan law uses the term "property interest," but does not give a definition for it. It doesn't necessarily mean your name must be on the title or lease. We can't know how the judge in your case will interpret the law, but you could argue that the following things make up a property interest:
+
+    * You own or rent the home (your name is the deed/lease)
+    * Your name is not on the deed or lease, but you live there with ${ other_parties[0].name }
+    * You lived in the home with ${ other_parties[0].name } until recently, but moved out to stay safe
+    * A friend or family member owns a house, and you stay there but do not have a written lease
+    * Any other property where you live, or lived recently but had to move to stay safe
+  
+  If your situation is out of the ordinary, use your judgment to decide if you have a property interest in the home. Be prepared to explain your reasoning to the judge, if needed.
+---
+id: respondent property interest kickout
+event: respondent_property_interest_kickout
+question: |
+  We're sorry, but you are not allowed to ask for this protection
+subquestion: |
+  Michigan law does not allow the court to prohibit ${ other_parties[0].name } from entering on the property where you live if:
+  
+    1. you are not married to ${ other_parties[0].name };
+    2. you do not have a property interest in the home, **and**
+    3. ${ other_parties[0].name } has a property interest in the home.
+  
+  If you made a mistake, click the **${ MLH_back_button_label }** button to change your answer(s). Otherwise, click Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
+---
 template: stalking_harassing_explained
 subject: |
   Learn more about stalking behavior.
@@ -1195,7 +1418,6 @@ subquestion: |
   ${ collapse_template(incident_location_explained) }
 fields:
   - The incident occurred at the following location: incidents[i].location
-    required: False
 ---
 template: incident_location_explained
 subject: |
@@ -1354,7 +1576,7 @@ id: other details
 question: |
   Include anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }
 subquestion: |
-  You can use this space to tell the judge other things about ${ other_parties[0].name } that make you feel threatened, abused, or afraid.
+  You can use this space to tell the judge other things about ${ other_parties[0].name } that make you feel threatened, abused, or afraid
 
   ${ collapse_template(incident_other_details_explained) }
 fields:
@@ -1380,7 +1602,7 @@ content: |
 ---
 id: relief requested intro
 question: |
-  Next, you will be asking the judge to tell ${ other_parties[0].name } ${ other_parties[0].pronoun_subjective() } is not allowed to do certain things that make you unsafe or afraid.
+  Next, you will be asking the judge to forbid ${ other_parties[0].name } from doing certain things that make you unsafe or afraid
 subquestion: |
   On the following pages, you will decide which types of behavior you do not want ${ other_parties[0].name } to be allowed to do. The judge will make the final decision about what things to include in the protection order.
 
@@ -1396,6 +1618,8 @@ fields:
 id: wants no entering other property
 question: |
   Do you want the judge to order ${ other_parties[0].name } not to enter other property (not your residence)?
+subquestion: |
+  ${ collapse_template(wants_no_entering_other_property_explained) }
 fields:
   - no label: other_properties.there_are_any
     datatype: yesnoradio
@@ -1405,6 +1629,13 @@ subject: |
   When should I answer yes?
 content: |
   You might answer yes to this if there are other places where you often spend time (such as your work, school, parents' home, or friends' homes) and you want ${ other_parties[0].name } to be prohibited from going to those places.
+---
+id: wants no sexual assault threats
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** you?
+fields:
+  - no label: wants_no_sexual_assault_threats
+    datatype: yesnoradio
 ---
 id: wants no harming petitioner
 question: |
@@ -1450,32 +1681,27 @@ fields:
 ---
 id: no_stalking_choices
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to stalk you, including the following behaviors?
+  You can ask the judge to order ${ other_parties[0].name } not to stalk you
 subquestion: |
-  ${ collapse_template(wants_no_stalking_explained) }
+  Stalking includes any of the behaviors listed below.
+
+  You may ask to be protected from some or all of these behaviors by ${ other_parties[0].name } if they **interfere with your personal freedom** or **make you afraid**. 
 fields:
   - Check all that apply: no_stalking_choices
     datatype: checkboxes
     choices:
       - Following you or appearing within your sight: following
       - Sending mail or other communications to you: communications
+        help: |
+          This includes sending you email or text messages, sending you messages through social media such as Facebook or Twitter, or sending messages to you through a third party such as your children or friends.
       - Approaching or confronting you in a public place or on private property: approaching
+        help: |
+          This prohibits ${ other_parties[0].name } from coming up to you or trying to talk to you at a public place. For example, if you ran into ${ other_parties[0].name } at a store or restaurant, ${ other_parties[0].name } would be prohibited from coming up to you.
       - Entering onto or staying on property you own, lease, or occupy: entering_property
       - Placing an object on or delivering an object to property you own, lease, or occupy: placing_object
       - Appearing at your workplace or residence: appear_work_residence
       - Contacting you by telephone: phone_contact
     none of the above: False
----
-template: wants_no_stalking_explained
-subject: |
-  When should I answer yes?
-content: |
-  You might ask for some or all of the following stalking protections if you believe these behaviors by ${ other_parties[0].name } interfere with your personal freedom or if the behaviors make you afraid.
-
-  What some of the choices mean:
-
-    * Sending mail or other communications to you
-    * Approaching or confronting you in a public place or on private property
 ---
 id: wants_no_children_property_removal_interference
 question: |
@@ -1538,6 +1764,40 @@ question: |
   Do you want the judge to order ${ other_parties[0].name } not to interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?
 fields:
   - no label: wants_no_work_education_interference
+    datatype: yesnoradio
+---
+id: wants no sexual assault threats to others
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** another person?
+subquestion: |
+  ${ collapse_template(wants_no_sexual_assault_threats_to_others_explained) }
+fields:
+  - no label: ppo_sexual_assault_threat_protectees.there_are_any
+    datatype: yesnoradio
+---
+template: wants_no_sexual_assault_threats_to_others_explained
+subject: |
+  When should I answer yes?
+content: |
+  You might answer Yes to this if there are other people ${ other_parties[0].name } has threatened to sexually assault, kill, or physically injure, such as your children, specific relatives, or specific friends.
+---
+id: ppo_sexual_assault_threat_protectees there_is_another
+question: |
+  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill or physically injure** another person not yet listed?
+subquestion: |
+  % if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
+  So far, you have listed:
+
+  % if wants_no_sexual_assault_threats:
+    - Yourself
+  % endif
+
+  % for object in ppo_sexual_assault_threat_protectees.complete_elements():
+    - ${ object }
+  % endfor
+  % endif
+fields:
+  - no label: ppo_sexual_assault_threat_protectees.there_is_another
     datatype: yesnoradio
 ---
 id: wants_no_access_to_personal_info_records
@@ -1715,7 +1975,13 @@ objects:
   - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="cc_377_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="cc_395_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing Attachment (Domestic Relationship)", filename="ppo_domestic_instructions_after_hearing_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment: ALDocument.using(title="x Parte Instructions Attachment (Non-Domestic Sexual Assault)", filename="ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - ppo_domestic_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions Attachment (Domestic Relationship)", filename="ppo_domestic_ex_parte_instructions_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -1727,6 +1993,12 @@ objects:
   - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship)", filename="cc_380_personal_protection_order_nondomestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - ppo_cc_396: ALDocument.using(title="Personal Protection Order (Non-Domestic Sexual Assault)", filename="cc_396_personal_protection_order_nondomestic_sexual_assault.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault)", filename="cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -1736,10 +2008,13 @@ objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="cc_381_notice_of_hearing.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="cc_395_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, cc_377_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 code: |
   if ppo_type == "domestic":
@@ -1758,10 +2033,26 @@ code: |
     ppo_mc_97a.enabled = False
 ---
 code: |
+  if ppo_type == "nondomestic_sexual_assault":
+    ppo_cc_395.enabled = True
+    ppo_cc_396.enabled = True
+    cc_395_addendum.enabled = True
+  else:
+    ppo_cc_395.enabled = False
+    ppo_cc_396.enabled = False
+    cc_395_addendum.enabled = False
+---
+code: |
   if ppo_type == "domestic" and wants_ex_parte_order:
     ppo_domestic_ex_parte_instructions_attachment.enabled = True
   else:
     ppo_domestic_ex_parte_instructions_attachment.enabled = False
+---
+code: |
+  if ppo_type == "nondomestic_sexual_assault" and wants_ex_parte_order:
+    ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.enabled = True
+  else:
+    ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
@@ -1770,24 +2061,26 @@ code: |
     cc_375_attachment.enabled = False
 ---
 code: |
-  if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
     cc_377_attachment.enabled = True
   else:
     cc_377_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic":
-    ppo_cc_381.enabled = True
+  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+    cc_395_attachment.enabled = True
   else:
-    ppo_cc_381.enabled = False
+    cc_395_attachment.enabled = False
 ---
 code: |
-  if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
+  if (ppo_type == "nondomestic"):
+    ppo_cc_381.enabled = True
     ppo_cc_380.enabled = True
     ppo_cc_377.enabled = True
   else:
     ppo_cc_380.enabled = False
     ppo_cc_377.enabled = False
+    ppo_cc_381.enabled = False
 ---
 code: |
   if str(county_choice) == "Oakland":
@@ -1927,6 +2220,15 @@ attachments:
     - pdf
 ---
 attachments:
+  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment
+  filename: cc_395_attachment
+  docx template file: cc_395_attachment.docx
+  variable name: cc_395_attachment[i]
+  skip undefined: True
+  valid formats:
+    - pdf
+---
+attachments:
   name: Instructions After Hearing Attachment (Domestic Relationship)
   filename: ppo_domestic_instructions_after_hearing_attachment
   pdf template file: ppo_domestic_instructions_after_hearing_attachment.pdf
@@ -1947,6 +2249,26 @@ attachments:
   fields:
     - instructions_heading: |
         ${ county_choice } Instructions - How to Ask for an Ex Parte ${ ppo_type_full }
+---
+attachments:
+  name: Ex Parte Instructions Attachment (Non-Domestic Sexual Assault)
+  filename: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment
+  pdf template file: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.pdf
+  variable name: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment[i]
+  skip undefined: True
+  editable: False
+  fields:
+    - instructions_heading: |
+        ${ county_choice } Instructions - How to Ask for an Ex Parte ${ ppo_type_full }
+---
+attachments:
+  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
+  filename: cc_395_statement_of_facts
+  docx template file: cc_395_statement_of_facts.docx
+  variable name: cc_395_addendum[i]
+  skip undefined: True
+  valid formats:
+    - pdf
 ---
 attachments:
   name: Personal Protection Order (Domestic Relationship)
@@ -2008,6 +2330,123 @@ attachments:
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
     - other_parties1_name__4: ${ other_parties[0].name }
+    - other_parties1_address_block: |
+        ${ other_parties[0].address }
+        % if other_parties[0].phone_number:
+        ${ phone_number_formatted(other_parties[0].phone_number) }
+        % endif
+    - other_parties1_birthdate: ${ other_parties[0].birthdate }
+    - other_parties1_license_number: ${ other_parties[0].license_number }
+    - other_parties1_height: ${ other_parties[0].height }
+    - other_parties1_weight: ${ other_parties[0].weight }
+    - other_parties1_race: ${ other_parties[0].race }
+    - other_parties1_gender: ${ other_parties[0].gender }
+    - other_parties1_hair_color: ${ other_parties[0].hair_color }
+    - other_parties1_eye_color: ${ other_parties[0].eye_color }
+    - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+---
+attachments:
+  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault)
+  filename: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault
+  variable name: ppo_cc_395[i]
+  skip undefined: True
+  editable: False
+  pdf template file: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf
+  fields:
+    - users1_name__1: ${ users[0].name }
+    - users1_name__2: ${ users[0].name }
+    - users1_address_block: |
+        ${ users[0].address }
+        % if users[0].phone_number:
+        ${ phone_number_formatted(users[0].phone_number) }
+        % endif
+    - users1_age: ${ users[0].age_in_years() }
+    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - signature_date: ${ signature_date if esign else "" }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_address_block: |
+        ${ other_parties[0].address_block() }
+        % if other_parties[0].phone_number:
+        ${ phone_number_formatted(other_parties[0].phone_number) }
+        % endif
+    - other_parties1_age: ${ other_parties[0].age_in_years() }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+    - other_properties1_address: ${ other_properties[0].on_one_line() }
+    - pending_actions_see_attached: |
+        % if pending_actions_between_parties_yes:
+        See attachment.
+        % else:
+        ""
+        % endif
+    - orders_judgments_see_attached: |
+        % if orders_judgments_re_parties_yes:
+        See attachment.
+        % else: 
+        ""
+        % endif
+    - ppo_sexual_assault_threat_protectees_list: ${ ppo_sexual_assault_threat_protectees_list }
+    - respondent_carries_firearm_for_work_known: ${ respondent_carries_firearm_for_work_known }
+    - respondent_carries_firearm_for_work_unknown: ${ respondent_carries_firearm_for_work_unknown }
+    - pending_actions_between_parties_yes: ${ pending_actions_between_parties_yes }
+    - pending_actions_between_parties_no: ${ pending_actions_between_parties_no }
+    - orders_judgments_re_parties_yes: ${ orders_judgments_re_parties_yes }
+    - orders_judgments_re_parties_no: ${ orders_judgments_re_parties_no }
+    - wants_no_entering_residential_property: ${ wants_no_entering_residential_property }
+    - wants_no_entering_other_property: ${ wants_no_entering_other_property }
+    - stalking_includes_following_appearing_in_sight: ${ stalking_includes_following_appearing_in_sight }
+    - stalking_includes_sending_communications: ${ stalking_includes_sending_communications }
+    - stalking_includes_approaching_confronting_in_public: ${ stalking_includes_approaching_confronting_in_public }
+    - stalking_includes_leaving_object: ${ stalking_includes_leaving_object }
+    - stalking_includes_appearing_at_petitioners_work: ${ stalking_includes_appearing_at_petitioners_work }
+    - stalking_includes_phone_contact: ${ stalking_includes_phone_contact }
+    - stalking_includes_being_on_petitioners_property: ${ stalking_includes_being_on_petitioners_property }
+    - wants_no_children_property_removal_interference: ${ wants_no_children_property_removal_interference }
+    - wants_no_work_education_interference: ${ wants_no_work_education_interference }
+    - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
+    - wants_other_request: ${ wants_other_request }
+    - other_request_exp: ${ other_request_exp }
+    - other_request_see_attached: |
+        % if wants_other_request:
+        Please see attached "Statement of Facts".
+        % else:
+        ""
+        % endif
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+    - has_next_friend_petitioning: ${ has_next_friend_petitioning }
+    - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
+    - fears_future_sexual_assault: ${ fears_future_sexual_assault }
+    - potential_sexual_assault_see_attached: |
+        % if potential_sexual_assault_exp:
+        Please see attached "Statement of Facts".
+        % else:
+        ""
+        % endif
+    - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
+---
+attachments:
+  name: Personal Protection Order (Non-Domestic Sexual Assault)
+  filename: cc_396_personal_protection_order_nondomestic_sexual_assault
+  variable name: ppo_cc_396[i]
+  skip undefined: True
+  editable: False
+  pdf template file: cc_396_personal_protection_order_nondomestic_sexual_assault.pdf
+  fields:
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+    - users1_name: ${ users[0].name }
+    - users1_address_block: |
+        ${ users[0].address }
+        % if users[0].phone_number:
+        ${ phone_number_formatted(users[0].phone_number) }
+        % endif
+    - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         % if other_parties[0].phone_number:
