@@ -25,8 +25,8 @@ sections:
   - review_petitioner_info: "Petitioner Information"
   - review_respondent_info: "Respondent Information"
   - review_abuse_history_info: "History of Abuse"
-  - review_relief_requested_info: "Relief to be Requested"
-  - review_instructions_info: "Instructions"
+  - review_what_you_want_in_ppo_info: "What You Want in the PPO"
+  - review_get_forms_info: "Get Your Forms"
 ---
 code: |
   al_form_type = "existing_case"
@@ -146,7 +146,7 @@ code: |
 
     other_details
 
-  nav.set_section("review_relief_requested_info")
+  nav.set_section("review_what_you_want_in_ppo_info")
   relief_requested_intro
 
   if ppo_type == "domestic":
@@ -216,7 +216,7 @@ code: |
   if wants_ex_parte_order:
     ex_parte_yes_screen
 
-  nav.set_section("review_instructions_info")
+  nav.set_section("review_get_forms_info")
   efile_notice
   if esign:
     signature_date
@@ -435,21 +435,21 @@ code: |
 ---
 code: |
   if ppo_type == "domestic":
-    doc_being_filed_with_mc_97 = "Personal Protection Order (Domestic)"
+    doc_being_filed_with_mc_97 = "Petition for Personal Protection Order (Domestic)"
   elif ppo_type == "nondomestic":
-    doc_being_filed_with_mc_97 = "Personal Protection Order (Non-Domestic)"
+    doc_being_filed_with_mc_97 = "Petition for Personal Protection Order (Non-Domestic)"
   elif ppo_type == "nondomestic_sexual_assault":
-    doc_being_filed_with_mc_97 = "Personal Protection Order (Non-Domestic Sexual Assault)"
+    doc_being_filed_with_mc_97 = "Petition for Personal Protection Order (Non-Domestic Sexual Assault)"
 
   set_doc_being_filed_with_mc_97 = True
 ---
 code: |
   if ppo_type == "domestic":
-    doc_being_filed_with_mc_97a = "Personal Protection Order (Domestic)"
+    doc_being_filed_with_mc_97a = "Petition for Personal Protection Order (Domestic)"
   elif ppo_type == "nondomestic":
-    doc_being_filed_with_mc_97a = "Personal Protection Order (Non-Domestic)"
+    doc_being_filed_with_mc_97a = "Petition for Personal Protection Order (Non-Domestic)"
   elif ppo_type == "nondomestic_sexual_assault":
-    doc_being_filed_with_mc_97a = "Personal Protection Order (Non-Domestic Sexual Assault)"
+    doc_being_filed_with_mc_97a = "Petition for Personal Protection Order (Non-Domestic Sexual Assault)"
 
   set_doc_being_filed_with_mc_97a = True
 ---
@@ -532,7 +532,7 @@ code: |
   if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
     incidents[i].reason_other_party_responsible
   incidents[i].emotional_effect
-  if ppo_type != "nondomestic_sexual_assault":
+  if ppo_type == "domestic":
     incidents[i].petitioner_injured
   incidents[i].had_witnesses
   incidents[i].had_police
@@ -850,9 +850,9 @@ question: |
 subquestion: |
   To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
 
-  If you made a mistake, select the *Undo* button to change your answer.
+  If you made a mistake, select the **Undo** button to change your answer.
 
-  Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders).
+  Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders).
 ---
 id: parties reside outside michigan kickout
 event: parties_reside_outside_michigan_kickout
@@ -1104,7 +1104,6 @@ fields:
     required: False
     code: |
       states_list()
-    default: MI
 ---
 id: pending_actions judge
 question: |
@@ -1150,7 +1149,6 @@ fields:
     required: False
     code: |
       states_list()
-    default: MI
 ---
 id: orders_judgments judge
 question: |
@@ -1332,9 +1330,9 @@ continue button field: abuse_history_intro_2
 ---
 id: abuse history intro 3
 question: |
-  If you have any documents you want to show the judge, you should attach copies to your petition
+  Attaching Evidence
 subquestion: |
-  However, even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
+  If you have any documents you want to show the judge, you should attach copies to your petition. However, even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
 
   If you have audio or video evidence, include descriptions about what is in the evidence when you are typing your descriptions of the incidents in the following screens. Save any audio/video evidence you have. If there will be a hearing for your case, you can submit the audio/video evidence to the court directly.
 
@@ -1396,7 +1394,11 @@ question: |
 subquestion: |
   Be sure to use complete sentences and be as descriptive as you can. List as many details as you can remember.
 
+  % if ppo_type == "nondomestic":
+  ${ collapse_template(incident_other_party_actions_explained_nondomestic) }
+  % else:
   ${ collapse_template(incident_other_party_actions_explained) }
+  % endif
 fields:
   - no label: incidents[i].other_party_actions
     input type: area
@@ -1414,6 +1416,20 @@ content: |
   A good example:
 
   "We were eating dinner, and he was complaining that his food was cold. I got angry, so I grabbed his plate and went to the kitchen to put it in the microwave. He followed me and grabbed my arm and told me I was not supposed to leave the dinner table without his permission, and that I was a bad example for our daughter. I told him to leave me alone and he pushed me down on the ground and dumped the plate of food on my legs. He told me that one day he would leave me alone for good and I would be sorry because no one would ever want me again."
+---
+template: incident_other_party_actions_explained_nondomestic
+subject: |
+  Can I see some examples?
+content: |
+  Here are two examples to help you understand how to write a good description of the incident:
+
+  A poor example:
+
+  "I kept seeing ${ other_parties[0].name } everywhere I would go."
+
+  A good example:
+
+  "When I left work in the afternoon, I saw a car parked in the street with someone sitting in the driver's seat. When I got closer I could see that it was ${ other_parties[0].name }, who was watching me. As I walked down the street, ${ other_parties[0].name } started the car and followed me slowly. ${ other_parties[0].name } followed me three blocks to my parking spot. When I drove out of the parking structure in my car, I didn't see ${ other_parties[0].name } again."
 ---
 id: incidents emotional effect
 question: |
@@ -1543,7 +1559,11 @@ question: |
 subquestion: |
   You can use this space to tell the judge other things about ${ other_parties[0].name } that make you feel threatened, abused, or afraid
 
+  % if ppo_type == "nondomestic":
+  ${ collapse_template(incident_other_details_explained_nondomestic) }
+  % else:
   ${ collapse_template(incident_other_details_explained) }
+  % endif
 fields:
   - no label: other_details
     input type: area
@@ -1558,6 +1578,18 @@ content: |
   - ${ other_parties[0].name } tries to control you with her behavior. This can include many different types of things, such as: threatening to hurt you or your children; threatening to commit suicide; limiting your access to money; not letting you have or keep a job; controlling where you go or who you see and talk to; or putting you down, calling you names, or trying to make you feel like you are "crazy."
 
   - ${ other_parties[0].name } was violent in a previous relationship. Include information about other personal protection orders and past domestic violence convictions, if any.
+
+  - ${ other_parties[0].name } has mental health problems and/or issues with drugs or alcohol.
+
+  - ${ other_parties[0].name } owns a weapon, such as a gun, especially if ${ other_parties[0].name } has used or threatened to use the weapon against you or another person.
+
+  - ${ other_parties[0].name } is involved in criminal activity, such as being a gang member or dealing drugs.
+---
+template: incident_other_details_explained_nondomestic
+subject: |
+  Click here to see examples.
+content: |
+  Examples:
 
   - ${ other_parties[0].name } has mental health problems and/or issues with drugs or alcohol.
 
