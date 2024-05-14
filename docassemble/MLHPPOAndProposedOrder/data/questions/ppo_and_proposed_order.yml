@@ -286,10 +286,12 @@ code: |
   respondent_carries_firearm_for_work_asked = True
 ---
 code: |
-  if pending_actions.there_are_any:
+  if len(pending_actions.complete_elements()) > 0:
     pending_actions_between_parties_yes = True
   else:
+    pending_actions_between_parties_yes = False
     pending_actions_between_parties_no = True
+
   pending_actions_asked = True
 ---
 code: |
@@ -303,10 +305,12 @@ code: |
     pending_actions[i].court_info_line = ""
 ---
 code: |
-  if orders_judgments.there_are_any:
+  if len(orders_judgments.complete_elements()) > 0:
     orders_judgments_re_parties_yes = True
   else:
+    orders_judgments_re_parties_yes = False
     orders_judgments_re_parties_no = True
+
   orders_judgments_asked = True
 ---
 code: |
@@ -771,8 +775,8 @@ fields:
     show if:
       variable: knows_respondents_birthdate
       is: True
-  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].birthdate
-    datatype: date
+  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].estimated_age
+    datatype: integer
     show if:
       variable: knows_respondents_birthdate
       is: False
@@ -1118,6 +1122,22 @@ question: |
 fields:
   - no label: pending_actions.there_is_another
     datatype: yesnoradio
+---
+# NOTE: started building out template for listed cases (to be used in question above); 
+# How to deal with fact that pending_actions attributes should not be mandatory? 
+# For example, what if I display docket number, but one of the cases doesn't use it?
+template: pending_actions_list
+subject: What have I listed so far?
+content: |
+  % if len(pending_actions.complete_elements()) > 0:
+  So far you have listed:
+
+  % for item in pending_actions.complete_elements():
+    * ${ item }
+  % endfor
+  % else:
+  You have not listed any cases yet
+  % endif
 ---
 id: orders_judgments there_are_any
 question: |
@@ -2108,7 +2128,12 @@ attachments:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
-    - other_parties1_age: ${ other_parties[0].age_in_years() }
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
+        ${ other_parties[0].estimated_age } est.
+        % else:
+        ${ other_parties[0].age_in_years() }
+        % endif
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
@@ -2366,7 +2391,12 @@ attachments:
         % if other_parties[0].phone_number:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_age: ${ other_parties[0].age_in_years() }
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
+        ${ other_parties[0].estimated_age } est.
+        % else:
+        ${ other_parties[0].age_in_years() }
+        % endif
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
@@ -2559,7 +2589,12 @@ attachments:
         % if other_parties[0].phone_number:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_age: ${ other_parties[0].age_in_years() }
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
+        ${ other_parties[0].estimated_age } est.
+        % else:
+        ${ other_parties[0].age_in_years() }
+        % endif
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
     - docket_number__1: ${ docket_number }
