@@ -150,7 +150,10 @@ code: |
   relief_requested_intro
 
   if ppo_type == "domestic":
-    wants_no_entering_residential_property
+    if wants_no_entering_residential_property:
+      if not has_property_interest_in_home:
+        if respondent_has_property_interest_in_home:
+          respondent_property_interest_kickout
     if other_properties.there_are_any:
       other_properties.gather()
     check_wants_no_entering_other_property
@@ -220,7 +223,7 @@ code: |
   efile_notice
   if esign:
     signature_date
-  motion_re_change_of_domicile_download
+  personal_protection_order_download
 
   interview_ppo_and_proposed_order = True
 ---
@@ -658,6 +661,8 @@ sets:
   - ppo_harm_protectees[i].name.suffix
 question: |
   Provide the name of the ${ ordinal(i) } other person you want protected from assaults, attacks, beatings, molesting, or wounding
+subquestion: |
+  ${ collapse_template(harm_protectees_listed_so_far) }
 fields:
   - code: |
       ppo_harm_protectees[i].name_fields()
@@ -670,6 +675,8 @@ sets:
   - ppo_threat_protectees[i].name.suffix
 question: |
   Provide the name of the ${ ordinal(i) } other person you want protected from threats of physical injury or death
+subquestion: |
+  ${ collapse_template(threat_protectees_listed_so_far) }
 fields:
   - code: |
       ppo_threat_protectees[i].name_fields()
@@ -682,6 +689,8 @@ sets:
   - ppo_sexual_assault_threat_protectees[i].name.suffix
 question: |
   Provide the name of the ${ ordinal(i) } other person you want protected from threats of sexual assault, physical injury, or death
+subquestion: |
+    ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
 fields:
   - code: |
       ppo_sexual_assault_threat_protectees[i].name_fields()
@@ -744,11 +753,11 @@ event: minor_kickout
 question: |
   You cannot continue using this tool
 subquestion: |
-  We're sorry, but you cannot use this tool to prepare a Petition for Personal Protection Order.
+  We're sorry, but you cannot use this tool to prepare a *Petition for Personal Protection Order*.
 
-  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. If you made a mistake, click **Go Back** to return to the prior screen and change your answer.
+  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. If you made a mistake, click **Undo** to return to the prior screen and change your answer.
 
-  Otherwise, click **Exit**. To learn more, read Minors and Personal Protection Orders.
+  To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
 id: respondent living in michigan
 question: |
@@ -1136,7 +1145,7 @@ content: |
     * ${ item }
   % endfor
   % else:
-  You have not listed any cases yet
+  You have not listed any cases yet.
   % endif
 ---
 id: orders_judgments there_are_any
@@ -1672,19 +1681,26 @@ id: ppo_harm_protectees there_is_another
 question: |
   Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** another person not yet listed?
 subquestion: |
-  % if len(ppo_harm_protectees.complete_elements()) > 0:
+  ${ collapse_template(harm_protectees_listed_so_far) }
+fields:
+  - Do you want to add another person?: ppo_harm_protectees.there_is_another
+    datatype: yesnoradio
+---
+template: harm_protectees_listed_so_far
+subject: Who have I listed so far?
+content: |
+  % if (len(ppo_harm_protectees.complete_elements()) > 0) or wants_no_harming_petitioner:
   So far, you have listed:
 
   % if wants_no_harming_petitioner:
     - Yourself
   % endif
-  % for object in ppo_harm_protectees.complete_elements():
-    - ${ object }
+  % for person in ppo_harm_protectees.complete_elements():
+    - ${ person }
   % endfor
+  % else:
+  You have not listed anyone yet.
   % endif
-fields:
-  - Do you want to add another person?: ppo_harm_protectees.there_is_another
-    datatype: yesnoradio
 ---
 id: wants_no_removing_minor
 question: |
@@ -1709,7 +1725,7 @@ fields:
       - Following you or appearing within your sight: following
       - Sending mail or other communications to you: communications
         help: |
-          This includes sending you email or text messages, sending you messages through social media such as Facebook or Twitter, or sending messages to you through a third party such as your children or friends.
+          This includes sending you email or text messages, sending you messages through social media such as Facebook or Instagram, or sending messages to you through a third party such as your children or friends.
       - Approaching or confronting you in a public place or on private property: approaching
         help: |
           This prohibits ${ other_parties[0].name } from coming up to you or trying to talk to you at a public place. For example, if you ran into ${ other_parties[0].name } at a store or restaurant, ${ other_parties[0].name } would be prohibited from coming up to you.
@@ -1759,19 +1775,26 @@ id: ppo_threat_protectees there_is_another
 question: |
   Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person not yet listed?
 subquestion: |
-  % if len(ppo_threat_protectees.complete_elements()) > 0:
+  ${ collapse_template(threat_protectees_listed_so_far) }
+fields:
+  - no label: ppo_threat_protectees.there_is_another
+    datatype: yesnoradio
+---
+template: threat_protectees_listed_so_far
+subject: Who have I listed so far?
+content: |
+  % if (len(ppo_threat_protectees.complete_elements()) > 0) or wants_no_threatening_petitioner:
   So far, you have listed:
 
   % if wants_no_threatening_petitioner:
     - Yourself
   % endif
-  % for object in ppo_threat_protectees.complete_elements():
-    - ${ object }
+  % for person in ppo_threat_protectees.complete_elements():
+    - ${ person }
   % endfor
+  % else:
+  You have not listed anyone yet.
   % endif
-fields:
-  - no label: ppo_threat_protectees.there_is_another
-    datatype: yesnoradio
 ---
 id: wants_no_work_education_interference
 question: |
@@ -1799,19 +1822,26 @@ id: ppo_sexual_assault_threat_protectees there_is_another
 question: |
   Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill or physically injure** another person not yet listed?
 subquestion: |
-  % if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
+  ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
+fields:
+  - no label: ppo_sexual_assault_threat_protectees.there_is_another
+    datatype: yesnoradio
+---
+template: ppo_sexual_assault_threat_protectees_listed_so_far
+subject: Who have I listed so far?
+content: |
+  % if (len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0) or wants_no_sexual_assault_threats:
   So far, you have listed:
 
   % if wants_no_sexual_assault_threats:
     - Yourself
   % endif
-  % for object in ppo_sexual_assault_threat_protectees.complete_elements():
-    - ${ object }
+  % for person in ppo_sexual_assault_threat_protectees.complete_elements():
+    - ${ person }
   % endfor
+  % else:
+  You have not listed anyone yet.
   % endif
-fields:
-  - no label: ppo_sexual_assault_threat_protectees.there_is_another
-    datatype: yesnoradio
 ---
 id: wants_no_access_to_personal_info_records
 question: |
@@ -1863,7 +1893,7 @@ subquestion: |
 fields:
   - no label: wants_other_request
     datatype: yesnoradio
-  - List the other things you want the judge to order ${ other_parties[0].name } not to do, and/or the exceptions you want the judge to make: other_request_exp
+  - List the other things you want the judge to order ${ other_parties[0].name } not to do.: other_request_exp
     input type: area
     show if:
       variable: wants_other_request
@@ -1880,8 +1910,6 @@ content: |
     * Interfering with access to your driver's license or other important papers
 
     * Interfering with your use of a vehicle or removing your vehicle from you
-
-    * Contacting you by telephone except for sending you text messages to arrange parenting time
 ---
 id: ex_parte_info_screen
 question: |
@@ -1956,7 +1984,7 @@ fields:
     datatype: yesnoradio
 ---
 id: download screen
-event: motion_re_change_of_domicile_download
+event: personal_protection_order_download
 question: |
   All done!
 subquestion: |
@@ -1980,6 +2008,9 @@ objects:
 ---
 objects:
   - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="cc_375_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - cc_377_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="cc_377_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="cc_375_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -2027,7 +2058,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 code: |
   if ppo_type == "domestic":
@@ -2044,6 +2075,18 @@ code: |
     ppo_domestic_instructions_after_hearing_attachment.enabled = False
     ppo_mc_97.enabled = False
     ppo_mc_97a.enabled = False
+---
+code: |
+  if ppo_type == "nondomestic":
+    ppo_cc_381.enabled = True
+    ppo_cc_380.enabled = True
+    ppo_cc_377.enabled = True
+    cc_377_addendum.enabled = True
+  else:
+    ppo_cc_380.enabled = False
+    ppo_cc_377.enabled = False
+    ppo_cc_381.enabled = False
+    cc_377_addendum.enabled = False
 ---
 code: |
   if ppo_type == "nondomestic_sexual_assault":
@@ -2084,16 +2127,6 @@ code: |
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
----
-code: |
-  if (ppo_type == "nondomestic"):
-    ppo_cc_381.enabled = True
-    ppo_cc_380.enabled = True
-    ppo_cc_377.enabled = True
-  else:
-    ppo_cc_380.enabled = False
-    ppo_cc_377.enabled = False
-    ppo_cc_381.enabled = False
 ---
 code: |
   if str(county_choice) == "Oakland":
@@ -2148,8 +2181,6 @@ attachments:
     - pending_actions_see_attached: |
         % if pending_actions_between_parties_yes:
         See attachment.
-        % else:
-        ""
         % endif
     - orders_judgments1_docket_number: ${ orders_judgments[0].docket_number }
     - orders_judgments1_court_info_line: ${ orders_judgments[0].court_info_line }
@@ -2160,8 +2191,6 @@ attachments:
     - orders_judgments_see_attached: |
         % if orders_judgments_re_parties_yes:
         See attachment.
-        % else: 
-        ""
         % endif
     - ppo_explanation_see_attached: |
         Please see attached "Statement of Facts".
@@ -2204,8 +2233,6 @@ attachments:
     - other_request_see_attached: |
         % if wants_other_request:
         Please see attached "Statement of Facts".
-        % else:
-        ""
         % endif
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
@@ -2233,6 +2260,15 @@ attachments:
   filename: cc_377_attachment
   docx template file: cc_377_attachment.docx
   variable name: cc_377_attachment[i]
+  skip undefined: True
+  valid formats:
+    - pdf
+---
+attachments:
+  name: Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts
+  filename: cc_377_statement_of_facts
+  docx template file: cc_377_statement_of_facts.docx
+  variable name: cc_377_addendum[i]
   skip undefined: True
   valid formats:
     - pdf
@@ -2405,14 +2441,10 @@ attachments:
     - pending_actions_see_attached: |
         % if pending_actions_between_parties_yes:
         See attachment.
-        % else:
-        ""
         % endif
     - orders_judgments_see_attached: |
         % if orders_judgments_re_parties_yes:
         See attachment.
-        % else: 
-        ""
         % endif
     - ppo_sexual_assault_threat_protectees_list: ${ ppo_sexual_assault_threat_protectees_list }
     - respondent_carries_firearm_for_work_known: ${ respondent_carries_firearm_for_work_known }
@@ -2438,8 +2470,6 @@ attachments:
     - other_request_see_attached: |
         % if wants_other_request:
         Please see attached "Statement of Facts".
-        % else:
-        ""
         % endif
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
@@ -2448,8 +2478,6 @@ attachments:
     - potential_sexual_assault_see_attached: |
         % if potential_sexual_assault_exp:
         Please see attached "Statement of Facts".
-        % else:
-        ""
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
 ---
@@ -2604,14 +2632,10 @@ attachments:
     - pending_actions_see_attached: |
         % if pending_actions_between_parties_yes:
         See attachment.
-        % else:
-        ""
         % endif
     - orders_judgments_see_attached: |
         % if orders_judgments_re_parties_yes:
         See attachment.
-        % else:
-        ""
         % endif
     - ppo_explanation_see_attached: |
         Please see attached "Statement of Facts".
@@ -2636,8 +2660,6 @@ attachments:
     - other_request_see_attached: |
         % if wants_other_request:
         Please see attached "Statement of Facts".
-        % else:
-        ""
         % endif
     - wants_no_message_posting: ${ wants_no_message_posting }
     - wants_ex_parte_order: ${ wants_ex_parte_order }
