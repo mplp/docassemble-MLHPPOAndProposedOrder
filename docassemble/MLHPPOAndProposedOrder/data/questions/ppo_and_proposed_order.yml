@@ -40,6 +40,7 @@ code: |
 ---
 objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
+  - next_friends: ALPeopleList.using(complete_attribute="complete")
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
@@ -69,9 +70,26 @@ code: |
 
   nav.set_section("review_petitioner_info")
   users.gather()
+
   petitioner_lives_in_michigan
-  if petitioner_is_minor and (not minor_has_next_friend):
-    minor_kickout
+
+  for user in users:
+    user.birthdate
+
+  check_if_petitioner_minor
+  if petitioner_is_minor:
+    if not petitioner_is_emancipated_minor:
+      if next_friends.there_are_any:
+        next_friends.gather()
+        if next_friend_agrees_to_role:
+          set_next_friend
+          if not next_friend_agrees_to_sign:
+            next_friend_signature_notice
+        else:
+          next_friend_role_kickout
+      else:
+        minor_kickout
+  
   if (not petitioner_lives_in_michigan) and not (respondent_lives_in_michigan):
     parties_reside_outside_michigan_kickout
   knows_respondents_birthdate
@@ -187,9 +205,6 @@ code: |
   if ppo_type == "domestic":
     wants_no_children_property_removal_interference
 
-  if ppo_type == "nondomestic":
-    wants_no_harming_petitioner
-
   if ppo_type != "nondomestic_sexual_assault":
     wants_no_threatening_petitioner
 
@@ -235,6 +250,9 @@ code: |
   users.there_is_another = False
 ---
 code: |
+  next_friends.there_is_another = False
+---
+code: |
   other_parties.there_is_another = False
 ---
 code: |
@@ -242,6 +260,7 @@ code: |
     petitioner_is_minor = True
   else:
     petitioner_is_minor = False
+  check_if_petitioner_minor = True
 ---
 #NOTE: last item (petitioner_respondent_parent_child) not yet connected to anything in PDF templates
 code: |
@@ -477,6 +496,12 @@ code: |
 
   check_if_any_protectees = True
 ---
+code: |
+  if next_friend_agrees_to_role:
+    has_next_friend_petitioning = True
+
+  set_next_friend = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -491,8 +516,11 @@ code: |
 ---
 code: |
   users[i].name.first
-  users[i].birthdate
   users[i].complete = True
+---
+code: |
+  next_friends[i].name.first
+  next_friends[i].complete = True
 ---
 code: |
   other_parties[i].name.first
@@ -591,6 +619,22 @@ fields:
       users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=True)
   - Phone: users[0].phone_number
     required: True
+---
+id: next friend name
+sets:
+  - next_friends[0].name.first
+  - next_friends[0].name.middle
+  - next_friends[0].name.last
+  - next_friends[0].name.suffix
+question: |
+  Enter the name of your next friend
+subquestion: |
+  Make sure that this person agrees to file your petition for you.
+
+  ${ collapse_template(next_friend_explained) }
+fields:
+  - code: |
+      next_friends[0].name_fields()
 ---
 id: respondent contact info
 sets:
@@ -724,6 +768,18 @@ subquestion: |
 
 continue button field: MLH_intro_roles
 ---
+template: next_friend_explained
+subject: |
+  What does a next friend need to do?
+content: |
+  A next friend will need to:
+
+    1. File your forms for you, which can sometimes be done online, but must sometimes be done in person;
+    2. Arrange to have court papers delivered to the other party;
+    3. Attend the hearing, if you have one, and speak on your behalf.
+
+  Make sure that your next friend can do **all** of these things.
+---
 id: user birthdate
 question: |
   Enter your date of birth
@@ -735,17 +791,32 @@ fields:
 id: emancipated minor
 question: |
   Are you an emancipated minor?
+subquestion: |
+  ${ collapse_template(emancipated_minor_explained) }
 fields:
   - no label: petitioner_is_emancipated_minor
     datatype: yesnoradio
 ---
+template: emancipated_minor_explained
+subject: |
+  What does "emancipated" mean?
+content: |
+  An emancipated minor is a person under 18 years old whose parents no longer have legal authority over them. Emancipation gives the minor some of the rights and responsibilities of an adult. Emancipation does not make a minor into an adult and does not give the minor adult status for all things. Sometimes a minor is automatically emancipated (for example, when they legally marry), and other times a minor is emancipated by a judge.
+
+  If you are under 18 years old, you cannot file this petition unless you are emancipated. You need help from someone called a next friend. A next friend is usually a parent or other adult whom you trust. Your next friend must file the *Petition for Personal Protection Order* for you.
+---
 id: next friend
 question: |
-  If you are under 18 years old, you cannot get a PPO on your own
+  You need a next friend
 subquestion: |
-  You need help from someone called a next friend. A next friend is usually a parent or other adult whom you trust. Your next friend will file the PPO petition for you.
+  If you are under 18 years old, you cannot get a PPO on your own. You need help from someone called a next friend. 
+  
+  A next friend is usually a **parent** or **other adult** whom you trust. Your next friend will file the PPO petition for you.
+
+  ${ collapse_template(next_friend_explained) }
+
 fields:
-  - Will you have a next friend file this petition for you?: minor_has_next_friend
+  - Will you have a next friend file this petition for you?: next_friends.there_are_any
     datatype: yesnoradio
 ---
 id: minor_kickout
@@ -759,9 +830,50 @@ subquestion: |
 
   To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
+id: next friend agrees to role
+question: |
+  ${ next_friends[0] } must agree to be ${ users[0].possessive('next friend') }
+subquestion: |
+  Before your *Petition for Personal Protection Order* can be filed, ${ next_friends[0] } must sign it. This tool can place ${ next_friends[0].possessive('e-signature') } on the petition if they agree to it.
+
+  If ${ next_friends[0] } is with you (or if you have a way of contacting them right now), have them read (or read to them) the information on the next pages and answer that they consent to act as your next friend and have their e-signature placed on your forms.
+
+  **If ${ next_friends[0] } is not available** to give their consent right now, exit the interview and start over when they are available.
+fields:
+  - Do YOU, ${ next_friends[0] }, agree to act as ${ users[0].possessive(' next friend') }?: next_friend_agrees_to_role
+    datatype: yesnoradio
+---
+id: next friend role kickout
+event: next_friend_role_kickout
+question: |
+  You cannot continue using this tool
+subquestion: |
+  Since you do not agree to act as ${ users[0].possessive(' next friend') }, this tool can’t be used to prepare a PPO.
+
+  If ${ users[0] } wants to continue preparing a PPO, they will need to find another adult who is willing to act as their next friend.
+
+  If you made a mistake, click **Undo**.
+---
+id: next friend agrees to sign
+question: |
+  ${ next_friends[0] } must agree to be ${ users[0].possessive('next friend') }
+subquestion: |
+  This tool can put "**/s/ ${ next_friends[0] }**" where you would sign your name so you do not have to sign the forms by hand. The court will accept this as your signature.
+fields:
+  - Do YOU, ${ next_friends[0] }, agree to have this tool place your e-signature on the forms?: next_friend_agrees_to_sign
+    datatype: yesnoradio
+---
+id: next friend signature notice
+event: next_friend_signature_notice
+question: |
+  You will still need to sign the forms later
+subquestion: |
+  If you do not want to have your e-signature added to the forms automatically, you will need to download them, print them, sign them, and scan them before they can be filed.
+continue button field: next_friend_signature_notice
+---
 id: respondent living in michigan
 question: |
-  Does the Respondent (the person you want to be protected from) live in Michigan?
+  ${ users[0] }, does the Respondent (the person you want to be protected from) live in Michigan?
 fields:
   - no label: respondent_lives_in_michigan
     datatype: yesnoradio
@@ -2142,15 +2254,38 @@ attachments:
   editable: False
   pdf template file: cc_375_petition_for_personal_protection_order_domestic.pdf
   fields:
-    - users1_name__1: ${ users[0].name }
-    - users1_name__2: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - users1_name__2: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        ${ next_friends[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
         ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - users1_signature: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        /s/ ${ next_friends[0] }
+        % elif esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to: |
+        % if esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
     - signature_date: ${ signature_date if esign else "" }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
@@ -2333,7 +2468,12 @@ attachments:
   pdf template file: cc_376_personal_protection_order_domestic.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name__1: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
@@ -2374,7 +2514,12 @@ attachments:
   pdf template file: cc_380_personal_protection_order_nondomestic.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name: ${ users[0].name }
+    - users1_name: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
@@ -2411,15 +2556,38 @@ attachments:
   editable: False
   pdf template file: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf
   fields:
-    - users1_name__1: ${ users[0].name }
-    - users1_name__2: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - users1_name__2: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        ${ next_friends[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
         ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - users1_signature: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        /s/ ${ next_friends[0] }
+        % elif esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to: |
+        % if esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
     - signature_date: ${ signature_date if esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
@@ -2490,7 +2658,12 @@ attachments:
   pdf template file: cc_396_personal_protection_order_nondomestic_sexual_assault.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name: ${ users[0].name }
+    - users1_name: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
@@ -2568,13 +2741,21 @@ attachments:
   editable: False
   pdf template file: cc_381_notice_of_hearing.pdf
   fields:
-    - trial_court: ${ trial_court }
-    - trial_court_county: ${ county_choice }
-    - docket_number: ${ docket_number }
+    - users1_name: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_name__3: ${ other_parties[0].name }
+    - other_parties1_address: ${ other_parties[0].address }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_phone_number: ${ the_court.phone }
     - trial_court_address_on_one_line: ${ trial_court.address.on_one_line() }
     - trial_court_phone_number: ${ trial_court.phone_number }
-    - judicial_district: ${ trial_court.judicial_district }
-    - in_matter_of: ${ trial_court.in_matter_of }
 ---
 attachments:
   name: PPO Contact Information Sheet
@@ -2591,6 +2772,12 @@ attachments:
     - users1_phone_number: ${ users[0].phone_number }
     - users1_email: ${ users[0].email }
     - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - pursuant_to: |
+        % if esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
     - signature_date: ${ signature_date if esign else "" }
 ---
 attachments:
@@ -2601,7 +2788,12 @@ attachments:
   editable: False
   pdf template file: cc_377_petition_for_personal_protection_order_nondomestic.pdf
   fields:
-    - users1_name__1: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_name__2: ${ users[0].name }
     - users1_address_block: |
         ${ users[0].address }
@@ -2609,7 +2801,20 @@ attachments:
         ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - users1_signature: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        /s/ ${ next_friends[0] }
+        % elif esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to: |
+        % if esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
     - signature_date: ${ signature_date if esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
