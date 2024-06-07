@@ -37,6 +37,8 @@ code: |
   MLH_court_forms = True
   MLH_time_min = 40
   MLH_time_max = 60
+  MLH_case_type_language = 'Look for the two-letter case type code at the end of your case number. This could be PP or PH. Also look at the column labeled "Type of Filing." If this column only says "Subsequent Filings" for your court, then you cannot e-File the Petition. However, if the judge grants your Petition, you would be able to e-File any motions in your PPO case later on. If you are allowed to e-File your initial papers, this column will say "Case Initiation.'
+  MLH_esign_supported = True
 ---
 objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
@@ -89,7 +91,7 @@ code: |
           next_friend_role_kickout
       else:
         minor_kickout
-  
+
   if (not petitioner_lives_in_michigan) and not (respondent_lives_in_michigan):
     parties_reside_outside_michigan_kickout
   knows_respondents_birthdate
@@ -181,7 +183,7 @@ code: |
     check_wants_no_harming_people
     check_ppo_harm_protectees_list
     wants_no_removing_minor
-  
+
   if ppo_type == "nondomestic_sexual_assault":
     if wants_no_entering_residential_property:
       if not has_property_interest_in_home:
@@ -230,14 +232,12 @@ code: |
     wants_no_message_posting
 
   wants_other_request
-  ex_parte_info_screen
   if wants_ex_parte_order:
     ex_parte_yes_screen
 
   nav.set_section("review_get_forms_info")
   efile_notice
-  if esign:
-    signature_date
+  signature_date
   personal_protection_order_download
 
   interview_ppo_and_proposed_order = True
@@ -734,7 +734,7 @@ sets:
 question: |
   Provide the name of the ${ ordinal(i) } other person you want protected from threats of sexual assault, physical injury, or death
 subquestion: |
-    ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
+  ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
 fields:
   - code: |
       ppo_sexual_assault_threat_protectees[i].name_fields()
@@ -810,7 +810,7 @@ question: |
   You need a next friend
 subquestion: |
   If you are under 18 years old, you cannot get a PPO on your own. You need help from someone called a next friend. 
-  
+
   A next friend is usually a **parent** or **other adult** whom you trust. Your next friend will file the PPO petition for you.
 
   ${ collapse_template(next_friend_explained) }
@@ -826,7 +826,7 @@ question: |
 subquestion: |
   We're sorry, but you cannot use this tool to prepare a *Petition for Personal Protection Order*.
 
-  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. If you made a mistake, click **Undo** to return to the prior screen and change your answer.
+  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 
   To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
@@ -852,7 +852,7 @@ subquestion: |
 
   If ${ users[0] } wants to continue preparing a PPO, they will need to find another adult who is willing to act as their next friend.
 
-  If you made a mistake, click **Undo**.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: next friend agrees to sign
 question: |
@@ -975,7 +975,7 @@ question: |
 subquestion: |
   To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
 
-  If you made a mistake, select the **Undo** button to change your answer.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 
   Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders).
 ---
@@ -986,7 +986,7 @@ question: |
 subquestion: |
   To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
 
-  If you made a mistake, select the *Undo* button to return to the prior screens and change your answer.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 
   Otherwise, **Exit** the interview.
 ---
@@ -1006,11 +1006,13 @@ fields:
 ---
 id: relationship to respondent kickout
 question: |
-  We're sorry, but if you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for domestic relationship personal protection order.
+  You cannot continue using this tool
 subquestion: |
+  We're sorry, but if you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for a domestic relationship *Personal Protection Order*.
+
   There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
-  If you made a mistake, click the **Go Back** button to change your answer. Otherwise, click **Exit**.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: ppo court county_choice
 question: |
@@ -1244,8 +1246,8 @@ fields:
   - no label: pending_actions.there_is_another
     datatype: yesnoradio
 ---
-# NOTE: started building out template for listed cases (to be used in question above); 
-# How to deal with fact that pending_actions attributes should not be mandatory? 
+# NOTE: started building out template for listed cases (to be used in question above);
+# How to deal with fact that pending_actions attributes should not be mandatory?
 # For example, what if I display docket number, but one of the cases doesn't use it?
 template: pending_actions_list
 subject: What have I listed so far?
@@ -1368,7 +1370,7 @@ fields:
 id: fear of future sexual assault
 question: |
   Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?
-fields: 
+fields:
   - no label: fears_future_sexual_assault
     datatype: yesnoradio
 ---
@@ -1392,13 +1394,15 @@ content: |
 id: no past or potential sexual assault kickout
 event: no_past_or_potential_sexual_assault_kickout
 question: |
-  We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*
+  You cannot continue using this tool
 subquestion: |
+  We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
+
   There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
 ---
-id: petitioner property interest 
+id: petitioner property interest
 question: |
   Do you have a property interest in this home?
 subquestion: |
@@ -1407,7 +1411,7 @@ fields:
   - no label: has_property_interest_in_home
     datatype: yesnoradio
 ---
-id: respondent property interest 
+id: respondent property interest
 question: |
   Does ${ other_parties[0].name } have a property interest in this home?
 fields:
@@ -1425,7 +1429,7 @@ content: |
     * You lived in the home with ${ other_parties[0].name } until recently, but moved out to stay safe
     * A friend or family member owns a house, and you stay there but do not have a written lease
     * Any other property where you live, or lived recently but had to move to stay safe
-  
+
   If your situation is out of the ordinary, use your judgment to decide if you have a property interest in the home. Be prepared to explain your reasoning to the judge, if needed.
 ---
 id: respondent property interest kickout
@@ -1434,12 +1438,12 @@ question: |
   We're sorry, but you are not allowed to ask for this protection
 subquestion: |
   Michigan law does not allow the court to prohibit ${ other_parties[0].name } from entering on the property where you live if:
-  
+
     1. you are not married to ${ other_parties[0].name };
     2. you do not have a property interest in the home, **and**
     3. ${ other_parties[0].name } has a property interest in the home.
-  
-  If you made a mistake, click the **${ MLH_back_button_label }** button to change your answer(s). Otherwise, click Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
+
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, click Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
 ---
 template: stalking_harassing_explained
 subject: |
@@ -1503,7 +1507,7 @@ question: |
   Complete this sentence: "One incident occurred on or about..."
   % endif
 subquestion: |
-  For example: "March 15, 2023" or "last summer"
+  For example: "March 15, ${ today().year - 1 }" or "last summer"
 
   ${ collapse_template(incident_date_explained) }
 fields:
@@ -1513,7 +1517,7 @@ template: incident_date_explained
 subject: |
   Do I need an exact date?
 content: |
-  Fill in the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time 2022."
+  Fill in the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time ${ today().year - 2 }."
 ---
 id: incidents location
 question: |
@@ -1829,7 +1833,7 @@ question: |
 subquestion: |
   Stalking includes any of the behaviors listed below.
 
-  You may ask to be protected from some or all of these behaviors by ${ other_parties[0].name } if they **interfere with your personal freedom** or **make you afraid**. 
+  You may ask to be protected from some or all of these behaviors by ${ other_parties[0].name } if they **interfere with your personal freedom** or **make you afraid**.
 fields:
   - Which behaviors do you want the judge to order ${ other_parties[0].name } **not** to do? Check all that apply.: no_stalking_choices
     datatype: checkboxes
@@ -2023,27 +2027,17 @@ content: |
 
     * Interfering with your use of a vehicle or removing your vehicle from you
 ---
-id: ex_parte_info_screen
-question: |
-  An **ex parte** order is an order that the judge signs without having a court hearing first.
-subquestion: |
-  If you ask for an ex parte order, the judge will consider your petition and decide whether to grant you a personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
-
-  You should request an ex parte order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when she gets notice that you are asking for a PPO.
-continue button field: ex_parte_info_screen
----
 id: wants_ex_parte_order
 question: |
-  Would you like an {ex parte} order?
-terms:
-  ex parte: |
-    An ex parte order is an order that the judge signs without having a court hearing first.
+  Requesting an **ex parte** order
+subquestion: |
+  An **ex parte** order is an order that the judge signs without having a court hearing first.
 
-    If you ask for an ex parte order, the judge will consider your petition and decide whether to grant your personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
+  If you ask for an ex parte order, the judge will consider your petition and decide whether to grant your personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
 
-    You should request an ex parte order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when she gets notice that you are asking for a PPO.
+  You should request an **ex parte** order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when they get notice that you are asking for a PPO.
 fields:
-  - no label: wants_ex_parte_order
+  - Would you like to request an **ex parte** order?: wants_ex_parte_order
     datatype: yesnoradio
 ---
 id: ex_parte_yes_screen
@@ -2082,18 +2076,18 @@ content: |
   Look for the two-letter case type code at the end of your case number.
   (This could be DM, DC, DS, DP, or a different code.)
 ---
-id: Electronic signature question
-question: |
-  Electronic Signature
-subquestion: |
-  This tool can put "*/s/ ${ users[0] }*" where you would sign your name so you do not have to sign the form by hand. The court will accept this as your signature.
+# id: Electronic signature question
+# question: |
+#   Electronic Signature
+# subquestion: |
+#   This tool can put "*/s/ ${ users[0] }*" where you would sign your name so you do not have to sign the form by hand. The court will accept this as your signature.
 
-  If you plan to e-file, you may want to add your electronic signature, otherwise you will need to print your forms, sign them by hand, and then scan them.
+#   If you plan to e-file, you may want to add your electronic signature, otherwise you will need to print your forms, sign them by hand, and then scan them.
 
-  ${ collapse_template(efiling_info_template) }
-fields:
-  - Would you like to add your electronic signature to your form?: esign
-    datatype: yesnoradio
+#   ${ collapse_template(efiling_info_template) }
+# fields:
+#   - Would you like to add your electronic signature to your form?: MLH_esign
+#     datatype: yesnoradio
 ---
 id: download screen
 event: personal_protection_order_download
@@ -2261,7 +2255,7 @@ attachments:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -2273,20 +2267,20 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
         /s/ ${ next_friends[0] }
-        % elif esign:
+        % elif MLH_esign:
         /s/ ${ users[0] }
         % else:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if esign:
+        % if MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
-    - signature_date: ${ signature_date if esign else "" }
+    - signature_date: ${ signature_date if MLH_esign else "" }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address: ${ other_parties[0].address }
@@ -2563,7 +2557,7 @@ attachments:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -2575,20 +2569,20 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
         /s/ ${ next_friends[0] }
-        % elif esign:
+        % elif MLH_esign:
         /s/ ${ users[0] }
         % else:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if esign:
+        % if MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
-    - signature_date: ${ signature_date if esign else "" }
+    - signature_date: ${ signature_date if MLH_esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
@@ -2771,14 +2765,14 @@ attachments:
         ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
     - users1_email: ${ users[0].email }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
+    - users1_signature: ${ f"/s/ {users[0]}" if MLH_esign else "" }
     - pursuant_to: |
-        % if esign:
+        % if MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
-    - signature_date: ${ signature_date if esign else "" }
+    - signature_date: ${ signature_date if MLH_esign else "" }
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Relationship)
@@ -2802,20 +2796,20 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if next_friends.item(0) and next_friend_agrees_to_sign and esign:
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
         /s/ ${ next_friends[0] }
-        % elif esign:
+        % elif MLH_esign:
         /s/ ${ users[0] }
         % else:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if esign:
+        % if MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
-    - signature_date: ${ signature_date if esign else "" }
+    - signature_date: ${ signature_date if MLH_esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
