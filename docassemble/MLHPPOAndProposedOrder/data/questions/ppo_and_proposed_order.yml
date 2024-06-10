@@ -1205,7 +1205,9 @@ id: pending_actions there_are_any
 question: |
   Are there any pending legal cases between you and ${ other_parties[0].name }?
 subquestion: |
+  % if ppo_type == "domestic":
   Includes court cases, including divorce, custody, PPO, a criminal case, or others.
+  % endif
 fields:
   - no label: pending_actions.there_are_any
     datatype: yesnoradio
@@ -1266,7 +1268,9 @@ id: orders_judgments there_are_any
 question: |
   Are there any court orders or judgments entered in any court regarding you and ${ other_parties[0].name }?
 subquestion: |
+  % if ppo_type == "domestic":
   Includes divorce, custody, previous protection orders, criminal convictions, or others.
+  % endif
 fields:
   - no label: orders_judgments.there_are_any
     datatype: yesnoradio
@@ -2076,19 +2080,6 @@ content: |
   Look for the two-letter case type code at the end of your case number.
   (This could be DM, DC, DS, DP, or a different code.)
 ---
-# id: Electronic signature question
-# question: |
-#   Electronic Signature
-# subquestion: |
-#   This tool can put "*/s/ ${ users[0] }*" where you would sign your name so you do not have to sign the form by hand. The court will accept this as your signature.
-
-#   If you plan to e-file, you may want to add your electronic signature, otherwise you will need to print your forms, sign them by hand, and then scan them.
-
-#   ${ collapse_template(efiling_info_template) }
-# fields:
-#   - Would you like to add your electronic signature to your form?: MLH_esign
-#     datatype: yesnoradio
----
 id: download screen
 event: personal_protection_order_download
 question: |
@@ -2107,61 +2098,61 @@ subquestion: |
 #################### Documents Start #####################
 ---
 objects:
-  - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship)", filename="cc_375_petition_for_personal_protection_order_domestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship)", filename="cc_377_petition_for_personal_protection_order_nondomestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="cc_375_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_377_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="cc_377_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_377_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="cc_375_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="cc_377_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="cc_395_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing Attachment (Domestic Relationship)", filename="ppo_domestic_instructions_after_hearing_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment: ALDocument.using(title="x Parte Instructions Attachment (Non-Domestic Sexual Assault)", filename="ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_domestic_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions Attachment (Domestic Relationship)", filename="ppo_domestic_ex_parte_instructions_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_domestic_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_376_personal_protection_order_domestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship) - CC 376", filename="Personal Protection Order (Domestic Relationship) - CC 376", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship)", filename="cc_380_personal_protection_order_nondomestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship) - CC 380", filename="Personal Protection Order (Non-Domestic Relationship) - CC 380", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_396: ALDocument.using(title="Personal Protection Order (Non-Domestic Sexual Assault)", filename="cc_396_personal_protection_order_nondomestic_sexual_assault.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_396: ALDocument.using(title="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", filename="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault)", filename="cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information - MC 97", filename="Protected Personal Identifying Information - MC 97", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_mc_97a: ALDocument.using(title="Protected Personal Identifying Information Addendum", filename="mc_97a_protected_pii_addendum.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_mc_97a: ALDocument.using(title="Protected Personal Identifying Information Addendum - MC 97A", filename="Protected Personal Identifying Information Addendum - MC 97A", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="cc_381_notice_of_hearing.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="Notice of Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="cc_395_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
@@ -2171,14 +2162,12 @@ code: |
     ppo_cc_375.enabled = True
     ppo_cc_376.enabled = True
     cc_375_addendum.enabled = True
-    ppo_domestic_instructions_after_hearing_attachment.enabled = True
     ppo_mc_97.enabled = True
     ppo_mc_97a.enabled = True
   else:
     ppo_cc_375.enabled = False
     ppo_cc_376.enabled = False
     cc_375_addendum.enabled = False
-    ppo_domestic_instructions_after_hearing_attachment.enabled = False
     ppo_mc_97.enabled = False
     ppo_mc_97a.enabled = False
 ---
@@ -2211,6 +2200,12 @@ code: |
     ppo_domestic_ex_parte_instructions_attachment.enabled = False
 ---
 code: |
+  if ppo_type == "domestic" and not wants_ex_parte_order:
+    ppo_domestic_instructions_after_hearing_attachment.enabled = True
+  else:
+    ppo_domestic_instructions_after_hearing_attachment.enabled = False
+---
+code: |
   if ppo_type == "nondomestic_sexual_assault" and wants_ex_parte_order:
     ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.enabled = True
   else:
@@ -2241,8 +2236,8 @@ code: |
     ppo_contact_information_sheet.enabled = False
 ---
 attachments:
-  name: Petition for Personal Protection Order (Domestic Relationship)
-  filename: cc_375_petition_for_personal_protection_order_domestic
+  name: Petition for Personal Protection Order (Domestic Relationship) - CC 375
+  filename: Petition for Personal Protection Order (Domestic Relationship) - CC 375
   variable name: ppo_cc_375[i]
   skip undefined: True
   editable: False
@@ -2368,7 +2363,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) Statement of Facts
-  filename: cc_375_statement_of_facts
+  filename: Petition for Personal Protection Order (Domestic Relationship) Statement of Facts
   docx template file: cc_375_statement_of_facts.docx
   variable name: cc_375_addendum[i]
   skip undefined: True
@@ -2377,7 +2372,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) Attachment
-  filename: cc_375_attachment
+  filename: Petition for Personal Protection Order (Domestic Relationship) Attachment
   docx template file: cc_375_attachment.docx
   variable name: cc_375_attachment[i]
   skip undefined: True
@@ -2386,7 +2381,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Relationship) Attachment
-  filename: cc_377_attachment
+  filename: Petition for Personal Protection Order (Non-Domestic Relationship) Attachment
   docx template file: cc_377_attachment.docx
   variable name: cc_377_attachment[i]
   skip undefined: True
@@ -2395,7 +2390,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts
-  filename: cc_377_statement_of_facts
+  filename: Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts
   docx template file: cc_377_statement_of_facts.docx
   variable name: cc_377_addendum[i]
   skip undefined: True
@@ -2404,7 +2399,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment
-  filename: cc_395_attachment
+  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment
   docx template file: cc_395_attachment.docx
   variable name: cc_395_attachment[i]
   skip undefined: True
@@ -2412,8 +2407,8 @@ attachments:
     - pdf
 ---
 attachments:
-  name: Instructions After Hearing Attachment (Domestic Relationship)
-  filename: ppo_domestic_instructions_after_hearing_attachment
+  name: Instructions After Hearing
+  filename: Instructions After Hearing
   pdf template file: ppo_domestic_instructions_after_hearing_attachment.pdf
   variable name: ppo_domestic_instructions_after_hearing_attachment[i]
   skip undefined: True
@@ -2423,8 +2418,8 @@ attachments:
         ${ county_choice } Instructions - How to Ask for a ${ ppo_type_full } after a Hearing
 ---
 attachments:
-  name: Ex Parte Instructions Attachment (Domestic Relationship)
-  filename: ppo_domestic_ex_parte_instructions_attachment
+  name: Ex Parte Instructions
+  filename: Ex Parte Instructions
   pdf template file: ppo_domestic_ex_parte_instructions_attachment.pdf
   variable name: ppo_domestic_ex_parte_instructions_attachment[i]
   skip undefined: True
@@ -2434,8 +2429,8 @@ attachments:
         ${ county_choice } Instructions - How to Ask for an Ex Parte ${ ppo_type_full }
 ---
 attachments:
-  name: Ex Parte Instructions Attachment (Non-Domestic Sexual Assault)
-  filename: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment
+  name: Ex Parte Instructions
+  filename: Ex Parte Instructions
   pdf template file: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.pdf
   variable name: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment[i]
   skip undefined: True
@@ -2446,7 +2441,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
-  filename: cc_395_statement_of_facts
+  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
   docx template file: cc_395_statement_of_facts.docx
   variable name: cc_395_addendum[i]
   skip undefined: True
@@ -2454,8 +2449,8 @@ attachments:
     - pdf
 ---
 attachments:
-  name: Personal Protection Order (Domestic Relationship)
-  filename: cc_376_personal_protection_order_domestic
+  name: Personal Protection Order (Domestic Relationship) - CC 376
+  filename: Personal Protection Order (Domestic Relationship) - CC 376
   variable name: ppo_cc_376[i]
   skip undefined: True
   editable: False
@@ -2500,8 +2495,8 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
-  name: Personal Protection Order (Non-Domestic Relationship)
-  filename: cc_380_personal_protection_order_nondomestic
+  name: Personal Protection Order (Non-Domestic Relationship) - CC 380
+  filename: Personal Protection Order (Non-Domestic Relationship) - CC 380
   variable name: ppo_cc_380[i]
   skip undefined: True
   editable: False
@@ -2543,8 +2538,8 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
-  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault)
-  filename: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault
+  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
+  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
   variable name: ppo_cc_395[i]
   skip undefined: True
   editable: False
@@ -2644,8 +2639,8 @@ attachments:
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
 ---
 attachments:
-  name: Personal Protection Order (Non-Domestic Sexual Assault)
-  filename: cc_396_personal_protection_order_nondomestic_sexual_assault
+  name: Personal Protection Order (Non-Domestic Sexual Assault) - CC 396
+  filename: Personal Protection Order (Non-Domestic Sexual Assault) - CC 396
   variable name: ppo_cc_396[i]
   skip undefined: True
   editable: False
@@ -2685,8 +2680,8 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
-  name: Protected Personal Identifying Information
-  filename: mc_97_protected_pii
+  name: Protected Personal Identifying Information - MC 97
+  filename: Protected Personal Identifying Information - MC 97
   variable name: ppo_mc_97[i]
   skip undefined: True
   editable: False
@@ -2707,8 +2702,8 @@ attachments:
     - date_completed: ${ today() }
 ---
 attachments:
-  name: Protected Personal Identifying Information Addendum
-  filename: mc_97a_protected_pii_addendum
+  name: Protected Personal Identifying Information Addendum - MC 97A
+  filename: Protected Personal Identifying Information Addendum - MC 97A
   variable name: ppo_mc_97a[i]
   skip undefined: True
   editable: False
@@ -2729,7 +2724,7 @@ attachments:
 ---
 attachments:
   name: Notice of Hearing
-  filename: cc_381_notice_of_hearing
+  filename: Notice of Hearing
   variable name: ppo_cc_381[i]
   skip undefined: True
   editable: False
@@ -2752,8 +2747,8 @@ attachments:
     - trial_court_phone_number: ${ trial_court.phone_number }
 ---
 attachments:
-  name: PPO Contact Information Sheet
-  filename: ppo_contact_information_sheet
+  name: Contact Information Sheet
+  filename: Contact Information Sheet
   variable name: ppo_contact_information_sheet[i]
   skip undefined: True
   editable: False
@@ -2775,8 +2770,8 @@ attachments:
     - signature_date: ${ signature_date if MLH_esign else "" }
 ---
 attachments:
-  name: Petition for Personal Protection Order (Non-Domestic Relationship)
-  filename: cc_377_petition_for_personal_protection_order_nondomestic
+  name: Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377
+  filename: Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377
   variable name: ppo_cc_377[i]
   skip undefined: True
   editable: False
