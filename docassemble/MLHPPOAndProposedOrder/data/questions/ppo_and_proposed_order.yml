@@ -37,9 +37,12 @@ code: |
   MLH_court_forms = True
   MLH_time_min = 40
   MLH_time_max = 60
+  MLH_case_type_language = 'Look for the two-letter case type code at the end of your case number. This could be PP or PH. Also look at the column labeled "Type of Filing." If this column only says "Subsequent Filings" for your court, then you cannot e-File the Petition. However, if the judge grants your Petition, you would be able to e-File any motions in your PPO case later on. If you are allowed to e-File your initial papers, this column will say "Case Initiation.'
+  MLH_esign_supported = True
 ---
 objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
+  - next_friends: ALPeopleList.using(complete_attribute="complete")
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
@@ -69,9 +72,26 @@ code: |
 
   nav.set_section("review_petitioner_info")
   users.gather()
+
   petitioner_lives_in_michigan
-  if petitioner_is_minor and (not minor_has_next_friend):
-    minor_kickout
+
+  for user in users:
+    user.birthdate
+
+  check_if_petitioner_minor
+  if petitioner_is_minor:
+    if not petitioner_is_emancipated_minor:
+      if next_friends.there_are_any:
+        next_friends.gather()
+        if next_friend_agrees_to_role:
+          set_next_friend
+          if not next_friend_agrees_to_sign:
+            next_friend_signature_notice
+        else:
+          next_friend_role_kickout
+      else:
+        minor_kickout
+
   if (not petitioner_lives_in_michigan) and not (respondent_lives_in_michigan):
     parties_reside_outside_michigan_kickout
   knows_respondents_birthdate
@@ -163,7 +183,7 @@ code: |
     check_wants_no_harming_people
     check_ppo_harm_protectees_list
     wants_no_removing_minor
-  
+
   if ppo_type == "nondomestic_sexual_assault":
     if wants_no_entering_residential_property:
       if not has_property_interest_in_home:
@@ -186,9 +206,6 @@ code: |
 
   if ppo_type == "domestic":
     wants_no_children_property_removal_interference
-
-  if ppo_type == "nondomestic":
-    wants_no_harming_petitioner
 
   if ppo_type != "nondomestic_sexual_assault":
     wants_no_threatening_petitioner
@@ -215,14 +232,12 @@ code: |
     wants_no_message_posting
 
   wants_other_request
-  ex_parte_info_screen
   if wants_ex_parte_order:
     ex_parte_yes_screen
 
   nav.set_section("review_get_forms_info")
   efile_notice
-  if esign:
-    signature_date
+  signature_date
   personal_protection_order_download
 
   interview_ppo_and_proposed_order = True
@@ -235,6 +250,9 @@ code: |
   users.there_is_another = False
 ---
 code: |
+  next_friends.there_is_another = False
+---
+code: |
   other_parties.there_is_another = False
 ---
 code: |
@@ -242,6 +260,7 @@ code: |
     petitioner_is_minor = True
   else:
     petitioner_is_minor = False
+  check_if_petitioner_minor = True
 ---
 #NOTE: last item (petitioner_respondent_parent_child) not yet connected to anything in PDF templates
 code: |
@@ -477,6 +496,12 @@ code: |
 
   check_if_any_protectees = True
 ---
+code: |
+  if next_friend_agrees_to_role:
+    has_next_friend_petitioning = True
+
+  set_next_friend = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -491,8 +516,11 @@ code: |
 ---
 code: |
   users[i].name.first
-  users[i].birthdate
   users[i].complete = True
+---
+code: |
+  next_friends[i].name.first
+  next_friends[i].complete = True
 ---
 code: |
   other_parties[i].name.first
@@ -592,6 +620,22 @@ fields:
   - Phone: users[0].phone_number
     required: True
 ---
+id: next friend name
+sets:
+  - next_friends[0].name.first
+  - next_friends[0].name.middle
+  - next_friends[0].name.last
+  - next_friends[0].name.suffix
+question: |
+  Enter the name of your next friend
+subquestion: |
+  Make sure that this person agrees to file your petition for you.
+
+  ${ collapse_template(next_friend_explained) }
+fields:
+  - code: |
+      next_friends[0].name_fields()
+---
 id: respondent contact info
 sets:
   - other_parties[0].address.address
@@ -690,7 +734,7 @@ sets:
 question: |
   Provide the name of the ${ ordinal(i) } other person you want protected from threats of sexual assault, physical injury, or death
 subquestion: |
-    ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
+  ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
 fields:
   - code: |
       ppo_sexual_assault_threat_protectees[i].name_fields()
@@ -724,6 +768,18 @@ subquestion: |
 
 continue button field: MLH_intro_roles
 ---
+template: next_friend_explained
+subject: |
+  What does a next friend need to do?
+content: |
+  A next friend will need to:
+
+    1. File your forms for you, which can sometimes be done online, but must sometimes be done in person;
+    2. Arrange to have court papers delivered to the other party;
+    3. Attend the hearing, if you have one, and speak on your behalf.
+
+  Make sure that your next friend can do **all** of these things.
+---
 id: user birthdate
 question: |
   Enter your date of birth
@@ -735,17 +791,32 @@ fields:
 id: emancipated minor
 question: |
   Are you an emancipated minor?
+subquestion: |
+  ${ collapse_template(emancipated_minor_explained) }
 fields:
   - no label: petitioner_is_emancipated_minor
     datatype: yesnoradio
 ---
+template: emancipated_minor_explained
+subject: |
+  What does "emancipated" mean?
+content: |
+  An emancipated minor is a person under 18 years old whose parents no longer have legal authority over them. Emancipation gives the minor some of the rights and responsibilities of an adult. Emancipation does not make a minor into an adult and does not give the minor adult status for all things. Sometimes a minor is automatically emancipated (for example, when they legally marry), and other times a minor is emancipated by a judge.
+
+  If you are under 18 years old, you cannot file this petition unless you are emancipated. You need help from someone called a next friend. A next friend is usually a parent or other adult whom you trust. Your next friend must file the *Petition for Personal Protection Order* for you.
+---
 id: next friend
 question: |
-  If you are under 18 years old, you cannot get a PPO on your own
+  You need a next friend
 subquestion: |
-  You need help from someone called a next friend. A next friend is usually a parent or other adult whom you trust. Your next friend will file the PPO petition for you.
+  If you are under 18 years old, you cannot get a PPO on your own. You need help from someone called a next friend. 
+
+  A next friend is usually a **parent** or **other adult** whom you trust. Your next friend will file the PPO petition for you.
+
+  ${ collapse_template(next_friend_explained) }
+
 fields:
-  - Will you have a next friend file this petition for you?: minor_has_next_friend
+  - Will you have a next friend file this petition for you?: next_friends.there_are_any
     datatype: yesnoradio
 ---
 id: minor_kickout
@@ -755,13 +826,54 @@ question: |
 subquestion: |
   We're sorry, but you cannot use this tool to prepare a *Petition for Personal Protection Order*.
 
-  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. If you made a mistake, click **Undo** to return to the prior screen and change your answer.
+  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 
   To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
+id: next friend agrees to role
+question: |
+  ${ next_friends[0] } must agree to be ${ users[0].possessive('next friend') }
+subquestion: |
+  Before your *Petition for Personal Protection Order* can be filed, ${ next_friends[0] } must sign it. This tool can place ${ next_friends[0].possessive('e-signature') } on the petition if they agree to it.
+
+  If ${ next_friends[0] } is with you (or if you have a way of contacting them right now), have them read (or read to them) the information on the next pages and answer that they consent to act as your next friend and have their e-signature placed on your forms.
+
+  **If ${ next_friends[0] } is not available** to give their consent right now, exit the interview and start over when they are available.
+fields:
+  - Do YOU, ${ next_friends[0] }, agree to act as ${ users[0].possessive(' next friend') }?: next_friend_agrees_to_role
+    datatype: yesnoradio
+---
+id: next friend role kickout
+event: next_friend_role_kickout
+question: |
+  You cannot continue using this tool
+subquestion: |
+  Since you do not agree to act as ${ users[0].possessive(' next friend') }, this tool can’t be used to prepare a PPO.
+
+  If ${ users[0] } wants to continue preparing a PPO, they will need to find another adult who is willing to act as their next friend.
+
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+---
+id: next friend agrees to sign
+question: |
+  ${ next_friends[0] } must agree to be ${ users[0].possessive('next friend') }
+subquestion: |
+  This tool can put "**/s/ ${ next_friends[0] }**" where you would sign your name so you do not have to sign the forms by hand. The court will accept this as your signature.
+fields:
+  - Do YOU, ${ next_friends[0] }, agree to have this tool place your e-signature on the forms?: next_friend_agrees_to_sign
+    datatype: yesnoradio
+---
+id: next friend signature notice
+event: next_friend_signature_notice
+question: |
+  You will still need to sign the forms later
+subquestion: |
+  If you do not want to have your e-signature added to the forms automatically, you will need to download them, print them, sign them, and scan them before they can be filed.
+continue button field: next_friend_signature_notice
+---
 id: respondent living in michigan
 question: |
-  Does the Respondent (the person you want to be protected from) live in Michigan?
+  ${ users[0] }, does the Respondent (the person you want to be protected from) live in Michigan?
 fields:
   - no label: respondent_lives_in_michigan
     datatype: yesnoradio
@@ -863,7 +975,7 @@ question: |
 subquestion: |
   To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
 
-  If you made a mistake, select the **Undo** button to change your answer.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 
   Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders).
 ---
@@ -874,7 +986,7 @@ question: |
 subquestion: |
   To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
 
-  If you made a mistake, select the *Undo* button to return to the prior screens and change your answer.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 
   Otherwise, **Exit** the interview.
 ---
@@ -894,11 +1006,13 @@ fields:
 ---
 id: relationship to respondent kickout
 question: |
-  We're sorry, but if you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for domestic relationship personal protection order.
+  You cannot continue using this tool
 subquestion: |
+  We're sorry, but if you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for a domestic relationship *Personal Protection Order*.
+
   There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
-  If you made a mistake, click the **Go Back** button to change your answer. Otherwise, click **Exit**.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: ppo court county_choice
 question: |
@@ -1091,7 +1205,9 @@ id: pending_actions there_are_any
 question: |
   Are there any pending legal cases between you and ${ other_parties[0].name }?
 subquestion: |
+  % if ppo_type == "domestic":
   Includes court cases, including divorce, custody, PPO, a criminal case, or others.
+  % endif
 fields:
   - no label: pending_actions.there_are_any
     datatype: yesnoradio
@@ -1132,8 +1248,8 @@ fields:
   - no label: pending_actions.there_is_another
     datatype: yesnoradio
 ---
-# NOTE: started building out template for listed cases (to be used in question above); 
-# How to deal with fact that pending_actions attributes should not be mandatory? 
+# NOTE: started building out template for listed cases (to be used in question above);
+# How to deal with fact that pending_actions attributes should not be mandatory?
 # For example, what if I display docket number, but one of the cases doesn't use it?
 template: pending_actions_list
 subject: What have I listed so far?
@@ -1152,7 +1268,9 @@ id: orders_judgments there_are_any
 question: |
   Are there any court orders or judgments entered in any court regarding you and ${ other_parties[0].name }?
 subquestion: |
+  % if ppo_type == "domestic":
   Includes divorce, custody, previous protection orders, criminal convictions, or others.
+  % endif
 fields:
   - no label: orders_judgments.there_are_any
     datatype: yesnoradio
@@ -1256,7 +1374,7 @@ fields:
 id: fear of future sexual assault
 question: |
   Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?
-fields: 
+fields:
   - no label: fears_future_sexual_assault
     datatype: yesnoradio
 ---
@@ -1280,13 +1398,15 @@ content: |
 id: no past or potential sexual assault kickout
 event: no_past_or_potential_sexual_assault_kickout
 question: |
-  We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*
+  You cannot continue using this tool
 subquestion: |
+  We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
+
   There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
 ---
-id: petitioner property interest 
+id: petitioner property interest
 question: |
   Do you have a property interest in this home?
 subquestion: |
@@ -1295,7 +1415,7 @@ fields:
   - no label: has_property_interest_in_home
     datatype: yesnoradio
 ---
-id: respondent property interest 
+id: respondent property interest
 question: |
   Does ${ other_parties[0].name } have a property interest in this home?
 fields:
@@ -1313,7 +1433,7 @@ content: |
     * You lived in the home with ${ other_parties[0].name } until recently, but moved out to stay safe
     * A friend or family member owns a house, and you stay there but do not have a written lease
     * Any other property where you live, or lived recently but had to move to stay safe
-  
+
   If your situation is out of the ordinary, use your judgment to decide if you have a property interest in the home. Be prepared to explain your reasoning to the judge, if needed.
 ---
 id: respondent property interest kickout
@@ -1322,12 +1442,12 @@ question: |
   We're sorry, but you are not allowed to ask for this protection
 subquestion: |
   Michigan law does not allow the court to prohibit ${ other_parties[0].name } from entering on the property where you live if:
-  
+
     1. you are not married to ${ other_parties[0].name };
     2. you do not have a property interest in the home, **and**
     3. ${ other_parties[0].name } has a property interest in the home.
-  
-  If you made a mistake, click the **${ MLH_back_button_label }** button to change your answer(s). Otherwise, click Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
+
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, click Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
 ---
 template: stalking_harassing_explained
 subject: |
@@ -1391,7 +1511,7 @@ question: |
   Complete this sentence: "One incident occurred on or about..."
   % endif
 subquestion: |
-  For example: "March 15, 2023" or "last summer"
+  For example: "March 15, ${ today().year - 1 }" or "last summer"
 
   ${ collapse_template(incident_date_explained) }
 fields:
@@ -1401,7 +1521,7 @@ template: incident_date_explained
 subject: |
   Do I need an exact date?
 content: |
-  Fill in the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time 2022."
+  Fill in the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time ${ today().year - 2 }."
 ---
 id: incidents location
 question: |
@@ -1717,7 +1837,7 @@ question: |
 subquestion: |
   Stalking includes any of the behaviors listed below.
 
-  You may ask to be protected from some or all of these behaviors by ${ other_parties[0].name } if they **interfere with your personal freedom** or **make you afraid**. 
+  You may ask to be protected from some or all of these behaviors by ${ other_parties[0].name } if they **interfere with your personal freedom** or **make you afraid**.
 fields:
   - Which behaviors do you want the judge to order ${ other_parties[0].name } **not** to do? Check all that apply.: no_stalking_choices
     datatype: checkboxes
@@ -1911,27 +2031,17 @@ content: |
 
     * Interfering with your use of a vehicle or removing your vehicle from you
 ---
-id: ex_parte_info_screen
-question: |
-  An **ex parte** order is an order that the judge signs without having a court hearing first.
-subquestion: |
-  If you ask for an ex parte order, the judge will consider your petition and decide whether to grant you a personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
-
-  You should request an ex parte order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when she gets notice that you are asking for a PPO.
-continue button field: ex_parte_info_screen
----
 id: wants_ex_parte_order
 question: |
-  Would you like an {ex parte} order?
-terms:
-  ex parte: |
-    An ex parte order is an order that the judge signs without having a court hearing first.
+  Requesting an **ex parte** order
+subquestion: |
+  An **ex parte** order is an order that the judge signs without having a court hearing first.
 
-    If you ask for an ex parte order, the judge will consider your petition and decide whether to grant your personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
+  If you ask for an ex parte order, the judge will consider your petition and decide whether to grant your personal protection order within 24 to 72 hours. If you do not ask for an ex parte order or if the judge does not sign your ex parte order, you must have a court hearing before you can get a personal protection order.
 
-    You should request an ex parte order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when she gets notice that you are asking for a PPO.
+  You should request an **ex parte** order if you are afraid you may be harmed before a court hearing can occur or if you are afraid that ${ other_parties[0].name } will harm you when they get notice that you are asking for a PPO.
 fields:
-  - no label: wants_ex_parte_order
+  - Would you like to request an **ex parte** order?: wants_ex_parte_order
     datatype: yesnoradio
 ---
 id: ex_parte_yes_screen
@@ -1970,19 +2080,6 @@ content: |
   Look for the two-letter case type code at the end of your case number.
   (This could be DM, DC, DS, DP, or a different code.)
 ---
-id: Electronic signature question
-question: |
-  Electronic Signature
-subquestion: |
-  This tool can put "*/s/ ${ users[0] }*" where you would sign your name so you do not have to sign the form by hand. The court will accept this as your signature.
-
-  If you plan to e-file, you may want to add your electronic signature, otherwise you will need to print your forms, sign them by hand, and then scan them.
-
-  ${ collapse_template(efiling_info_template) }
-fields:
-  - Would you like to add your electronic signature to your form?: esign
-    datatype: yesnoradio
----
 id: download screen
 event: personal_protection_order_download
 question: |
@@ -2001,61 +2098,61 @@ subquestion: |
 #################### Documents Start #####################
 ---
 objects:
-  - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship)", filename="cc_375_petition_for_personal_protection_order_domestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship)", filename="cc_377_petition_for_personal_protection_order_nondomestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="cc_375_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_377_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="cc_377_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_377_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="cc_375_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="cc_377_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="cc_395_attachment.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing Attachment (Domestic Relationship)", filename="ppo_domestic_instructions_after_hearing_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment: ALDocument.using(title="x Parte Instructions Attachment (Non-Domestic Sexual Assault)", filename="ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_domestic_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions Attachment (Domestic Relationship)", filename="ppo_domestic_ex_parte_instructions_attachment.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_domestic_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship)", filename="cc_376_personal_protection_order_domestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship) - CC 376", filename="Personal Protection Order (Domestic Relationship) - CC 376", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship)", filename="cc_380_personal_protection_order_nondomestic.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship) - CC 380", filename="Personal Protection Order (Non-Domestic Relationship) - CC 380", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_396: ALDocument.using(title="Personal Protection Order (Non-Domestic Sexual Assault)", filename="cc_396_personal_protection_order_nondomestic_sexual_assault.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_396: ALDocument.using(title="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", filename="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault)", filename="cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information", filename="mc_97_protected_pii.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information - MC 97", filename="Protected Personal Identifying Information - MC 97", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_mc_97a: ALDocument.using(title="Protected Personal Identifying Information Addendum", filename="mc_97a_protected_pii_addendum.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_mc_97a: ALDocument.using(title="Protected Personal Identifying Information Addendum - MC 97A", filename="Protected Personal Identifying Information Addendum - MC 97A", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="cc_381_notice_of_hearing.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="Notice of Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="cc_395_statement_of_facts.docx", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_contact_information_sheet: ALDocument.using(title="PPO Contact Information Sheet", filename="ppo_contact_information_sheet.pdf", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
@@ -2065,14 +2162,12 @@ code: |
     ppo_cc_375.enabled = True
     ppo_cc_376.enabled = True
     cc_375_addendum.enabled = True
-    ppo_domestic_instructions_after_hearing_attachment.enabled = True
     ppo_mc_97.enabled = True
     ppo_mc_97a.enabled = True
   else:
     ppo_cc_375.enabled = False
     ppo_cc_376.enabled = False
     cc_375_addendum.enabled = False
-    ppo_domestic_instructions_after_hearing_attachment.enabled = False
     ppo_mc_97.enabled = False
     ppo_mc_97a.enabled = False
 ---
@@ -2105,6 +2200,12 @@ code: |
     ppo_domestic_ex_parte_instructions_attachment.enabled = False
 ---
 code: |
+  if ppo_type == "domestic" and not wants_ex_parte_order:
+    ppo_domestic_instructions_after_hearing_attachment.enabled = True
+  else:
+    ppo_domestic_instructions_after_hearing_attachment.enabled = False
+---
+code: |
   if ppo_type == "nondomestic_sexual_assault" and wants_ex_parte_order:
     ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.enabled = True
   else:
@@ -2135,23 +2236,46 @@ code: |
     ppo_contact_information_sheet.enabled = False
 ---
 attachments:
-  name: Petition for Personal Protection Order (Domestic Relationship)
-  filename: cc_375_petition_for_personal_protection_order_domestic
+  name: Petition for Personal Protection Order (Domestic Relationship) - CC 375
+  filename: Petition for Personal Protection Order (Domestic Relationship) - CC 375
   variable name: ppo_cc_375[i]
   skip undefined: True
   editable: False
   pdf template file: cc_375_petition_for_personal_protection_order_domestic.pdf
   fields:
-    - users1_name__1: ${ users[0].name }
-    - users1_name__2: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - users1_name__2: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
+        ${ next_friends[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
         ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
-    - signature_date: ${ signature_date if esign else "" }
+    - users1_signature: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
+        /s/ ${ next_friends[0] }
+        % elif MLH_esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to: |
+        % if MLH_esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
+    - signature_date: ${ signature_date if MLH_esign else "" }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address: ${ other_parties[0].address }
@@ -2239,7 +2363,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) Statement of Facts
-  filename: cc_375_statement_of_facts
+  filename: Petition for Personal Protection Order (Domestic Relationship) Statement of Facts
   docx template file: cc_375_statement_of_facts.docx
   variable name: cc_375_addendum[i]
   skip undefined: True
@@ -2248,7 +2372,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) Attachment
-  filename: cc_375_attachment
+  filename: Petition for Personal Protection Order (Domestic Relationship) Attachment
   docx template file: cc_375_attachment.docx
   variable name: cc_375_attachment[i]
   skip undefined: True
@@ -2257,7 +2381,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Relationship) Attachment
-  filename: cc_377_attachment
+  filename: Petition for Personal Protection Order (Non-Domestic Relationship) Attachment
   docx template file: cc_377_attachment.docx
   variable name: cc_377_attachment[i]
   skip undefined: True
@@ -2266,7 +2390,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts
-  filename: cc_377_statement_of_facts
+  filename: Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts
   docx template file: cc_377_statement_of_facts.docx
   variable name: cc_377_addendum[i]
   skip undefined: True
@@ -2275,7 +2399,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment
-  filename: cc_395_attachment
+  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment
   docx template file: cc_395_attachment.docx
   variable name: cc_395_attachment[i]
   skip undefined: True
@@ -2283,8 +2407,8 @@ attachments:
     - pdf
 ---
 attachments:
-  name: Instructions After Hearing Attachment (Domestic Relationship)
-  filename: ppo_domestic_instructions_after_hearing_attachment
+  name: Instructions After Hearing
+  filename: Instructions After Hearing
   pdf template file: ppo_domestic_instructions_after_hearing_attachment.pdf
   variable name: ppo_domestic_instructions_after_hearing_attachment[i]
   skip undefined: True
@@ -2294,8 +2418,8 @@ attachments:
         ${ county_choice } Instructions - How to Ask for a ${ ppo_type_full } after a Hearing
 ---
 attachments:
-  name: Ex Parte Instructions Attachment (Domestic Relationship)
-  filename: ppo_domestic_ex_parte_instructions_attachment
+  name: Ex Parte Instructions
+  filename: Ex Parte Instructions
   pdf template file: ppo_domestic_ex_parte_instructions_attachment.pdf
   variable name: ppo_domestic_ex_parte_instructions_attachment[i]
   skip undefined: True
@@ -2305,8 +2429,8 @@ attachments:
         ${ county_choice } Instructions - How to Ask for an Ex Parte ${ ppo_type_full }
 ---
 attachments:
-  name: Ex Parte Instructions Attachment (Non-Domestic Sexual Assault)
-  filename: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment
+  name: Ex Parte Instructions
+  filename: Ex Parte Instructions
   pdf template file: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.pdf
   variable name: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment[i]
   skip undefined: True
@@ -2317,7 +2441,7 @@ attachments:
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
-  filename: cc_395_statement_of_facts
+  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
   docx template file: cc_395_statement_of_facts.docx
   variable name: cc_395_addendum[i]
   skip undefined: True
@@ -2325,15 +2449,20 @@ attachments:
     - pdf
 ---
 attachments:
-  name: Personal Protection Order (Domestic Relationship)
-  filename: cc_376_personal_protection_order_domestic
+  name: Personal Protection Order (Domestic Relationship) - CC 376
+  filename: Personal Protection Order (Domestic Relationship) - CC 376
   variable name: ppo_cc_376[i]
   skip undefined: True
   editable: False
   pdf template file: cc_376_personal_protection_order_domestic.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name__1: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
@@ -2366,15 +2495,20 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
-  name: Personal Protection Order (Non-Domestic Relationship)
-  filename: cc_380_personal_protection_order_nondomestic
+  name: Personal Protection Order (Non-Domestic Relationship) - CC 380
+  filename: Personal Protection Order (Non-Domestic Relationship) - CC 380
   variable name: ppo_cc_380[i]
   skip undefined: True
   editable: False
   pdf template file: cc_380_personal_protection_order_nondomestic.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name: ${ users[0].name }
+    - users1_name: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
@@ -2404,23 +2538,46 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
-  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault)
-  filename: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault
+  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
+  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
   variable name: ppo_cc_395[i]
   skip undefined: True
   editable: False
   pdf template file: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf
   fields:
-    - users1_name__1: ${ users[0].name }
-    - users1_name__2: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - users1_name__2: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
+        ${ next_friends[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
         ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
-    - signature_date: ${ signature_date if esign else "" }
+    - users1_signature: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
+        /s/ ${ next_friends[0] }
+        % elif MLH_esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to: |
+        % if MLH_esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
+    - signature_date: ${ signature_date if MLH_esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
@@ -2482,15 +2639,20 @@ attachments:
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
 ---
 attachments:
-  name: Personal Protection Order (Non-Domestic Sexual Assault)
-  filename: cc_396_personal_protection_order_nondomestic_sexual_assault
+  name: Personal Protection Order (Non-Domestic Sexual Assault) - CC 396
+  filename: Personal Protection Order (Non-Domestic Sexual Assault) - CC 396
   variable name: ppo_cc_396[i]
   skip undefined: True
   editable: False
   pdf template file: cc_396_personal_protection_order_nondomestic_sexual_assault.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name: ${ users[0].name }
+    - users1_name: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_address_block: |
         ${ users[0].address }
         % if users[0].phone_number:
@@ -2518,8 +2680,8 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
-  name: Protected Personal Identifying Information
-  filename: mc_97_protected_pii
+  name: Protected Personal Identifying Information - MC 97
+  filename: Protected Personal Identifying Information - MC 97
   variable name: ppo_mc_97[i]
   skip undefined: True
   editable: False
@@ -2540,8 +2702,8 @@ attachments:
     - date_completed: ${ today() }
 ---
 attachments:
-  name: Protected Personal Identifying Information Addendum
-  filename: mc_97a_protected_pii_addendum
+  name: Protected Personal Identifying Information Addendum - MC 97A
+  filename: Protected Personal Identifying Information Addendum - MC 97A
   variable name: ppo_mc_97a[i]
   skip undefined: True
   editable: False
@@ -2562,23 +2724,31 @@ attachments:
 ---
 attachments:
   name: Notice of Hearing
-  filename: cc_381_notice_of_hearing
+  filename: Notice of Hearing
   variable name: ppo_cc_381[i]
   skip undefined: True
   editable: False
   pdf template file: cc_381_notice_of_hearing.pdf
   fields:
-    - trial_court: ${ trial_court }
-    - trial_court_county: ${ county_choice }
-    - docket_number: ${ docket_number }
+    - users1_name: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_name__3: ${ other_parties[0].name }
+    - other_parties1_address: ${ other_parties[0].address }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_phone_number: ${ the_court.phone }
     - trial_court_address_on_one_line: ${ trial_court.address.on_one_line() }
     - trial_court_phone_number: ${ trial_court.phone_number }
-    - judicial_district: ${ trial_court.judicial_district }
-    - in_matter_of: ${ trial_court.in_matter_of }
 ---
 attachments:
-  name: PPO Contact Information Sheet
-  filename: ppo_contact_information_sheet
+  name: Contact Information Sheet
+  filename: Contact Information Sheet
   variable name: ppo_contact_information_sheet[i]
   skip undefined: True
   editable: False
@@ -2590,18 +2760,29 @@ attachments:
         ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
     - users1_email: ${ users[0].email }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
-    - signature_date: ${ signature_date if esign else "" }
+    - users1_signature: ${ f"/s/ {users[0]}" if MLH_esign else "" }
+    - pursuant_to: |
+        % if MLH_esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
+    - signature_date: ${ signature_date if MLH_esign else "" }
 ---
 attachments:
-  name: Petition for Personal Protection Order (Non-Domestic Relationship)
-  filename: cc_377_petition_for_personal_protection_order_nondomestic
+  name: Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377
+  filename: Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377
   variable name: ppo_cc_377[i]
   skip undefined: True
   editable: False
   pdf template file: cc_377_petition_for_personal_protection_order_nondomestic.pdf
   fields:
-    - users1_name__1: ${ users[0].name }
+    - users1_name__1: |
+        % if next_friends.item(0) and next_friend_agrees_to_role:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
     - users1_name__2: ${ users[0].name }
     - users1_address_block: |
         ${ users[0].address }
@@ -2609,8 +2790,21 @@ attachments:
         ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
-    - users1_signature: ${ f"/s/ {users[0]}" if esign else "" }
-    - signature_date: ${ signature_date if esign else "" }
+    - users1_signature: |
+        % if next_friends.item(0) and next_friend_agrees_to_sign and MLH_esign:
+        /s/ ${ next_friends[0] }
+        % elif MLH_esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to: |
+        % if MLH_esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
+    - signature_date: ${ signature_date if MLH_esign else "" }
     - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
