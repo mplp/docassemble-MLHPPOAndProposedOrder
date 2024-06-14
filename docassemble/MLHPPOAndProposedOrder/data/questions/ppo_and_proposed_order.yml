@@ -2101,6 +2101,9 @@ subquestion: |
 #################### Documents Start #####################
 ---
 objects:
+  - proof_of_service: ALDocument.using(title="Proof of Service", filename="Proof of Service", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -2158,7 +2161,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment, proof_of_service], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 code: |
   if ppo_type == "domestic":
@@ -2239,6 +2242,16 @@ code: |
     ppo_contact_information_sheet.enabled = False
 ---
 attachments:
+  name: Proof of Service
+  filename: Proof of Service
+  variable name: proof_of_service[i]
+  skip undefined: True
+  editable: False
+  pdf template file: proof_of_service.pdf
+  fields:
+    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
+---
+attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) - CC 375
   filename: Petition for Personal Protection Order (Domestic Relationship) - CC 375
   variable name: ppo_cc_375[i]
@@ -2279,8 +2292,6 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if MLH_esign else "" }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address: ${ other_parties[0].address }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
@@ -2337,7 +2348,7 @@ attachments:
         % elif len(ppo_harm_protectees_list.complete_elements()) == 1:
         ${ comma_and_list(ppo_harm_protectees_list) }
         % else:
-        ''
+        ${ '' }
         % endif 
     - ppo_threat_protectees_list: |
         % if len(ppo_threat_protectees_list.complete_elements()) > 1:
@@ -2345,7 +2356,7 @@ attachments:
         % elif len(ppo_threat_protectees_list.complete_elements()) == 1:
         ${ comma_and_list(ppo_threat_protectees_list) }
         % else:
-        ''
+        ${ '' }
         % endif 
     - petitioner_respondent_married: ${ petitioner_respondent_married }
     - petitioner_respondent_prev_married: ${ petitioner_respondent_prev_married }
@@ -2605,7 +2616,6 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if MLH_esign else "" }
-    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         % if other_parties[0].phone_number:
@@ -2636,7 +2646,7 @@ attachments:
         % elif len(ppo_sexual_assault_threat_protectees_list.complete_elements()) == 1:
         ${ comma_and_list(ppo_sexual_assault_threat_protectees_list) }
         % else:
-        ''
+        ${ '' }
         % endif 
     - respondent_carries_firearm_for_work_known: ${ respondent_carries_firearm_for_work_known }
     - respondent_carries_firearm_for_work_unknown: ${ respondent_carries_firearm_for_work_unknown }
@@ -2839,7 +2849,6 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if MLH_esign else "" }
-    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         % if other_parties[0].phone_number:
