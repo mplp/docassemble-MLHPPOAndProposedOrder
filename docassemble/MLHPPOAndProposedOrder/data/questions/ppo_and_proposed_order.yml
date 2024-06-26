@@ -29,7 +29,7 @@ sections:
   - review_get_forms_info: "Get Your Forms"
 ---
 code: |
-  al_form_type = "existing_case"
+  al_form_type = "other_form"
 ---
 id: interview config code block
 code: |
@@ -68,8 +68,7 @@ code: |
   MLH_intro_screen
   MLH_intro_roles
   MLH_intro_time
-  MLH_intro_navigation
-  MLH_intro_saving_answers
+  MLH_intro_navigate_save
   if not MLH_intro_agree_no_pii:
     MLH_intro_agree_no_pii_exit
 
@@ -2161,7 +2160,16 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment, proof_of_service], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_cc_376, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment, proof_of_service], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+---
+objects:
+  - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
+---
+objects:
+  - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", enabled=True)
+---
+objects:
+  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
 ---
 code: |
   if ppo_type == "domestic":
