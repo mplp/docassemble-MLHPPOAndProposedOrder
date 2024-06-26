@@ -46,8 +46,11 @@ objects:
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
+  - ppo_harm_protectees_list: DAList.using(auto_gather=False)
   - ppo_threat_protectees: ALPeopleList.using(complete_attribute="complete")
+  - ppo_threat_protectees_list: DAList.using(auto_gather=False)
   - ppo_sexual_assault_threat_protectees: ALPeopleList.using(complete_attribute="complete")
+  - ppo_sexual_assault_threat_protectees_list: DAList.using(auto_gather=False)  
   - mc_97_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - mc_97a_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - mc_97a_pii_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete")
@@ -361,17 +364,17 @@ code: |
     wants_no_harming_people = True
   check_wants_no_harming_people = True
 ---
-#NOTE: gives list of ppo_harm_protectees, formatted for the PDF template
 code: |
-  if wants_no_harming_petitioner and ppo_harm_protectees.there_are_any:
-    if len(ppo_harm_protectees.complete_elements()) > 1:
-      ppo_harm_protectees_list = str(users[0].name) + ", " + comma_and_list(ppo_harm_protectees)
-    else:
-      ppo_harm_protectees_list = str(users[0].name) + ", and " + comma_and_list(ppo_harm_protectees)
-  elif (not wants_no_harming_petitioner) and ppo_harm_protectees.there_are_any:
-    ppo_harm_protectees_list = comma_and_list(ppo_harm_protectees)
-  elif wants_no_harming_petitioner and (not ppo_harm_protectees.there_are_any):
-    ppo_harm_protectees_list = str(users[0].name)
+  ppo_harm_protectees_list_temp = []
+
+  if wants_no_harming_petitioner:
+    ppo_harm_protectees_list_temp.append(users[0])
+
+  if ppo_harm_protectees.there_are_any:
+    for person in ppo_harm_protectees:
+      ppo_harm_protectees_list_temp.append(person)
+  
+  ppo_harm_protectees_list = DAList(elements=ppo_harm_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_harm_protectees_list = True
 ---
@@ -416,31 +419,31 @@ code: |
     wants_no_sexual_assault_threatening_others = True
   check_wants_no_sexual_assault_threatening_others = True
 ---
-#NOTE: gives list of ppo_threat_protectees, formatted for the PDF template
 code: |
-  if wants_no_threatening_petitioner and ppo_threat_protectees.there_are_any:
-    if len(ppo_threat_protectees.complete_elements()) > 1:
-      ppo_threat_protectees_list = str(users[0].name) + ", " + comma_and_list(ppo_threat_protectees)
-    else:
-      ppo_threat_protectees_list = str(users[0].name) + ", and " + comma_and_list(ppo_threat_protectees)
-  elif (not wants_no_threatening_petitioner) and ppo_threat_protectees.there_are_any:
-    ppo_threat_protectees_list = comma_and_list(ppo_threat_protectees)
-  elif wants_no_threatening_petitioner and (not ppo_threat_protectees.there_are_any):
-    ppo_threat_protectees_list = str(users[0].name)
+  ppo_threat_protectees_list_temp = []
+
+  if wants_no_threatening_petitioner:
+    ppo_threat_protectees_list_temp.append(users[0])
+
+  if ppo_threat_protectees.there_are_any:
+    for person in ppo_threat_protectees:
+      ppo_threat_protectees_list_temp.append(person)
+  
+  ppo_threat_protectees_list = DAList(elements=ppo_threat_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_threat_protectees_list = True
 ---
-#NOTE: gives list of ppo_sexual_assault_threat_protectees, formatted for the PDF template
 code: |
-  if wants_no_sexual_assault_threats and ppo_sexual_assault_threat_protectees.there_are_any:
-    if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 1:
-      ppo_sexual_assault_threat_protectees_list = str(users[0].name) + ", " + comma_and_list(ppo_sexual_assault_threat_protectees)
-    else:
-      ppo_sexual_assault_threat_protectees_list = str(users[0].name) + ", and " + comma_and_list(ppo_sexual_assault_threat_protectees)
-  elif (not wants_no_sexual_assault_threats) and ppo_sexual_assault_threat_protectees.there_are_any:
-    ppo_sexual_assault_threat_protectees_list = comma_and_list(ppo_sexual_assault_threat_protectees)
-  elif wants_no_sexual_assault_threats and (not ppo_sexual_assault_threat_protectees.there_are_any):
-    ppo_sexual_assault_threat_protectees_list = str(users[0].name)
+  ppo_sexual_assault_protectees_list_temp = []
+
+  if wants_no_sexual_assault_threats:
+    ppo_sexual_assault_protectees_list_temp.append(users[0])
+
+  if ppo_sexual_assault_threat_protectees.there_are_any:
+    for person in ppo_sexual_assault_threat_protectees:
+      ppo_sexual_assault_protectees_list_temp.append(person)
+  
+  ppo_sexual_assault_protectees_list = DAList(elements=ppo_sexual_assault_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_sexual_assault_threat_protectees_list = True
 ---
@@ -2098,6 +2101,9 @@ subquestion: |
 #################### Documents Start #####################
 ---
 objects:
+  - proof_of_service: ALDocument.using(title="Proof of Service", filename="Proof of Service", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -2155,7 +2161,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_377_addendum, cc_375_attachment, cc_377_attachment, cc_395_attachment, ppo_cc_376, ppo_cc_377, ppo_mc_97, ppo_mc_97a, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_cc_395, cc_395_addendum, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment, proof_of_service], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 code: |
   if ppo_type == "domestic":
@@ -2212,7 +2218,7 @@ code: |
     ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)):
     cc_375_attachment.enabled = True
   else:
     cc_375_attachment.enabled = False
@@ -2224,7 +2230,7 @@ code: |
     cc_377_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_sexual_assault_protectees_list.complete_elements()) > 1)):
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
@@ -2234,6 +2240,16 @@ code: |
     ppo_contact_information_sheet.enabled = True
   else:
     ppo_contact_information_sheet.enabled = False
+---
+attachments:
+  name: Proof of Service
+  filename: Proof of Service
+  variable name: proof_of_service[i]
+  skip undefined: True
+  editable: False
+  pdf template file: proof_of_service.pdf
+  fields:
+    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) - CC 375
@@ -2276,8 +2292,6 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if MLH_esign else "" }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address: ${ other_parties[0].address }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
@@ -2318,8 +2332,32 @@ attachments:
         % endif
     - ppo_explanation_see_attached: |
         Please see attached "Statement of Facts".
-    - ppo_harm_protectees_list: ${ ppo_harm_protectees_list }
-    - ppo_threat_protectees_list: ${ ppo_threat_protectees_list }
+    # - ppo_harm_protectees_list: |
+    #     % if len(comma_and_list(ppo_harm_protectees_list)) <= 40:
+    #     ${ comma_and_list(ppo_harm_protectees_list) }
+    #     % elif len(comma_and_list(ppo_harm_protectees_list[3:])) <= 40:
+    #     ${ comma_and_list(ppo_harm_protectees_list[3:]) } [...]
+    #     % elif len(comma_and_list(ppo_harm_protectees_list[2:])) <= 40:
+    #     ${ comma_and_list(ppo_harm_protectees_list[3:]) } [...]
+    #     % else:
+    #     ${ comma_and_list(ppo_harm_protectees_list[1:]) } [...]
+    #     % endif
+    - ppo_harm_protectees_list: |
+        % if len(ppo_harm_protectees_list.complete_elements()) > 1:
+        See attached.
+        % elif len(ppo_harm_protectees_list.complete_elements()) == 1:
+        ${ comma_and_list(ppo_harm_protectees_list) }
+        % else:
+        ${ '' }
+        % endif 
+    - ppo_threat_protectees_list: |
+        % if len(ppo_threat_protectees_list.complete_elements()) > 1:
+        See attached.
+        % elif len(ppo_threat_protectees_list.complete_elements()) == 1:
+        ${ comma_and_list(ppo_threat_protectees_list) }
+        % else:
+        ${ '' }
+        % endif 
     - petitioner_respondent_married: ${ petitioner_respondent_married }
     - petitioner_respondent_prev_married: ${ petitioner_respondent_prev_married }
     - petitioner_respondent_have_child: ${ petitioner_respondent_have_child }
@@ -2578,7 +2616,6 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if MLH_esign else "" }
-    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         % if other_parties[0].phone_number:
@@ -2603,7 +2640,14 @@ attachments:
         % if orders_judgments_re_parties_yes:
         See attachment.
         % endif
-    - ppo_sexual_assault_threat_protectees_list: ${ ppo_sexual_assault_threat_protectees_list }
+    - ppo_sexual_assault_threat_protectees_list: |
+        % if len(ppo_sexual_assault_threat_protectees_list.complete_elements()) > 1:
+        See attached.
+        % elif len(ppo_sexual_assault_threat_protectees_list.complete_elements()) == 1:
+        ${ comma_and_list(ppo_sexual_assault_threat_protectees_list) }
+        % else:
+        ${ '' }
+        % endif 
     - respondent_carries_firearm_for_work_known: ${ respondent_carries_firearm_for_work_known }
     - respondent_carries_firearm_for_work_unknown: ${ respondent_carries_firearm_for_work_unknown }
     - pending_actions_between_parties_yes: ${ pending_actions_between_parties_yes }
@@ -2805,7 +2849,6 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if MLH_esign else "" }
-    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         % if other_parties[0].phone_number:
