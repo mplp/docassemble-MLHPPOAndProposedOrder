@@ -239,7 +239,8 @@ code: |
 
   nav.set_section("review_get_forms_info")
   efile_notice
-  signature_date
+  if MLH_esign:
+    signature_date
   personal_protection_order_download
 
   interview_ppo_and_proposed_order = True
@@ -1246,6 +1247,10 @@ fields:
 id: pending_actions there_is_another
 question: |
   Are there any more pending legal cases between you and ${ other_parties[0].name }?
+subquestion: |
+  % if len(pending_actions.complete_elements()) > 0:
+  ${ collapse_template(pending_actions_list_template) }
+  % endif
 fields:
   - no label: pending_actions.there_is_another
     datatype: yesnoradio
@@ -1253,14 +1258,23 @@ fields:
 # NOTE: started building out template for listed cases (to be used in question above);
 # How to deal with fact that pending_actions attributes should not be mandatory?
 # For example, what if I display docket number, but one of the cases doesn't use it?
-template: pending_actions_list
+template: pending_actions_list_template
 subject: What have I listed so far?
 content: |
   % if len(pending_actions.complete_elements()) > 0:
   So far you have listed:
 
-  % for item in pending_actions.complete_elements():
-    * ${ item }
+  % for item in pending_actions:
+
+  **Pending Case #${ loop.index+1 }**
+
+  * Docket: ${ item.docket_number }
+  * Court: ${ item.court_name }
+  * County: ${ item.court_county }
+  * State: ${ item.court_state }
+  * Judge: ${ item.judge }
+
+
   % endfor
   % else:
   You have not listed any cases yet.
@@ -1309,9 +1323,35 @@ fields:
 id: orders_judgments there_is_another
 question: |
   Are there any more court orders or judgments entered between you and ${ other_parties[0].name }?
+subquestion: |
+  % if len(orders_judgments.complete_elements()) > 0:
+  ${ collapse_template(orders_judgments_list_template) }
+  % endif
 fields:
   - no label: orders_judgments.there_is_another
     datatype: yesnoradio
+---
+template: orders_judgments_list_template
+subject: What have I listed so far?
+content: |
+  % if len(orders_judgments.complete_elements()) > 0:
+  So far you have listed:
+
+  % for item in orders_judgments:
+
+  **Pending Case #${ loop.index+1 }**
+  
+  * Docket: ${ item.docket_number }
+  * Court: ${ item.court_name }
+  * County: ${ item.court_county }
+  * State: ${ item.court_state }
+  * Judge: ${ item.judge }
+
+
+  % endfor
+  % else:
+  You have not listed any orders or judgments yet.
+  % endif
 ---
 id: abuse history intro
 question: |
