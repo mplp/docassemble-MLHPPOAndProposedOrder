@@ -51,9 +51,6 @@ objects:
   - ppo_threat_protectees_list: DAList.using(auto_gather=False)
   - ppo_sexual_assault_threat_protectees: ALPeopleList.using(complete_attribute="complete")
   - ppo_sexual_assault_threat_protectees_list: DAList.using(auto_gather=False)  
-  - mc_97_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
-  - mc_97a_form_fillers: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
-  - mc_97a_pii_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete")
   - pending_actions: DAList.using(object_type=DAObject, complete_attribute="complete")
   - orders_judgments: DAList.using(object_type=DAObject, complete_attribute="complete")
   - incidents: DAList.using(object_type=DAObject, complete_attribute="complete")
@@ -80,6 +77,7 @@ code: |
   for user in users:
     user.birthdate
 
+  check_if_petitioner_under_fourteen
   check_if_petitioner_minor
   if petitioner_is_minor:
     if not petitioner_is_emancipated_minor:
@@ -114,8 +112,6 @@ code: |
 
   check_if_any_protectees
 
-  set_doc_being_filed_with_mc_97
-  set_doc_being_filed_with_mc_97a
   county_choice
   court_index
   the_court
@@ -264,6 +260,13 @@ code: |
   else:
     petitioner_is_minor = False
   check_if_petitioner_minor = True
+---
+code: |
+  if users[0].age_in_years() < 14:
+    petitioner_under_fourteen = True
+  else:
+    petitioner_under_fourteen = False
+  check_if_petitioner_under_fourteen = True
 ---
 #NOTE: last item (petitioner_respondent_parent_child) not yet connected to anything in PDF templates
 code: |
@@ -464,31 +467,11 @@ code: |
 ---
 code: |
   if ppo_type == "domestic":
-    doc_being_filed_with_mc_97 = "Petition for Personal Protection Order (Domestic)"
+    ppo_type_full = "Domestic"
   elif ppo_type == "nondomestic":
-    doc_being_filed_with_mc_97 = "Petition for Personal Protection Order (Non-Domestic)"
+    ppo_type_full = "Non-Domestic"
   elif ppo_type == "nondomestic_sexual_assault":
-    doc_being_filed_with_mc_97 = "Petition for Personal Protection Order (Non-Domestic Sexual Assault)"
-
-  set_doc_being_filed_with_mc_97 = True
----
-code: |
-  if ppo_type == "domestic":
-    doc_being_filed_with_mc_97a = "Petition for Personal Protection Order (Domestic)"
-  elif ppo_type == "nondomestic":
-    doc_being_filed_with_mc_97a = "Petition for Personal Protection Order (Non-Domestic)"
-  elif ppo_type == "nondomestic_sexual_assault":
-    doc_being_filed_with_mc_97a = "Petition for Personal Protection Order (Non-Domestic Sexual Assault)"
-
-  set_doc_being_filed_with_mc_97a = True
----
-code: |
-  if ppo_type == "domestic":
-    ppo_type_full = "Personal Protection Order (Domestic)"
-  elif ppo_type == "nondomestic":
-    ppo_type_full = "Personal Protection Order (Non-Domestic)"
-  elif ppo_type == "nondomestic_sexual_assault":
-    ppo_type_full = "Personal Protection Order (Non-Domestic Sexual Assault)"
+    ppo_type_full = "Non-Domestic Sexual Assault"
 
   set_ppo_type_full = True
 ---
@@ -2164,15 +2147,6 @@ objects:
   - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_domestic_instructions_after_hearing_attachment: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
-  - ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
-  - ppo_domestic_ex_parte_instructions_attachment: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship) - CC 376", filename="Personal Protection Order (Domestic Relationship) - CC 376", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -2185,12 +2159,6 @@ objects:
   - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_mc_97: ALDocument.using(title="Protected Personal Identifying Information - MC 97", filename="Protected Personal Identifying Information - MC 97", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
-  - ppo_mc_97a: ALDocument.using(title="Protected Personal Identifying Information Addendum - MC 97A", filename="Protected Personal Identifying Information Addendum - MC 97A", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="Notice of Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -2200,7 +2168,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_cc_376, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_contact_information_sheet, ppo_domestic_instructions_after_hearing_attachment, ppo_domestic_ex_parte_instructions_attachment, proof_of_service], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cover_page, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_cc_376, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_mc_319, ppo_contact_information_sheet, proof_of_service], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
   - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
@@ -2211,19 +2179,33 @@ objects:
 objects:
   - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
 ---
+objects:
+  - instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - oakland_county_instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - ppo_mc_319: ALDocument.using(title="Request for Next Friend - MC 319", filename="Request for Next Friend - MC 319", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - ppo_cover_page: ALDocument.using(title="Cover Page", filename="Cover Page", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
 code: |
   if ppo_type == "domestic":
     ppo_cc_375.enabled = True
     ppo_cc_376.enabled = True
     cc_375_addendum.enabled = True
-    ppo_mc_97.enabled = True
-    ppo_mc_97a.enabled = True
   else:
     ppo_cc_375.enabled = False
     ppo_cc_376.enabled = False
     cc_375_addendum.enabled = False
-    ppo_mc_97.enabled = False
-    ppo_mc_97a.enabled = False
 ---
 code: |
   if ppo_type == "nondomestic":
@@ -2248,22 +2230,28 @@ code: |
     cc_395_addendum.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and wants_ex_parte_order:
-    ppo_domestic_ex_parte_instructions_attachment.enabled = True
+  if (not wants_ex_parte_order) and (county_choice != "Oakland"):
+    instructions_after_hearing.enabled = True
   else:
-    ppo_domestic_ex_parte_instructions_attachment.enabled = False
+    instructions_after_hearing.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and not wants_ex_parte_order:
-    ppo_domestic_instructions_after_hearing_attachment.enabled = True
+  if (not wants_ex_parte_order) and (county_choice == "Oakland"):
+    oakland_county_instructions_after_hearing.enabled = True
   else:
-    ppo_domestic_instructions_after_hearing_attachment.enabled = False
+    oakland_county_instructions_after_hearing.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and wants_ex_parte_order:
-    ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.enabled = True
+  if (wants_ex_parte_order) and (county_choice != "Oakland"):
+    instructions_ex_parte.enabled = True
   else:
-    ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.enabled = False
+    instructions_ex_parte.enabled = False
+---
+code: |
+  if (wants_ex_parte_order) and (county_choice == "Oakland"):
+    oakland_county_instructions_ex_parte.enabled = True
+  else:
+    oakland_county_instructions_ex_parte.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)):
@@ -2288,6 +2276,57 @@ code: |
     ppo_contact_information_sheet.enabled = True
   else:
     ppo_contact_information_sheet.enabled = False
+---
+code: |
+  if petitioner_is_minor and (not petitioner_is_emancipated_minor):
+    ppo_mc_319.enabled = True
+  else:
+    ppo_mc_319.enabled = False
+---
+attachments:
+  name: Request for Next Friend
+  filename: Request for Next Friend
+  variable name: ppo_mc_319[i]
+  skip undefined: True
+  editable: False
+  pdf template file: mc_319_request_for_next_friend.pdf
+  fields:
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+    - users1_address_block: |
+        ${ users[0].address_block() }
+        % if users[0].phone_number:
+        ${ phone_number_formatted(users[0].phone_number) }
+        % endif
+    - other_parties1_address_block: |
+        ${ other_parties[0].address_block() }
+        % if other_parties[0].phone_number:
+        ${ phone_number_formatted(other_parties[0].phone_number) }
+        % endif
+    - users1_signature: |
+        % if MLH_esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to: |
+        % if MLH_esign:
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
+    - next_friend1_signature: |
+        % if MLH_esign:
+        /s/ ${ next_friends[0] }
+        % else:
+        ${ '' }
+        % endif
+    - signature_date: ${ signature_date if MLH_esign else "" }
+    - users1_name: ${ users[0] }
+    - is_minor: ${ petitioner_is_minor }
+    - is_incapacitated_adult: ${ petitioner_is_incapacitated_adult }
 ---
 attachments:
   name: Proof of Service
@@ -2495,41 +2534,44 @@ attachments:
 attachments:
   name: Instructions After Hearing
   filename: Instructions After Hearing
-  pdf template file: ppo_domestic_instructions_after_hearing_attachment.pdf
-  variable name: ppo_domestic_instructions_after_hearing_attachment[i]
+  docx template file: instructions_after_hearing.docx
+  variable name: instructions_after_hearing[i]
   skip undefined: True
-  editable: False
-  fields:
-    - instructions_heading: |
-        ${ county_choice } Instructions - How to Ask for a ${ ppo_type_full } after a Hearing
+  valid formats:
+    - pdf
+---
+attachments:
+  name: Instructions After Hearing
+  filename: Instructions After Hearing
+  docx template file: oakland_county_instructions_after_hearing.docx
+  variable name: oakland_county_instructions_after_hearing[i]
+  skip undefined: True
+  valid formats:
+    - pdf
 ---
 attachments:
   name: Ex Parte Instructions
   filename: Ex Parte Instructions
-  pdf template file: ppo_domestic_ex_parte_instructions_attachment.pdf
-  variable name: ppo_domestic_ex_parte_instructions_attachment[i]
+  docx template file: instructions_ex_parte.docx
+  variable name: instructions_ex_parte[i]
   skip undefined: True
-  editable: False
-  fields:
-    - instructions_heading: |
-        ${ county_choice } Instructions - How to Ask for an Ex Parte ${ ppo_type_full }
+  valid formats:
+    - pdf
 ---
 attachments:
   name: Ex Parte Instructions
   filename: Ex Parte Instructions
-  pdf template file: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment.pdf
-  variable name: ppo_nondomestic_sexual_assault_ex_parte_instructions_attachment[i]
+  docx template file: oakland_county_instructions_ex_parte.docx
+  variable name: oakland_county_instructions_ex_parte[i]
   skip undefined: True
-  editable: False
-  fields:
-    - instructions_heading: |
-        ${ county_choice } Instructions - How to Ask for an Ex Parte ${ ppo_type_full }
+  valid formats:
+    - pdf
 ---
 attachments:
-  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
-  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
-  docx template file: cc_395_statement_of_facts.docx
-  variable name: cc_395_addendum[i]
+  name: Cover Page
+  filename: Cover Page
+  docx template file: ppo_cover_page.docx
+  variable name: ppo_cover_page[i]
   skip undefined: True
   valid formats:
     - pdf
@@ -2770,49 +2812,6 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
----
-attachments:
-  name: Protected Personal Identifying Information - MC 97
-  filename: Protected Personal Identifying Information - MC 97
-  variable name: ppo_mc_97[i]
-  skip undefined: True
-  editable: False
-  pdf template file: mc_97_protected_pii.pdf
-  fields:
-    - users1_name__1: ${ users[0].name }
-    - users1_name__2: ${ users[0].name }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
-    - other_parties1_birthdate: ${ other_parties[0].birthdate }
-    - other_parties1_license_number: ${ other_parties[0].license_number }
-    - trial_court: ${ the_court.number }
-    - trial_court_county: ${ county_choice.upper() }
-    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
-    - trial_court_phone_number: ${ the_court.phone }
-    - judicial_district: ${ trial_court.judicial_district }
-    - doc_being_filed_with_mc_97: ${ doc_being_filed_with_mc_97 }
-    - date_completed: ${ today() }
----
-attachments:
-  name: Protected Personal Identifying Information Addendum - MC 97A
-  filename: Protected Personal Identifying Information Addendum - MC 97A
-  variable name: ppo_mc_97a[i]
-  skip undefined: True
-  editable: False
-  pdf template file: mc_97a_protected_pii_addendum.pdf
-  fields:
-    - users1_name__1: ${ users[0].name }
-    - users1_name__2: ${ users[0].name }
-    - users1_name__3: ${ users[0].name }
-    - users1_birthdate: ${ users[0].birthdate }
-    - other_parties1_name: ${ other_parties[0].name }
-    - trial_court: ${ the_court.number }
-    - trial_court_county: ${ county_choice.upper() }
-    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
-    - trial_court_phone_number: ${ the_court.phone }
-    - judicial_district: ${ trial_court.judicial_district }
-    - date_completed: ${ today() }
-    - doc_being_filed_with_mc_97a: ${ doc_being_filed_with_mc_97a }
 ---
 attachments:
   name: Notice of Hearing
