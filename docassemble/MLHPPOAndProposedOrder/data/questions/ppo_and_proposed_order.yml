@@ -50,7 +50,7 @@ objects:
   - ppo_threat_protectees: ALPeopleList.using(complete_attribute="complete")
   - ppo_threat_protectees_list: DAList.using(auto_gather=False)
   - ppo_sexual_assault_threat_protectees: ALPeopleList.using(complete_attribute="complete")
-  - ppo_sexual_assault_threat_protectees_list: DAList.using(auto_gather=False)  
+  - ppo_sexual_assault_threat_protectees_list: DAList.using(auto_gather=False)
   - pending_actions: DAList.using(object_type=DAObject, complete_attribute="complete")
   - orders_judgments: DAList.using(object_type=DAObject, complete_attribute="complete")
   - incidents: DAList.using(object_type=DAObject, complete_attribute="complete")
@@ -70,8 +70,18 @@ code: |
     MLH_intro_agree_no_pii_exit
 
   nav.set_section("review_petitioner_info")
-  users.gather()
 
+  if is_incapacitated_adult:
+    if next_friends.there_are_any:
+      next_friends.gather()
+      set_next_friend
+      if not next_friend_agrees_to_sign:
+        next_friend_signature_notice
+      continue_as_next_friend_for_lii
+    else:
+      unauthorized_to_file_for_lii_kickout
+
+  users.gather()
   petitioner_lives_in_michigan
 
   for user in users:
@@ -80,17 +90,20 @@ code: |
   check_if_petitioner_under_fourteen
   check_if_petitioner_minor
   if petitioner_is_minor:
-    if not petitioner_is_emancipated_minor:
-      if next_friends.there_are_any:
-        next_friends.gather()
-        if next_friend_agrees_to_role:
-          set_next_friend
-          if not next_friend_agrees_to_sign:
-            next_friend_signature_notice
+    if is_incapacitated_adult:
+      inconsistent_age_kickout
+    else:
+      if not petitioner_is_emancipated_minor:
+        if next_friends.there_are_any:
+          next_friends.gather()
+          if next_friend_agrees_to_role:
+            set_next_friend
+            if not next_friend_agrees_to_sign:
+              next_friend_signature_notice
+          else:
+            next_friend_role_kickout
         else:
-          next_friend_role_kickout
-      else:
-        minor_kickout
+          minor_kickout
 
   respondent_lives_in_michigan
   if (not petitioner_lives_in_michigan) and (not respondent_lives_in_michigan):
@@ -102,7 +115,7 @@ code: |
     if (not respondent_is_emancipated_minor):
       if respondent_is_petitioners_child:
         respondent_petitioners_child_kickout
-  
+
   if ppo_type == "nondomestic_sexual_assault":
     ppo_nondomestic_intro
 
@@ -275,7 +288,7 @@ code: |
     petitioner_under_fourteen = False
   check_if_petitioner_under_fourteen = True
 ---
-code: | 
+code: |
   if knows_respondents_birthdate:
     if other_parties[0].age_in_years() < 18:
       respondent_is_minor = True
@@ -399,7 +412,7 @@ code: |
   if ppo_harm_protectees.there_are_any:
     for person in ppo_harm_protectees:
       ppo_harm_protectees_list_temp.append(person)
-  
+
   ppo_harm_protectees_list = DAList(elements=ppo_harm_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_harm_protectees_list = True
@@ -454,7 +467,7 @@ code: |
   if ppo_threat_protectees.there_are_any:
     for person in ppo_threat_protectees:
       ppo_threat_protectees_list_temp.append(person)
-  
+
   ppo_threat_protectees_list = DAList(elements=ppo_threat_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_threat_protectees_list = True
@@ -468,7 +481,7 @@ code: |
   if ppo_sexual_assault_threat_protectees.there_are_any:
     for person in ppo_sexual_assault_threat_protectees:
       ppo_sexual_assault_protectees_list_temp.append(person)
-  
+
   ppo_sexual_assault_protectees_list = DAList(elements=ppo_sexual_assault_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_sexual_assault_threat_protectees_list = True
@@ -506,8 +519,11 @@ code: |
   check_if_any_protectees = True
 ---
 code: |
-  if next_friend_agrees_to_role:
+  if is_incapacitated_adult:
     has_next_friend_petitioning = True
+  else:
+    if next_friend_agrees_to_role:
+      has_next_friend_petitioning = True
 
   set_next_friend = True
 ---
@@ -636,11 +652,21 @@ sets:
   - next_friends[0].name.last
   - next_friends[0].name.suffix
 question: |
+  % if is_incapacitated_adult:
+  Enter your name
+  % else:
   Enter the name of your next friend
+  % endif
 subquestion: |
+  % if is_incapacitated_adult:
+  As the person acting for the legally incapacitated person, you will be considered a **next friend**. 
+
+  The next friend signs the petition for the petitioner, files the petition, goes to any hearings for the petitioner (if needed), and does everything else that is needed unless there is a lawyer.
+  % else:
   Make sure that this person agrees to file your petition for you.
 
   ${ collapse_template(next_friend_explained) }
+  % endif
 fields:
   - code: |
       next_friends[0].name_fields()
@@ -777,6 +803,48 @@ subquestion: |
 
 continue button field: MLH_intro_roles
 ---
+id: is petitioner legally incapacitated adult
+question: |
+  Legally incapacitated adult
+fields:
+  - Will you be filing this PPO petition on behalf of a legally incapacitated adult?: is_incapacitated_adult
+    datatype: yesnoradio
+  - Have you been named the guardian of this person by court order **OR** do you have a power of attorney that allows you to file for them?: next_friends.there_are_any
+    datatype: yesnoradio
+    show if:
+      variable: is_incapacitated_adult
+      is: True
+---
+id: unauthorized to file for legally incapacitated adult kickout
+event: unauthorized_to_file_for_lii_kickout
+question: |
+  You cannot continue using this tool
+subquestion: |
+  We're sorry, but you cannot use this tool to prepare a *Petition for Personal Protection Order*.
+
+  Unless you have a guardianship or a power of attorney, you can’t file on behalf of another adult. 
+  
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+---
+id: inconsistent age kickout
+event: inconsistent_age_kickout
+question: |
+  You cannot continue using this tool
+subquestion: |
+  You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0].possessive('birthday') } makes them a **minor**.
+
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answers. 
+---
+id: continue as next friend for incapacitated adult
+question: |
+  Continue answering for the petitioner
+subquestion: |
+  You will now continue answering questions **on behalf of the petitioner**. 
+  
+  This means that when a question says "you", it refers the person asking for the PPO and **NOT you, the next friend**.
+
+continue button field: continue_as_next_friend_for_lii
+---
 template: next_friend_explained
 subject: |
   What does a next friend need to do?
@@ -835,9 +903,9 @@ question: |
 subquestion: |
   We're sorry, but you cannot use this tool to prepare a *Petition for Personal Protection Order*.
 
-  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
-
-  To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
+  Because you are under 18 and not emancipated, you must have a next friend file your petition for you. 
+  
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
 id: next friend agrees to role
 question: |
@@ -865,7 +933,7 @@ subquestion: |
 ---
 id: next friend agrees to sign
 question: |
-  ${ next_friends[0] } must agree to be ${ users[0].possessive('next friend') }
+  Your signature
 subquestion: |
   This tool can put "**/s/ ${ next_friends[0] }**" where you would sign your name so you do not have to sign the forms by hand. The court will accept this as your signature.
 fields:
@@ -1083,8 +1151,8 @@ subquestion: |
   We're sorry, but you cannot use this tool to prepare a *Petition for a Personal Protection Order*. Under Michigan law, you cannot get a personal protection order against your unemancipated minor child.
 
   To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/minors-and-personal-protection-orders).
-  
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. 
+
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: safe_contact_info_notice
 question: |
@@ -1398,7 +1466,7 @@ content: |
   % for item in orders_judgments:
 
   **Pending Case #${ loop.index+1 }**
-  
+
   * Docket: ${ item.docket_number }
   * Court: ${ item.court_name }
   * County: ${ item.court_county }
@@ -2353,7 +2421,7 @@ code: |
     ppo_contact_information_sheet.enabled = False
 ---
 code: |
-  if petitioner_is_minor and (not petitioner_is_emancipated_minor):
+  if has_next_friend_petitioning:
     ppo_mc_319.enabled = True
   else:
     ppo_mc_319.enabled = False
@@ -2401,7 +2469,7 @@ attachments:
     - signature_date: ${ signature_date if MLH_esign else "" }
     - users1_name: ${ users[0] }
     - is_minor: ${ petitioner_is_minor }
-    - is_incapacitated_adult: ${ petitioner_is_incapacitated_adult }
+    - is_incapacitated_adult: ${ is_incapacitated_adult }
 ---
 attachments:
   name: Proof of Service
@@ -2511,7 +2579,7 @@ attachments:
         ${ comma_and_list(ppo_harm_protectees_list) }
         % else:
         ${ '' }
-        % endif 
+        % endif
     - ppo_threat_protectees_list: |
         % if len(ppo_threat_protectees_list.complete_elements()) > 1:
         See attached.
@@ -2519,7 +2587,7 @@ attachments:
         ${ comma_and_list(ppo_threat_protectees_list) }
         % else:
         ${ '' }
-        % endif 
+        % endif
     - petitioner_respondent_married: ${ petitioner_respondent_married }
     - petitioner_respondent_prev_married: ${ petitioner_respondent_prev_married }
     - petitioner_respondent_have_child: ${ petitioner_respondent_have_child }
@@ -2812,7 +2880,7 @@ attachments:
         ${ comma_and_list(ppo_sexual_assault_threat_protectees_list) }
         % else:
         ${ '' }
-        % endif 
+        % endif
     - respondent_carries_firearm_for_work_known: ${ respondent_carries_firearm_for_work_known }
     - respondent_carries_firearm_for_work_unknown: ${ respondent_carries_firearm_for_work_unknown }
     - pending_actions_between_parties_yes: ${ pending_actions_between_parties_yes }
