@@ -2421,8 +2421,11 @@ code: |
     ppo_contact_information_sheet.enabled = False
 ---
 code: |
-  if has_next_friend_petitioning:
-    ppo_mc_319.enabled = True
+  if is_incapacitated_adult or petitioner_is_minor:
+    if has_next_friend_petitioning:
+      ppo_mc_319.enabled = True
+    else:
+      ppo_mc_319.enabled = False
   else:
     ppo_mc_319.enabled = False
 ---
