@@ -595,8 +595,8 @@ code: |
   if ppo_type == "domestic":
     incidents[i].petitioner_injured
   incidents[i].had_witnesses
-  incidents[i].had_police
-  incidents_outro
+  if incidents[i].had_police:
+    incidents_outro
   incidents[i].complete = True
 ---
 code: |
@@ -841,7 +841,7 @@ question: |
 subquestion: |
   You will now continue answering questions **on behalf of the petitioner**. 
   
-  This means that when a question says "you", it refers the person asking for the PPO and **NOT you, the next friend**.
+  This means that when a question says "you", it refers to the person asking for the PPO and **NOT you, the next friend**.
 
 continue button field: continue_as_next_friend_for_lii
 ---
@@ -964,7 +964,10 @@ fields:
 ---
 id: respondent birthdate
 question: |
-  Respondent's date of birth
+  {Respondent}'s date of birth
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 fields:
   - Do you know the Respondent's exact date of birth?: knows_respondents_birthdate
     datatype: yesnoradio
@@ -1346,6 +1349,8 @@ sets:
   - pending_actions[i].docket_number
 question: |
   Enter the case number
+subquestion: |
+  Leave blank if unknown.
 fields:
   - no label: pending_actions[i].docket_number
     required: False
@@ -1422,6 +1427,8 @@ sets:
   - orders_judgments[i].docket_number
 question: |
   Enter the case number
+subquestion: |
+  Leave blank if unknown.
 fields:
   - no label: orders_judgments[i].docket_number
     required: False
@@ -2673,6 +2680,15 @@ attachments:
   filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment
   docx template file: cc_395_attachment.docx
   variable name: cc_395_attachment[i]
+  skip undefined: True
+  valid formats:
+    - pdf
+---
+attachments:
+  name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
+  filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
+  docx template file: cc_395_statement_of_facts.docx
+  variable name: cc_395_addendum[i]
   skip undefined: True
   valid formats:
     - pdf
