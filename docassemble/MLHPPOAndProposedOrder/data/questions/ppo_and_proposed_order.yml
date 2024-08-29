@@ -265,6 +265,15 @@ code: |
 ---
 #################### Other Code Blocks Start #####################
 ---
+generic object: ALIndividual
+code: |
+  if x.no_phone_number:
+    x.phone_number = "Does not have phone"
+---
+code: |
+  if users[0].no_phone_number:
+    users[0].phone_number = "Does not have phone"
+---
 code: |
   users.there_is_another = False
 ---
@@ -554,7 +563,8 @@ code: |
       other_parties[i].address.address
   else:
     other_parties[i].address.address
-  other_parties[i].phone_number
+  if other_parties[i].no_phone_number:
+    other_parties[i].phone_number = "Does not have phone"
   other_parties[i].race
   other_parties[i].gender
   other_parties[i].height_feet
@@ -643,7 +653,12 @@ fields:
   - code: |
       users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=True)
   - Phone: users[0].phone_number
-    required: True
+    show if: 
+      variable: users[0].no_phone_number
+      is: False
+  - I do not have a phone number: users[0].no_phone_number
+    required: False
+    datatype: yesno
 ---
 id: next friend name
 sets:
@@ -714,9 +729,13 @@ question: |
 subquestion: |
   If none or unknown, leave blank.
 fields:
-  - no label: other_parties[0].phone_number
-    datatype: al_international_phone
+  - Phone: other_parties[0].phone_number
+    show if: 
+      variable: other_parties[0].no_phone_number
+      is: False
+  - I do not know of any phone number for ${ other_parties[0] }: other_parties[0].no_phone_number
     required: False
+    datatype: yesno
 ---
 id: other property address
 sets:
@@ -878,9 +897,19 @@ template: emancipated_minor_explained
 subject: |
   What does "emancipated" mean?
 content: |
-  An emancipated minor is a person under 18 years old whose parents no longer have legal authority over them. Emancipation gives the minor some of the rights and responsibilities of an adult. Emancipation does not make a minor into an adult and does not give the minor adult status for all things. Sometimes a minor is automatically emancipated (for example, when they legally marry), and other times a minor is emancipated by a judge.
+  An emancipated minor is a person under 18 years old whose parents no longer have legal authority over them. 
+  
+  Emancipation gives the minor some of the rights and responsibilities of an adult. Emancipation does not make a minor into an adult and does not give the minor adult status for all things. Sometimes a minor is automatically emancipated (for example, when they legally marry), and other times a minor is emancipated by a judge.
 
   If you are under 18 years old, you cannot file this petition unless you are emancipated. You need help from someone called a next friend. A next friend is usually a parent or other adult whom you trust. Your next friend must file the *Petition for Personal Protection Order* for you.
+---
+template: emancipated_respondent_minor_explained
+subject: |
+  What does "emancipated" mean?
+content: |
+  An emancipated minor is a person under 18 years old whose parents no longer have legal authority over them. 
+  
+  Emancipation gives the minor some of the rights and responsibilities of an adult. Emancipation does not make a minor into an adult and does not give the minor adult status for all things. Sometimes a minor is automatically emancipated (for example, when they legally marry), and other times a minor is emancipated by a judge.
 ---
 id: next friend
 question: |
@@ -985,6 +1014,8 @@ fields:
 id: respondent emancipated minor
 question: |
   Respondent's status as minor
+subquestion : |
+  ${ collapse_template(emancipated_respondent_minor_explained) }
 fields:
   - Is the Respondent an emancipated minor?: respondent_is_emancipated_minor
     datatype: yesnoradio
@@ -1338,7 +1369,7 @@ question: |
   Are there any pending legal cases between you and ${ other_parties[0].name }?
 subquestion: |
   % if ppo_type == "domestic":
-  Includes court cases, including divorce, custody, PPO, a criminal case, or others.
+  This includes any court cases, such as divorce, custody, PPO, a criminal case, or others.
   % endif
 fields:
   - no label: pending_actions.there_are_any
@@ -1397,7 +1428,7 @@ content: |
 
   % for item in pending_actions:
 
-  **Pending Case #${ loop.index+1 }**
+  **Pending Case \#${ loop.index+1 }**
 
   * Docket: ${ item.docket_number }
   * Court: ${ item.court_name }
@@ -1472,7 +1503,7 @@ content: |
 
   % for item in orders_judgments:
 
-  **Pending Case #${ loop.index+1 }**
+  **Pending Order or Judgment \#${ loop.index+1 }**
 
   * Docket: ${ item.docket_number }
   * Court: ${ item.court_name }
@@ -1881,7 +1912,7 @@ id: other details
 question: |
   Include anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }
 subquestion: |
-  You can use this space to tell the judge other things about ${ other_parties[0].name } that make you feel threatened, abused, or afraid
+  You can use this space to tell the judge other things about ${ other_parties[0].name } that make you feel threatened, abused, or afraid.
 
   % if ppo_type == "nondomestic":
   ${ collapse_template(incident_other_details_explained_nondomestic) }
@@ -2309,7 +2340,7 @@ objects:
   - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="Notice of Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - ppo_cc_381: ALDocument.using(title="Notice of Hearing", filename="Notice of Hearing - CC 381", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -2634,7 +2665,7 @@ attachments:
     - other_request_exp: ${ other_request_exp }
     - other_request_see_attached: |
         % if wants_other_request:
-        Please see attached "Statement of Facts".
+        Please see "Relief Requested" in Attachment.
         % endif
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
@@ -2894,7 +2925,7 @@ attachments:
         % endif
     - ppo_sexual_assault_threat_protectees_list: |
         % if len(ppo_sexual_assault_threat_protectees_list.complete_elements()) > 1:
-        See attached.
+        See "Relief Requested" in Attachment.
         % elif len(ppo_sexual_assault_threat_protectees_list.complete_elements()) == 1:
         ${ comma_and_list(ppo_sexual_assault_threat_protectees_list) }
         % else:
