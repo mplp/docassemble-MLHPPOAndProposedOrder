@@ -44,6 +44,7 @@ objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - next_friends: ALPeopleList.using(complete_attribute="complete")
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
+  - other_parties_parents: ALPeopleList.using(complete_attribute="complete")
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
   - ppo_harm_protectees_list: DAList.using(auto_gather=False)
@@ -116,6 +117,10 @@ code: |
     if (not respondent_is_emancipated_minor):
       if respondent_is_petitioners_child:
         respondent_petitioners_child_kickout
+      else:
+        other_parties_parents.gather()
+  
+  set_relationship_choices
 
   if ppo_type == "nondomestic_sexual_assault":
     ppo_nondomestic_intro
@@ -192,7 +197,8 @@ code: |
     if wants_no_entering_residential_property:
       if not has_property_interest_in_home:
         if respondent_has_property_interest_in_home:
-          respondent_property_interest_kickout
+          cannot_prohibit_respondent_entering_property
+    set_no_entering_residential_property
     if other_properties.there_are_any:
       other_properties.gather()
     check_wants_no_entering_other_property
@@ -207,7 +213,8 @@ code: |
     if wants_no_entering_residential_property:
       if not has_property_interest_in_home:
         if respondent_has_property_interest_in_home:
-          respondent_property_interest_kickout
+          cannot_prohibit_respondent_entering_property
+    set_no_entering_residential_property
     
     if other_properties.there_are_any:
       other_properties.gather()
@@ -289,6 +296,10 @@ code: |
 ---
 code: |
   other_parties.there_is_another = False
+---
+code: |
+  if respondent_is_minor and (not respondent_is_emancipated_minor):
+    other_parties_parents.there_are_any = True
 ---
 code: |
   if users[0].age_in_years() < 18:
@@ -543,6 +554,43 @@ code: |
 
   set_next_friend = True
 ---
+code: |
+  if wants_no_entering_residential_property:
+    if cannot_prohibit_respondent_entering_property:
+      no_entering_residential_property = False
+    else:
+      no_entering_residential_property = True
+
+  set_no_entering_residential_property = True
+---
+code: |
+  if respondent_is_minor and (not respondent_is_emancipated_minor):
+    parent_choice = False
+    was_married_choice = False
+    married_choice = False
+  elif (not petitioner_is_minor) and respondent_is_minor and respondent_is_emancipated_minor:
+    parent_choice = False
+    married_choice = True
+    was_married_choice = True
+  else:
+    parent_choice = True
+    married_choice = True
+    was_married_choice = True
+
+  set_relationship_choices = True
+---
+code: | 
+  relationship_choices = list() 
+  if married_choice:
+    relationship_choices.append({'married':'I am married to them'})
+  if was_married_choice:
+    relationship_choices.append({'was_married':'I was once married to them'})
+  relationship_choices.append({'have_child':'We have a child together'})
+  relationship_choices.append({'live_together':'We live together or used to live together'})
+  relationship_choices.append({'dating':'We dated or are dating'}) 
+  if parent_choice: 
+    relationship_choices.append({'parent':'They are my parent and we live together'})
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -583,6 +631,13 @@ code: |
   other_parties[i].other_identifying_info
   other_parties[i].carries_gun_for_work
   other_parties[i].complete = True
+---
+code: |
+  other_parties_parents[i].name.first
+  other_parties_parents[i].address.address
+  if other_parties_parents[i].no_phone_number:
+    other_parties_parents[i].phone_number = "Does not have phone"
+  other_parties_parents[i].complete = True
 ---
 code: |
   pending_actions[i].docket_number
@@ -741,6 +796,57 @@ fields:
       variable: other_parties[0].no_phone_number
       is: False
   - I do not know of any phone number for ${ other_parties[0] }: other_parties[0].no_phone_number
+    required: False
+    datatype: yesno
+---
+id: respondent parent name
+sets:
+  - other_parties_parents[i].name.first
+  - other_parties_parents[i].name.middle
+  - other_parties_parents[i].name.last
+  - other_parties_parents[i].name.suffix
+question: |
+  Enter the name of the Respondent's ${ ordinal(i) } parent, guardian, or custodian
+fields:
+  - code: |
+      other_parties_parents[i].name_fields()
+---
+id: respondent parent contact info
+sets:
+  - other_parties_parents[i].address.address
+  - other_parties_parents[i].address.city
+  - other_parties_parents[i].address.zip
+  - other_parties_parents[i].address.unit
+  - other_parties_parents[i].address.state
+question: |
+  What is ${ other_parties_parents[i].name }'s address?
+fields:
+  - Street Address or P.O. Box: other_parties_parents[i].address.address
+    required: False
+  - Apartment, suite, etc.: other_parties_parents[i].address.unit
+    required: False
+  - City: other_parties_parents[i].address.city
+    required: False
+  - State: other_parties_parents[i].address.state
+    required: False
+  - Zip or Postal Code: other_parties_parents[i].address.zip
+    required: False
+  - Country: other_parties_parents[i].country
+    required: False
+---
+id: respondent parent phone number
+sets:
+  - other_parties_parents[i].phone_number
+question: |
+  Enter ${ other_parties_parents[i].name }'s telephone number
+subquestion: |
+  If none or unknown, leave blank.
+fields:
+  - Phone: other_parties_parents[i].phone_number
+    show if: 
+      variable: other_parties_parents[i].no_phone_number
+      is: False
+  - I do not know of any phone number for ${ other_parties_parents[i] }: other_parties_parents[i].no_phone_number
     required: False
     datatype: yesno
 ---
@@ -1032,6 +1138,13 @@ fields:
       variable: respondent_is_emancipated_minor
       is: False
 ---
+id: need respondent parents
+question: |
+  We need more information about ${ other_parties[0] }
+subquestion: |
+  Because ${ other_parties[0] } is an unemancipated minor, both ${ other_parties[0] } and their parents, guardians, or custodians must be served with your petition for a personal protection order.
+continue button field: need_respondent_parents
+---
 id: choose ppo type
 question: |
   What type of Personal Protection Order do you want to ask the court for?
@@ -1120,19 +1233,15 @@ subquestion: |
 
   Otherwise, **Exit** the interview.
 ---
+reconsider: relationship_choices
 id: relationship to respondent
 question: |
   What kind of relationship do/did you have with the Respondent?
 fields:
   - Select **all** that apply: petitioner_respondent_relationship
     datatype: checkboxes
-    choices:
-      - I am married to them: married
-      - I was once married to them: was_married
-      - We have a child together: have_child
-      - We live together or used to live together: live_together
-      - We dated or are dating: dating
-      - They are my parent and we live together (or used to live together): parent
+    code: | 
+      relationship_choices
 ---
 id: relationship to respondent kickout
 question: |
@@ -1650,7 +1759,6 @@ content: |
   If your situation is out of the ordinary, use your judgment to decide if you have a property interest in the home. Be prepared to explain your reasoning to the judge, if needed.
 ---
 id: respondent property interest kickout
-event: respondent_property_interest_kickout
 question: |
   We're sorry, but you are not allowed to ask for this protection
 subquestion: |
@@ -1661,6 +1769,7 @@ subquestion: |
     3. ${ other_parties[0].name } has a property interest in the home.
 
   If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, click Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
+continue button field: cannot_prohibit_respondent_entering_property
 ---
 template: stalking_harassing_explained
 subject: |
@@ -2211,9 +2320,19 @@ fields:
 ---
 id: wants_no_message_posting
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to post or send messages by any method, including the Internet or any electronic medium?
+  % if ppo_type == "nondomestic_sexual_assault":
+  Do you want the judge to order ${ other_parties[0].name } not to post electronic messages that could make other people to harrass you?
+  % elif ppo_type == "nondomestic":
+  Do you want the judge to order ${ other_parties[0].name } not to harrass you by posting messages?
+  % endif
 subquestion: |
-  This includes sending you messages through social media such as Facebook or Twitter, or falsely using your name to send messages to other people in order to harass you.
+  % if ppo_type == "nondomestic_sexual_assault":
+  This includes posting any electronic messages with the intent to cause others to contact you in a way that would make you feel terrorized, frightened, intimidated, threatened, harassed, or molested.
+  % elif ppo_type == "nondomestic":
+  This includes sending you messages through **any method**, including the Internet or any electronic medium. 
+  
+  ${ other_parties[0].name } would be prohibited from using social media, such as Facebook or Twitter, or falsely using your name to send messages to other people in order to harass you.
+  % endif
 fields:
   - no label: wants_no_message_posting
     datatype: yesnoradio
@@ -2338,10 +2457,19 @@ objects:
   - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship) - CC 376", filename="Personal Protection Order (Domestic Relationship) - CC 376", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - ppo_cc_376m: ALDocument.using(title="Personal Protection Order Against Minor (Domestic Relationship) - CC 376M", filename="Personal Protection Order Against Minor (Domestic Relationship) - CC 376M", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship) - CC 380", filename="Personal Protection Order (Non-Domestic Relationship) - CC 380", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - ppo_cc_380m: ALDocument.using(title="Personal Protection Order Against Minor (Non-Domestic Relationship) - CC 380M", filename="Personal Protection Order Against Minor (Non-Domestic Relationship) - CC 380M", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
   - ppo_cc_396: ALDocument.using(title="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", filename="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - ppo_cc_396m: ALDocument.using(title="Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M", filename="Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -2657,7 +2785,7 @@ attachments:
     - pending_actions_between_parties_no: ${ pending_actions_between_parties_no }
     - orders_judgments_re_parties_yes: ${ orders_judgments_re_parties_yes }
     - orders_judgments_re_parties_no: ${ orders_judgments_re_parties_no }
-    - wants_no_entering_residential_property: ${ wants_no_entering_residential_property }
+    - wants_no_entering_residential_property: ${ no_entering_residential_property }
     - wants_no_entering_other_property: ${ wants_no_entering_other_property }
     - wants_no_harming_people: ${ wants_no_harming_people }
     - wants_no_removing_minor: ${ wants_no_removing_minor }
@@ -2838,12 +2966,111 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
 ---
 attachments:
+  name: Personal Protection Order Against Minor (Domestic Relationship) - CC 376M
+  filename: Personal Protection Order Against Minor (Domestic Relationship) - CC 376M
+  variable name: ppo_cc_376m[i]
+  skip undefined: True
+  editable: False
+  pdf template file: cc_376m_personal_protection_order_against_minor_domestic.pdf
+  fields:
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+    - users1_name__1: |
+        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - users1_address_block: |
+        ${ users[0].address }
+        % if users[0].phone_number:
+        ${ phone_number_formatted(users[0].phone_number) }
+        % endif
+    - users1_age: ${ users[0].age }
+    - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_name__3: ${ other_parties[0].name }
+    - other_parties1_name__4: ${ other_parties[0].name }
+    - other_parties1_name__5: ${ other_parties[0].name }
+    - other_parties1_address_block: |
+        ${ other_parties[0].address_block() }
+        % if other_parties[0].phone_number:
+        ${ phone_number_formatted(other_parties[0].phone_number) }
+        % endif
+    - other_parties1_phone_number: ${ other_parties[0].phone_number }
+    - other_parties1_birthdate: |
+        % if knows_respondents_birthdate: 
+        ${ other_parties[0].birthdate }
+        % else:
+        ${ other_parties[0].estimated_age }
+        % endif
+    - other_parties1_license_number: ${ other_parties[0].license_number }
+    - other_parties1_height: ${ other_parties[0].height }
+    - other_parties1_weight: ${ other_parties[0].weight }
+    - other_parties1_race: ${ other_parties[0].race }
+    - other_parties1_gender: ${ other_parties[0].gender }
+    - other_parties1_hair_color: ${ other_parties[0].hair_color }
+    - other_parties1_eye_color: ${ other_parties[0].eye_color }
+    - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+---
+attachments:
   name: Personal Protection Order (Non-Domestic Relationship) - CC 380
   filename: Personal Protection Order (Non-Domestic Relationship) - CC 380
   variable name: ppo_cc_380[i]
   skip undefined: True
   editable: False
   pdf template file: cc_380_personal_protection_order_nondomestic.pdf
+  fields:
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+    - users1_name: |
+        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - users1_address_block: |
+        ${ users[0].address }
+        % if users[0].phone_number:
+        ${ phone_number_formatted(users[0].phone_number) }
+        % endif
+    - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_name__3: ${ other_parties[0].name }
+    - other_parties1_name__4: ${ other_parties[0].name }
+    - other_parties1_address_block: |
+        ${ other_parties[0].address }
+        % if other_parties[0].phone_number:
+        ${ phone_number_formatted(other_parties[0].phone_number) }
+        % endif
+    - other_parties1_birthdate: |
+        % if knows_respondents_birthdate: 
+        ${ other_parties[0].birthdate }
+        % else:
+        ${ other_parties[0].estimated_age }
+        % endif
+    - other_parties1_license_number: ${ other_parties[0].license_number }
+    - other_parties1_height: ${ other_parties[0].height }
+    - other_parties1_weight: ${ other_parties[0].weight }
+    - other_parties1_race: ${ other_parties[0].race }
+    - other_parties1_gender: ${ other_parties[0].gender }
+    - other_parties1_hair_color: ${ other_parties[0].hair_color }
+    - other_parties1_eye_color: ${ other_parties[0].eye_color }
+    - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+---
+attachments:
+  name: Personal Protection Order Against Minor (Non-Domestic Relationship) - CC 380M
+  filename: Personal Protection Order Against Minor (Non-Domestic Relationship) - CC 380M
+  variable name: ppo_cc_380m[i]
+  skip undefined: True
+  editable: False
+  pdf template file: cc_380m_personal_protection_order_against_minor_nondomestic.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
@@ -2969,7 +3196,7 @@ attachments:
     - pending_actions_between_parties_no: ${ pending_actions_between_parties_no }
     - orders_judgments_re_parties_yes: ${ orders_judgments_re_parties_yes }
     - orders_judgments_re_parties_no: ${ orders_judgments_re_parties_no }
-    - wants_no_entering_residential_property: ${ wants_no_entering_residential_property }
+    - wants_no_entering_residential_property: ${ no_entering_residential_property }
     - wants_no_entering_other_property: ${ wants_no_entering_other_property }
     - stalking_includes_following_appearing_in_sight: ${ stalking_includes_following_appearing_in_sight }
     - stalking_includes_sending_communications: ${ stalking_includes_sending_communications }
@@ -3004,6 +3231,52 @@ attachments:
   skip undefined: True
   editable: False
   pdf template file: cc_396_personal_protection_order_nondomestic_sexual_assault.pdf
+  fields:
+    - wants_ex_parte_order: ${ wants_ex_parte_order }
+    - users1_name: |
+        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        ${ next_friends[0] } NFF ${ users[0] }
+        % else:
+        ${ users[0] }
+        % endif
+    - users1_address_block: |
+        ${ users[0].address }
+        % if users[0].phone_number:
+        ${ phone_number_formatted(users[0].phone_number) }
+        % endif
+    - other_parties1_name__1: ${ other_parties[0].name }
+    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_address_block: |
+        ${ other_parties[0].address_block() }
+        % if other_parties[0].phone_number:
+        ${ phone_number_formatted(other_parties[0].phone_number) }
+        % endif
+    - other_parties1_birthdate: |
+        % if knows_respondents_birthdate: 
+        ${ other_parties[0].birthdate }
+        % else:
+        ${ other_parties[0].estimated_age }
+        % endif
+    - other_parties1_license_number: ${ other_parties[0].license_number }
+    - other_parties1_height: ${ other_parties[0].height }
+    - other_parties1_weight: ${ other_parties[0].weight }
+    - other_parties1_race: ${ other_parties[0].race }
+    - other_parties1_gender: ${ other_parties[0].gender }
+    - other_parties1_hair_color: ${ other_parties[0].hair_color }
+    - other_parties1_eye_color: ${ other_parties[0].eye_color }
+    - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
+    - trial_court: ${ the_court.number }
+    - trial_court_county: ${ county_choice.upper() }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
+    - trial_court_phone_number: ${ the_court.phone }
+---
+attachments:
+  name: Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M
+  filename: Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M
+  variable name: ppo_cc_396m[i]
+  skip undefined: True
+  editable: False
+  pdf template file: cc_396m_personal_protection_order_against_minor_nondomestic_sexual_assault.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
