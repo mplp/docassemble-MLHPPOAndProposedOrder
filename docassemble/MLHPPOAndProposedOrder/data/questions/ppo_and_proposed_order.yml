@@ -117,8 +117,6 @@ code: |
     if (not respondent_is_emancipated_minor):
       if respondent_is_petitioners_child:
         respondent_petitioners_child_kickout
-      else:
-        other_parties_parents.gather()
   
   set_relationship_choices
 
@@ -148,6 +146,11 @@ code: |
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
+
+  if respondent_is_minor:
+    if (not respondent_is_emancipated_minor):
+      other_parties_parents_intro
+      other_parties_parents.gather()
 
   check_other_party_address_set_to_user_address
 
@@ -333,11 +336,13 @@ code: |
 ---
 #NOTE: last item (petitioner_respondent_parent_child) not yet connected to anything in PDF templates
 code: |
-  if petitioner_respondent_relationship['married']:
-    petitioner_respondent_married = True
+  if married_choice:
+    if petitioner_respondent_relationship['married']:
+      petitioner_respondent_married = True
 
-  if petitioner_respondent_relationship['was_married']:
-    petitioner_respondent_prev_married = True
+  if was_married_choice:
+    if petitioner_respondent_relationship['was_married']:
+      petitioner_respondent_prev_married = True
 
   if petitioner_respondent_relationship['have_child']:
     petitioner_respondent_have_child = True
@@ -348,8 +353,9 @@ code: |
   if petitioner_respondent_relationship['live_together']:
     petitioner_respondent_share_household = True
 
-  if petitioner_respondent_relationship['parent']:
-    petitioner_respondent_parent_child = True
+  if parent_choice:
+    if petitioner_respondent_relationship['parent']:
+      petitioner_respondent_parent_child = True
 
   set_petitioner_respondent_relationship = True
 ---
@@ -556,8 +562,11 @@ code: |
 ---
 code: |
   if wants_no_entering_residential_property:
-    if cannot_prohibit_respondent_entering_property:
-      no_entering_residential_property = False
+    if not has_property_interest_in_home:
+      if respondent_has_property_interest_in_home:
+        no_entering_residential_property = False
+      else:
+        no_entering_residential_property = True
     else:
       no_entering_residential_property = True
 
@@ -590,6 +599,16 @@ code: |
   relationship_choices.append({'dating':'We dated or are dating'}) 
   if parent_choice: 
     relationship_choices.append({'parent':'They are my parent and we live together'})
+---
+code: |
+  if other_parties_parents[i].shares_respondent_address:
+    other_parties_parents[i].address.address = other_parties[0].address.address
+    other_parties_parents[i].address.unit = other_parties[0].address.unit
+    other_parties_parents[i].address.city = other_parties[0].address.city
+    other_parties_parents[i].address.state = other_parties[0].address.state
+    other_parties_parents[i].address.zip = other_parties[0].address.zip
+
+  set_shared_respondent_address = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -634,7 +653,19 @@ code: |
 ---
 code: |
   other_parties_parents[i].name.first
-  other_parties_parents[i].address.address
+  if ppo_type == "domestic":
+    if not petitioner_and_respondent_living_together: 
+      if other_parties_parents[i].shares_respondent_address:
+        set_shared_respondent_address
+      else:
+        other_parties_parents[i].address.address
+    else:
+      other_parties_parents[i].address.address
+  else:
+    if other_parties_parents[i].shares_respondent_address:
+      set_shared_respondent_address
+    else:
+      other_parties_parents[i].address.address
   if other_parties_parents[i].no_phone_number:
     other_parties_parents[i].phone_number = "Does not have phone"
   other_parties_parents[i].complete = True
@@ -806,7 +837,11 @@ sets:
   - other_parties_parents[i].name.last
   - other_parties_parents[i].name.suffix
 question: |
-  Enter the name of the Respondent's ${ ordinal(i) } parent, guardian, or custodian
+  % if len(other_parties_parents.complete_elements()) < 1:
+  Enter the name of one of ${ other_parties[0] }'s parent, guardian, or custodian
+  % else:
+  Enter the name of ${ other_parties[0] }'s other parent, guardian, or custodian
+  % endif
 fields:
   - code: |
       other_parties_parents[i].name_fields()
@@ -833,6 +868,23 @@ fields:
     required: False
   - Country: other_parties_parents[i].country
     required: False
+validation code: |
+  if len(other_parties_parents.complete_elements()) > 0:
+    other_parties_parents.there_is_another = False
+---
+id: other_parties_parents there_is_another
+question: |
+  Does ${ other_parties[0].name } have another parent, guardian, or custodian?
+fields:
+  - no label: other_parties_parents.there_is_another
+    datatype: yesnoradio
+---
+id: does respondent parent share address with respondent
+question: |
+  ${ other_parties_parents[i].name }'s address
+fields:
+  - Does ${ other_parties_parents[i].name } have the same address as ${ other_parties[0].name }?: other_parties_parents[i].shares_respondent_address
+    datatype: yesnoradio
 ---
 id: respondent parent phone number
 sets:
@@ -1479,6 +1531,13 @@ fields:
       - Yes: yes
       - No: no
       - I don't know: unknown
+---
+id: other party parents intro
+question: |
+  We need information about ${ other_parties[0].name }'s parents, guardians, or custodians
+subquestion: |
+  Beause ${ other_parties[0].name } is an unemancipated minor, both ${ other_parties[0].name } and their parent(s), guardian(s), or custodian(s) must be served with your petition for a personal protection order.
+continue button field: other_parties_parents_intro
 ---
 id: pending_actions there_are_any
 question: |
@@ -2430,7 +2489,10 @@ subquestion: |
 #################### Documents Start #####################
 ---
 objects:
-  - proof_of_service: ALDocument.using(title="Proof of Service", filename="Proof of Service", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - proof_of_service: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - proof_of_service_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -2484,7 +2546,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cover_page, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_cc_376, ppo_cc_380, ppo_cc_381, ppo_cc_396, ppo_mc_319, ppo_contact_information_sheet, proof_of_service], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cover_page, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_381, ppo_cc_396, ppo_cc_396m, ppo_mc_319, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
   - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
@@ -2516,21 +2578,41 @@ objects:
 code: |
   if ppo_type == "domestic":
     ppo_cc_375.enabled = True
-    ppo_cc_376.enabled = True
+    if respondent_is_minor:
+      if not respondent_is_emancipated_minor:
+        ppo_cc_376m.enabled = True
+        ppo_cc_376.enabled = False
+      else:
+        ppo_cc_376.enabled = True
+        ppo_cc_376m.enabled = False
+    else:
+      ppo_cc_376.enabled = True
+      ppo_cc_376m.enabled = False
     cc_375_addendum.enabled = True
   else:
     ppo_cc_375.enabled = False
     ppo_cc_376.enabled = False
+    ppo_cc_376m.enabled = False
     cc_375_addendum.enabled = False
 ---
 code: |
   if ppo_type == "nondomestic":
     ppo_cc_381.enabled = True
-    ppo_cc_380.enabled = True
+    if respondent_is_minor:
+      if not respondent_is_emancipated_minor:
+        ppo_cc_380m.enabled = True
+        ppo_cc_380.enabled = False
+      else:
+        ppo_cc_380.enabled = True
+        ppo_cc_380m.enabled = False
+    else:
+      ppo_cc_380.enabled = True
+      ppo_cc_380m.enabled = False
     ppo_cc_377.enabled = True
     cc_377_addendum.enabled = True
   else:
     ppo_cc_380.enabled = False
+    ppo_cc_380m.enabled = False
     ppo_cc_377.enabled = False
     ppo_cc_381.enabled = False
     cc_377_addendum.enabled = False
@@ -2538,11 +2620,21 @@ code: |
 code: |
   if ppo_type == "nondomestic_sexual_assault":
     ppo_cc_395.enabled = True
-    ppo_cc_396.enabled = True
+    if respondent_is_minor:
+      if not respondent_is_emancipated_minor:
+        ppo_cc_396m.enabled = True
+        ppo_cc_396.enabled = False
+      else:
+        ppo_cc_396m.enabled = False
+        ppo_cc_396.enabled = True
+    else:
+      ppo_cc_396m.enabled = False
+      ppo_cc_396.enabled = True    
     cc_395_addendum.enabled = True
   else:
     ppo_cc_395.enabled = False
     ppo_cc_396.enabled = False
+    ppo_cc_396m.enabled = False
     cc_395_addendum.enabled = False
 ---
 code: |
@@ -2601,6 +2693,18 @@ code: |
       ppo_mc_319.enabled = False
   else:
     ppo_mc_319.enabled = False
+---
+# code: |
+#   if respondent_is_minor:
+#     if not respondent_is_emancipated_minor:
+#       proof_of_service_minor.enabled = True
+#       proof_of_service.enabled = False
+#     else:
+#       proof_of_service_minor.enabled = False
+#       proof_of_service.enabled = True
+#   else:
+#     proof_of_service.enabled = True
+#     proof_of_service_minor.enabled = False
 ---
 attachments:
   name: Request for Next Friend
@@ -2661,6 +2765,17 @@ attachments:
   pdf template file: proof_of_service.pdf
   fields:
     - other_parties1_name_proof_of_service: ${ other_parties[0].name }
+---
+attachments:
+  name: Proof of Service (Minor)
+  filename: Proof of Service (Minor)
+  variable name: proof_of_service_minor[i]
+  skip undefined: True
+  editable: False
+  pdf template file: proof_of_service_minor.pdf
+  fields:
+    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
+    - other_parties1_parents_proof_of_service: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) - CC 375
@@ -3015,6 +3130,15 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
+    - other_parties_parents1_name: ${ other_parties_parents[0].name }
+    - other_parties_parents1_address_block: |
+        ${ other_parties_parents[0].address }
+        ${ other_parties_parents[0].phone_number }
+    - other_parties_parents2_name: ${ other_parties_parents[1].name }
+    - other_parties_parents2_address_block: |
+        ${ other_parties_parents[1].address }
+        ${ other_parties_parents[1].phone_number }
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Personal Protection Order (Non-Domestic Relationship) - CC 380
@@ -3073,7 +3197,7 @@ attachments:
   pdf template file: cc_380m_personal_protection_order_against_minor_nondomestic.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name: |
+    - users1_name__1: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
@@ -3111,6 +3235,19 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
+    - other_parties_parents1_name: ${ other_parties_parents[0].name }
+    - other_parties_parents1_address_block: |
+        ${ other_parties_parents[0].address }
+        % if other_parties_parents[0].phone_number:
+        ${ phone_number_formatted(other_parties_parents[0].phone_number) }
+        % endif
+    - other_parties_parents2_name: ${ other_parties_parents[1].name }
+    - other_parties_parents2_address_block: |
+        ${ other_parties_parents[1].address }
+        % if other_parties_parents[1].phone_number:
+        ${ phone_number_formatted(other_parties_parents[1].phone_number) }
+        % endif
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
@@ -3279,7 +3416,7 @@ attachments:
   pdf template file: cc_396m_personal_protection_order_against_minor_nondomestic_sexual_assault.pdf
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
-    - users1_name: |
+    - users1_name__1: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
@@ -3315,6 +3452,19 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
+    - other_parties_parents1_name: ${ other_parties_parents[0].name }
+    - other_parties_parents1_address_block: |
+        ${ other_parties_parents[0].address }
+        % if other_parties_parents[0].phone_number:
+        ${ phone_number_formatted(other_parties_parents[0].phone_number) }
+        % endif
+    - other_parties_parents2_name: ${ other_parties_parents[1].name }
+    - other_parties_parents2_address_block: |
+        ${ other_parties_parents[1].address }
+        % if other_parties_parents[1].phone_number:
+        ${ phone_number_formatted(other_parties_parents[1].phone_number) }
+        % endif
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Notice of Hearing
