@@ -140,7 +140,11 @@ code: |
   court_index
   the_court
   for user in users:
-    safe_contact_info_notice
+    if county_choice == "Oakland":
+      if not wants_confidential_contact_details:
+        safe_contact_info_notice
+    else:
+      safe_contact_info_notice
     user.address.address
 
   nav.set_section("review_respondent_info")
@@ -260,9 +264,13 @@ code: |
   if ppo_type != "domestic":
     wants_no_message_posting
 
-  wants_other_request
-  if wants_ex_parte_order:
-    ex_parte_yes_screen
+  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
+    need_ex_parte
+    set_ex_parte
+  else:
+    wants_other_request
+    if wants_ex_parte_order:
+      ex_parte_yes_screen
 
   nav.set_section("review_get_forms_info")
   efile_notice
@@ -610,6 +618,12 @@ code: |
 
   set_shared_respondent_address = True
 ---
+code: |
+  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
+    wants_ex_parte_order = True
+
+  set_ex_parte = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -741,7 +755,15 @@ sets:
   - users[0].address.state
   - users[0].phone_number
 question: |
+  % if county_choice == "Oakland" and wants_confidential_contact_details:
+  Enter your address and phone number
+  % else:
   Enter your address and a phone number where the court can reach you
+  % endif
+subquestion: |
+  % if county_choice == "Oakland" and wants_confidential_contact_details:
+  *Remember - this information will only appear on a confidential form that is filed with the court. The Respondent will not have access to this information.*
+  % endif
 fields:
   - code: |
       users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=True)
@@ -1325,6 +1347,22 @@ subquestion: |
 fields:
   - Select the county you will file your PPO case in: county_choice
     code: court_list._load_courts()["address_county"].unique()
+---
+id: oakland confidential address option
+question: |
+  Do you want to keep your contact information confidential?
+subquestion: |
+  In Oakland County, you can choose to keep your address and/or phone number confidential instead of having them on your petition and order. 
+  **If the Respondent does not know this information and you would like to keep it confidential, answer Yes below.**
+
+  If you answer **Yes**, your address and phone number will only appear on a confidential form that you will need to file with the court. 
+  Your petition and PPO will both say “confidential” in the section where your address and phone number would normally go.
+
+  This is important because if the judge grants your PPO, the Respondent will need to be served with a copy of the petition and order and 
+  will see your address and phone number on these forms if you do not keep them confidential.
+fields:
+  - Would you like to keep your address and phone number confidential?: wants_confidential_contact_details
+    datatype: yesnoradio
 ---
 id: unknown respondent residence county kickout
 event: unknown_respondent_residence_county_kickout
@@ -2410,6 +2448,32 @@ content: |
 
     * Interfering with your use of a vehicle or removing your vehicle from you
 ---
+id: will need ex parte order
+question: |
+  You will be requesting an **ex parte** order
+subquestion: |
+  An ex parte order is an order that the judge signs without having a court hearing first. In 
+  % if county_choice == "Ingham":
+  Ingham
+  % elif county_choice == "Jackson":
+  Jackson
+  % elif county_choice == "Wayne":
+  Wayne
+  % endif
+  County, all PPO petitions are viewed as ex parte petitions. 
+  
+  After you file your petition, the judge will consider it without a hearing and decide 
+  whether to grant you a personal protection order within 
+  % if county_choice == "Ingham":
+  24 hours.
+  % elif county_choice == "Jackson":
+  72 hours.
+  % elif county_choice == "Wayne":
+  24 hours. If the judge does not grant you an ex parte PPO, the court will either schedule the matter
+  for a hearing and send you a Notice of Hearing, or it will issue an order denying the petition.
+  % endif
+continue button field: need_ex_parte
+---
 id: wants_ex_parte_order
 question: |
   Requesting an **ex parte** order
@@ -2815,8 +2879,12 @@ attachments:
         % else:
         ${ users[0] }
         % endif
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         ${ other_parties[0].phone_number }
@@ -2918,8 +2986,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
         ${ other_parties[0].phone_number }
@@ -2962,8 +3034,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
@@ -3195,8 +3271,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - users1_age: ${ users[0].age }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
@@ -3242,8 +3322,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - users1_age: ${ users[0].age }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
@@ -3298,8 +3382,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
@@ -3342,8 +3430,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
@@ -3400,8 +3492,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
@@ -3503,8 +3599,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
@@ -3545,8 +3645,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
@@ -3626,6 +3730,7 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if MLH_esign else "" }
+    - wants_confidential_contact_details: ${ wants_confidential_contact_details }
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377
@@ -3648,8 +3753,12 @@ attachments:
         ${ users[0] }
         % endif
     - users1_address_block: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].address }
         ${ users[0].phone_number }
+        % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
