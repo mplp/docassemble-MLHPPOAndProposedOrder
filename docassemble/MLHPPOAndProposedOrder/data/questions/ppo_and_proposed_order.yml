@@ -624,6 +624,13 @@ code: |
 
   set_ex_parte = True
 ---
+# code: |
+#   if county_choice == "Oakland":
+#     if ((not other_parties[0].address.address) or (not other_parties[0].address.city) or (other_parties[0].address.state)) and (not other_parties[0].phone_number):
+#       respondent_contact_info_kickout
+
+#   check_oakland_respondent_contact_info = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -653,6 +660,9 @@ code: |
     other_parties[i].address.address
   if other_parties[i].no_phone_number:
     other_parties[i].phone_number = "Does not have phone"
+  if county_choice == "Oakland":
+    if ((other_parties[0].address.address == "") or (other_parties[0].address.city == "") or (other_parties[0].address.state == "")) and (other_parties[0].no_phone_number):
+      respondent_contact_info_kickout
   other_parties[i].race
   other_parties[i].gender
   other_parties[i].height_feet
@@ -1570,6 +1580,15 @@ fields:
       - No: no
       - I don't know: unknown
 ---
+id: respondent contact info kickout
+event: respondent_contact_info_kickout
+question: |
+  We're sorry, but you cannot use this tool to prepare your forms.
+subquestion: |
+  In Oakland County, either the Respondent's **address** or **phone number** must be provided in order to inform them of your petition for a protection order.
+
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. 
+---
 id: other party parents intro
 question: |
   We need information about ${ other_parties[0].name }'s parents, guardians, or custodians
@@ -1932,8 +1951,15 @@ content: |
 ---
 id: incidents location
 question: |
+  % if county_choice == "Oakland" and wants_confidential_contact_details:
+  Incident location
+  % else:
   Complete this sentence
+  % endif
 subquestion: |
+  % if county_choice == "Oakland" and wants_confidential_contact_details:
+  *If you answered that you want to keep your home address confidential and this incident happened at your home, DO NOT type your address. Instead, type 'my home.'*
+  % endif
   ${ collapse_template(incident_location_explained) }
 fields:
   - The incident occurred at the following location: incidents[i].location
@@ -1943,6 +1969,10 @@ subject: |
   Do I need the address?
 content: |
   Describe the location and fill in an address, if you know it. Examples: "At my mother's house, at 123 N. Main Street, Toledo, Ohio" or "At the Chili's restaurant near my house."
+
+  % if county_choice == "Oakland" and wants_confidential_contact_details:
+  *If you answered that you want to keep your home address confidential and this incident happened at your home, DO NOT type your address. Instead, type 'my home.'*
+  % endif
 ---
 id: incidents other party actions
 question: |
