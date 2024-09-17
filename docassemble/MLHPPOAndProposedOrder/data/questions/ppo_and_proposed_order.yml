@@ -1592,9 +1592,6 @@ fields:
   - no label: pending_actions.there_is_another
     datatype: yesnoradio
 ---
-# NOTE: started building out template for listed cases (to be used in question above);
-# How to deal with fact that pending_actions attributes should not be mandatory?
-# For example, what if I display docket number, but one of the cases doesn't use it?
 template: pending_actions_list_template
 subject: What have I listed so far?
 content: |
@@ -1742,15 +1739,6 @@ question: |
 fields:
   - no label: orders_judgments_include_sa_conviction
     datatype: yesnoradio
----
-# id: unlisted sexual assault conviction kickout
-# question: |
-#   You will need to include ${ other_parties[0].name }'s sexual assault conviction before you can continue with the interview
-# subquestion: |
-#   Select **Undo** to return to the prior orders screen. You will be asked for the case number, name of court and county, and the name of the judge in that case.
-# fields:
-#   - no label: orders_judgments_include_sa_conviction
-#     datatype: yesnoradio
 ---
 id: fear of future sexual assault
 question: |
@@ -2596,6 +2584,8 @@ objects:
 code: |
   if county_choice == "Wayne":
     identifying_information.enabled = True
+  else:
+    identifying_information.enabled = False
 ---
 code: |
   if ppo_type == "domestic":
@@ -2729,39 +2719,83 @@ code: |
     ppo_mc_319.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and county_choice != "Wayne":
-    if respondent_is_minor:
-      if not respondent_is_emancipated_minor:
-        proof_of_service_domestic_minor.enabled = True
-        proof_of_service_domestic.enabled = False
+  if county_choice == "Wayne":
+    proof_of_service_domestic.enabled = False
+    proof_of_service_domestic_minor.enabled = False
+    proof_of_service_nondomestic.enabled = False
+    proof_of_service_nondomestic_minor.enabled = False
+    proof_of_service_nondomestic_sa.enabled = False
+    proof_of_service_nondomestic_sa_minor.enabled = False
+  else:
+    if ppo_type == "domestic":
+      if respondent_is_minor:
+        if not respondent_is_emancipated_minor:
+          proof_of_service_domestic_minor.enabled = True
+          proof_of_service_domestic.enabled = False
+          proof_of_service_nondomestic.enabled = False
+          proof_of_service_nondomestic_minor.enabled = False
+          proof_of_service_nondomestic_sa.enabled = False
+          proof_of_service_nondomestic_sa_minor.enabled = False
+        else:
+          proof_of_service_domestic_minor.enabled = False
+          proof_of_service_domestic.enabled = True
+          proof_of_service_nondomestic.enabled = False
+          proof_of_service_nondomestic_minor.enabled = False
+          proof_of_service_nondomestic_sa.enabled = False
+          proof_of_service_nondomestic_sa_minor.enabled = False
       else:
-        proof_of_service_domestic_minor.enabled = False
         proof_of_service_domestic.enabled = True
-    else:
-      proof_of_service_domestic.enabled = True
-      proof_of_service_domestic_minor.enabled = False
-  elif ppo_type == "nondomestic" and county_choice != "Wayne":
-    if respondent_is_minor:
-      if not respondent_is_emancipated_minor:
-        proof_of_service_nondomestic_minor.enabled = True
+        proof_of_service_domestic_minor.enabled = False
         proof_of_service_nondomestic.enabled = False
-      else:
         proof_of_service_nondomestic_minor.enabled = False
-        proof_of_service_nondomestic.enabled = True
-    else:
-      proof_of_service_nondomestic.enabled = True
-      proof_of_service_nondomestic_minor.enabled = False
-  elif ppo_type == "nondomestic_sexual_assault" and county_choice != "Wayne":
-    if respondent_is_minor:
-      if not respondent_is_emancipated_minor:
-        proof_of_service_nondomestic_sa_minor.enabled = True
         proof_of_service_nondomestic_sa.enabled = False
-      else:
         proof_of_service_nondomestic_sa_minor.enabled = False
+    elif ppo_type == "nondomestic":
+      if respondent_is_minor:
+        if not respondent_is_emancipated_minor:
+          proof_of_service_nondomestic_minor.enabled = True
+          proof_of_service_nondomestic.enabled = False
+          proof_of_service_domestic_minor.enabled = False
+          proof_of_service_domestic.enabled = False
+          proof_of_service_nondomestic_sa.enabled = False
+          proof_of_service_nondomestic_sa_minor.enabled = False
+        else:
+          proof_of_service_nondomestic_minor.enabled = False
+          proof_of_service_nondomestic.enabled = True
+          proof_of_service_domestic_minor.enabled = False
+          proof_of_service_domestic.enabled = False
+          proof_of_service_nondomestic_sa.enabled = False
+          proof_of_service_nondomestic_sa_minor.enabled = False
+      else:
+        proof_of_service_nondomestic.enabled = True
+        proof_of_service_nondomestic_minor.enabled = False
+        proof_of_service_domestic_minor.enabled = False
+        proof_of_service_domestic.enabled = False
+        proof_of_service_nondomestic_sa.enabled = False
+        proof_of_service_nondomestic_sa_minor.enabled = False
+    elif ppo_type == "nondomestic_sexual_assault":
+      if respondent_is_minor:
+        if not respondent_is_emancipated_minor:
+          proof_of_service_nondomestic_sa_minor.enabled = True
+          proof_of_service_nondomestic_sa.enabled = False
+          proof_of_service_nondomestic.enabled = False
+          proof_of_service_nondomestic_minor.enabled = False
+          proof_of_service_domestic_minor.enabled = False
+          proof_of_service_domestic.enabled = False
+        else:
+          proof_of_service_nondomestic_sa_minor.enabled = False
+          proof_of_service_nondomestic_sa.enabled = True
+          proof_of_service_nondomestic.enabled = False
+          proof_of_service_nondomestic_minor.enabled = False
+          proof_of_service_domestic_minor.enabled = False
+          proof_of_service_domestic.enabled = False
+      else:
         proof_of_service_nondomestic_sa.enabled = True
-    else:
-      proof_of_service_nondomestic_sa.enabled = True
-      proof_of_service_nondomestic_sa_minor.enabled = False
+        proof_of_service_nondomestic_sa_minor.enabled = False
+        proof_of_service_nondomestic.enabled = False
+        proof_of_service_nondomestic_minor.enabled = False
+        proof_of_service_domestic_minor.enabled = False
+        proof_of_service_domestic.enabled = False
 ---
 attachments:
   name: Request for Next Friend
@@ -2782,20 +2816,10 @@ attachments:
         ${ users[0] }
         % endif
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
-    # - users1_signature: |
-    #     % if MLH_esign:
-    #     /s/ ${ users[0] }
-    #     % else:
-    #     ${ '' }
-    #     % endif
+        ${ other_parties[0].phone_number }
     - pursuant_to: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
         ${ MLH_esign_tag }
@@ -2821,7 +2845,8 @@ attachments:
   editable: False
   pdf template file: proof_of_service_domestic.pdf
   fields:
-    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service
@@ -2831,7 +2856,8 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic.pdf
   fields:
-    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service
@@ -2841,7 +2867,8 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic_sa.pdf
   fields:
-    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service (Minor)
@@ -2851,8 +2878,8 @@ attachments:
   editable: False
   pdf template file: proof_of_service_domestic_minor.pdf
   fields:
-    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
-    - other_parties1_parents_proof_of_service: ${ comma_and_list(other_parties_parents) }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service (Minor)
@@ -2862,8 +2889,8 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic_minor.pdf
   fields:
-    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
-    - other_parties1_parents_proof_of_service: ${ comma_and_list(other_parties_parents) }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service (Minor)
@@ -2873,8 +2900,8 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic_sa_minor.pdf
   fields:
-    - other_parties1_name_proof_of_service: ${ other_parties[0].name }
-    - other_parties1_parents_proof_of_service: ${ comma_and_list(other_parties_parents) }
+    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Identifying Information
@@ -2892,18 +2919,20 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_height: ${ other_parties[0].height }
     - other_parties1_weight: ${ other_parties[0].weight }
     - other_parties1_race: ${ other_parties[0].race }
     - other_parties1_gender: ${ other_parties[0].gender }
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
+        ${ other_parties[0].estimated_age } est.
+        % else:
+        ${ other_parties[0].age_in_years() }
+        % endif
     - other_parties1_hair_color: ${ other_parties[0].hair_color }
     - other_parties1_eye_color: ${ other_parties[0].eye_color }
     - other_parties1_other_identifying_info: ${ other_parties[0].other_identifying_info }
@@ -2934,9 +2963,7 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
@@ -2961,9 +2988,7 @@ attachments:
     - other_parties1_address: ${ other_parties[0].address }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -2998,16 +3023,6 @@ attachments:
         % endif
     - ppo_explanation_see_attached: |
         Please see attached "Statement of Facts".
-    # - ppo_harm_protectees_list: |
-    #     % if len(comma_and_list(ppo_harm_protectees_list)) <= 40:
-    #     ${ comma_and_list(ppo_harm_protectees_list) }
-    #     % elif len(comma_and_list(ppo_harm_protectees_list[3:])) <= 40:
-    #     ${ comma_and_list(ppo_harm_protectees_list[3:]) } [...]
-    #     % elif len(comma_and_list(ppo_harm_protectees_list[2:])) <= 40:
-    #     ${ comma_and_list(ppo_harm_protectees_list[3:]) } [...]
-    #     % else:
-    #     ${ comma_and_list(ppo_harm_protectees_list[1:]) } [...]
-    #     % endif
     - ppo_harm_protectees_list: |
         % if len(ppo_harm_protectees_list.complete_elements()) > 1:
         See attached.
@@ -3181,9 +3196,7 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - users1_age: ${ users[0].age }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
@@ -3192,9 +3205,7 @@ attachments:
     - other_parties1_name__5: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -3232,9 +3243,7 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - users1_age: ${ users[0].age }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
@@ -3243,9 +3252,7 @@ attachments:
     - other_parties1_name__5: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -3292,18 +3299,14 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
     - other_parties1_name__4: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -3340,18 +3343,14 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
     - other_parties1_name__4: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -3373,15 +3372,11 @@ attachments:
     - other_parties_parents1_name: ${ other_parties_parents[0].name }
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address }
-        % if other_parties_parents[0].phone_number:
-        ${ phone_number_formatted(other_parties_parents[0].phone_number) }
-        % endif
+        ${ other_parties_parents[0].phone_number }
     - other_parties_parents2_name: ${ other_parties_parents[1].name }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address }
-        % if other_parties_parents[1].phone_number:
-        ${ phone_number_formatted(other_parties_parents[1].phone_number) }
-        % endif
+        ${ other_parties_parents[1].phone_number }
     - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
@@ -3406,9 +3401,7 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
@@ -3432,9 +3425,7 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -3513,16 +3504,12 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -3559,16 +3546,12 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -3590,15 +3573,11 @@ attachments:
     - other_parties_parents1_name: ${ other_parties_parents[0].name }
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address }
-        % if other_parties_parents[0].phone_number:
-        ${ phone_number_formatted(other_parties_parents[0].phone_number) }
-        % endif
+        ${ other_parties_parents[0].phone_number }
     - other_parties_parents2_name: ${ other_parties_parents[1].name }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address }
-        % if other_parties_parents[1].phone_number:
-        ${ phone_number_formatted(other_parties_parents[1].phone_number) }
-        % endif
+        ${ other_parties_parents[1].phone_number }
     - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
@@ -3670,9 +3649,7 @@ attachments:
         % endif
     - users1_address_block: |
         ${ users[0].address }
-        % if users[0].phone_number:
-        ${ phone_number_formatted(users[0].phone_number) }
-        % endif
+        ${ users[0].phone_number }
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
@@ -3696,9 +3673,7 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        % if other_parties[0].phone_number:
-        ${ phone_number_formatted(other_parties[0].phone_number) }
-        % endif
+        ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -3748,4 +3723,3 @@ attachments:
 ---
 #################### Documents End #####################
 ---
-
