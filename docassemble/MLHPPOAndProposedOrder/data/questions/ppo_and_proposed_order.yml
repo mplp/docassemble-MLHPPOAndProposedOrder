@@ -44,6 +44,9 @@ objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - next_friends: ALPeopleList.using(complete_attribute="complete")
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
+  - children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
+  - petitioner_other_children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
+  - respondent_other_children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
   - other_parties_parents: ALPeopleList.using(complete_attribute="complete")
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
@@ -146,6 +149,8 @@ code: |
     else:
       safe_contact_info_notice
     user.address.address
+    if county_choice == "Oakland" and ppo_type == "domestic":
+      user.gender
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
@@ -156,9 +161,32 @@ code: |
       other_parties_parents_intro
       other_parties_parents.gather()
 
+  set_parties_same_gender
   check_other_party_address_set_to_user_address
-
   respondent_carries_firearm_for_work_asked
+
+  if county_choice == "Oakland":
+    if ppo_type != "domestic":
+      if has_minor_children_in_common:
+        common_children_kickout
+    else:
+      domestic_ppo_children_intro
+      if petitioner_respondent_relationship['have_child']:
+        children.target_number
+        children.gather()
+      if len(children.complete_elements()) > 1:
+        if custody_parenting_time_provisions_same:
+          desired_parenting_time_changes
+          if desired_parenting_time_changes == "no_change_except_exchange":
+            exchange_location
+      if petitioner_has_other_children:
+        petitioner_other_children.target_number
+        petitioner_other_children.gather()
+      if respondent_has_other_children:
+        if petitioner_knows_respondent_other_children_names:
+          respondent_other_children.target_number
+          respondent_other_children.gather()
+
   if pending_actions.there_are_any:
     pending_actions.gather()
   pending_actions_asked
@@ -652,6 +680,64 @@ code: |
   next_friends[i].complete = True
 ---
 code: |
+  children[i].name.first
+  if ppo_type == "domestic":
+    if petitioner_respondent_relationship['have_child']:
+      children[i].lives_with
+      if not children[i].parties_married_when_born:
+        if parties_same_gender:
+          if children[i].was_adopted:
+            children[i].adoption_case_number
+            children[i].adoption_case_court
+          else:
+            children[i].legal_parent
+        else:
+          children[i].paternity
+          if children[i].paternity == "by_court_order" or children[i].paternity == "paternity_case_pending":
+            children[i].paternity_case_number
+            children[i].paternity_case_court_name
+      if children[i].has_order_in_effect:
+        children[i].custody_case_number
+        children[i].custody_case_court
+        children[i].physical_custody_by_order
+        if children[i].parenting_time_order == "one_parent_supervised":
+          children[i].who_has_supervised_time
+          children[i].who_supervises_parenting_time
+        elif children[i].parenting_time_order == "one_parent_no_parenting_time":
+          children[i].parent_whithout_parenting_time
+  if i < 1:
+    if children.target_number > 1:
+      custody_parenting_time_provisions_same
+    children[i].desired_parenting_time_changes
+    if children[i].desired_parenting_time_changes == "no_change_except_exchange":
+      children[i].exchange_location
+  else:
+    if not custody_parenting_time_provisions_same:
+      children[i].desired_parenting_time_changes
+      if children[i].desired_parenting_time_changes == "no_change_except_exchange":
+        children[i].exchange_location
+
+  children[i].complete = True
+---
+code: |
+  petitioner_other_children[i].name.first
+  if petitioner_other_children[i].knows_other_child_birthdate:
+    petitioner_other_children[i].birthdate
+  else:
+    petitioner_other_children[i].estimated_age
+
+  petitioner_other_children[i].complete = True
+---
+code: |
+  respondent_other_children[i].name.first
+  if respondent_other_children[i].knows_other_child_birthdate:
+    respondent_other_children[i].birthdate
+  else:
+    respondent_other_children[i].estimated_age
+
+  respondent_other_children[i].complete = True
+---
+code: |
   other_parties[i].name.first
   if ppo_type == "domestic":
     if not petitioner_and_respondent_living_together:
@@ -741,6 +827,14 @@ code: |
 code: |
   ppo_sexual_assault_threat_protectees[i].name.first
   ppo_sexual_assault_threat_protectees[i].complete = True
+---
+code: |
+  if (users[0].gender == "M" and other_parties[0].gender == "M") or (users[0].gender == "F" and other_parties[0].gender == "F"):
+    parties_same_gender = True
+  else:
+    parties_same_gender = False
+
+  set_parties_same_gender = True
 ---
 #################### Overridden AL Questions Start #####################
 ---
@@ -934,6 +1028,108 @@ fields:
     required: False
     datatype: yesno
 ---
+id: children info
+sets:
+  - children[i].name.first
+  - children[i].name.middle
+  - children[i].name.last
+  - children[i].name.suffix
+question: |
+  % if children.target_number > 1:
+  Enter the ${ ordinal(i) } child's information
+  % else:
+  Enter the child's information
+  % endif
+fields:
+  - code: |
+      children[i].name_fields()
+  - Birthdate: children[i].birthdate
+    datatype: date
+---
+id: petitioner_other_children info
+sets:
+  - petitioner_other_children[i].name.first
+  - petitioner_other_children[i].name.middle
+  - petitioner_other_children[i].name.last
+  - petitioner_other_children[i].name.suffix
+question: |
+  % if petitioner_other_children.target_number > 1:
+  Enter the ${ ordinal(i) } other child's information
+  % else:
+  Enter the other child's information
+  % endif
+fields:
+  - code: |
+      petitioner_other_children[i].name_fields()
+---
+id: petitioner_other_children birthdate
+question: |
+  ${ petitioner_other_children[i] }'s date of birth
+fields:
+  - Do you know the ${ petitioner_other_children[i].familiar() }'s exact date of birth?: petitioner_other_children[i].birthdate_known
+    datatype: yesnoradio
+  - Enter the ${ petitioner_other_children[i].familiar() }'s date of birth: petitioner_other_children[i].birthdate
+    datatype: date
+    show if:
+      variable: petitioner_other_children[i].birthdate_known
+      is: True
+  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: petitioner_other_children[i].estimated_age
+    datatype: integer
+    show if:
+      variable: petitioner_other_children[i].birthdate_known
+      is: False
+---
+id: respondent_other_children info
+sets:
+  - respondent_other_children[i].name.first
+  - respondent_other_children[i].name.middle
+  - respondent_other_children[i].name.last
+  - respondent_other_children[i].name.suffix
+question: |
+  % if respondent_other_children.target_number > 1:
+  Enter ${ other_parties[0] }'s ${ ordinal(i) } other child's information
+  % else:
+  Enter ${ other_parties[0] }'s other child's information
+  % endif
+fields:
+  - code: |
+      respondent_other_children[i].name_fields()
+---
+id: who does child love with?
+question: |
+  ${ children[i] }'s residence
+fields:
+  - Who does ${ children[i].familiar() } currently live with?: children[i].lives_with
+    datatype: radio
+    choices:
+      - With me: petitioner
+      - With ${ other_parties[0] }: respondent
+      - With someone else: someone_else
+---
+id: married when child born
+question: |
+  Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?
+fields:
+  - no label: children[i].parties_married_when_born
+    datatype: yesnoradio
+---
+id: custody or parenting time order
+question: |
+  Custody or parenting time orders
+subquestion: |
+  ${ collapse_template(custody_parenting_time_order_explained) }
+fields:
+  - Is there a custody or parenting time order in effect for ${ children[i].familiar() }?: children[i].has_order_in_effect
+    datatype: yesnoradio
+---
+template: custody_parenting_time_order_explained
+subject: |
+  More Information
+content: |
+  If there is a custody order, there is usually a parenting time provision in that order. 
+  If the parents are divorced, the *Judgment of Divorce* should include custody and parenting time provisions for all children born during the marriage; 
+  this is one type of custody/parenting time order.
+---
 id: other property address
 sets:
   - other_properties[0].address
@@ -991,6 +1187,51 @@ fields:
       ppo_sexual_assault_threat_protectees[i].name_fields()
 ---
 #################### Overridden AL Questions End #####################
+---
+id: petitioner gender
+question: |
+  What is your gender?
+fields:
+  - no label: users[i].gender
+    datatype: radio
+    choices:
+      - Male: M
+      - Female: F
+---
+id: children parentage established through adoption
+question: |
+  Adoption
+subquestion: |
+  ${ collapse_template(adoption_explained) }
+fields:
+  - Was legal parentage for ${ children[i] } established through a second parent adoption or other type of adoption: children[i].was_adopted
+    datatype: yesnoradio
+---
+template: adoption_explained
+subject: |
+  More Information
+content: |
+  In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
+  In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
+---
+id: children legal parent
+question: |
+  ${ children[i] }'s legal parent
+fields:
+  - Which party is ${ children[i] }'s legal parent: children[i].legal_parent
+    datatype: radio
+    choices:
+      - I am: petitioner
+      - ${ other_parties[0] } is: respondent
+---
+id: children adoption case info
+question: |
+  ${ children[i] }'s adoption case information
+subquestion: |
+  Enter the case number and the name of the Court for that adoption case.
+fields:
+  - Case number: children[i].adoption_case_number
+  - Name of Court: children[i].adoption_case_court
 ---
 id: intro_screen FirstScreen
 question: |
@@ -1206,6 +1447,40 @@ fields:
     datatype: integer
     show if:
       variable: knows_respondents_birthdate
+      is: False
+---
+id: petitioner other child birthdate
+question: |
+  ${ petitioner_other_children[i] }'s date of birth
+fields:
+  - Do you know ${ petitioner_other_children[i].familiar() }'s exact date of birth?: petitioner_other_children[i].knows_other_child_birthdate
+    datatype: yesnoradio
+  - Enter ${ petitioner_other_children[i].familiar() }'s date of birth: petitioner_other_children[i].birthdate
+    datatype: date
+    show if:
+      variable: petitioner_other_children[i].knows_other_child_birthdate
+      is: True
+  - Even if you do not know ${ petitioner_other_children[i].familiar() }'s exact date of birth, you must provide your best guess of their age: petitioner_other_children[i].estimated_age
+    datatype: integer
+    show if:
+      variable: petitioner_other_children[i].knows_other_child_birthdate
+      is: False
+---
+id: respondent other child birthdate
+question: |
+  ${ respondent_other_children[i] }'s date of birth
+fields:
+  - Do you know ${ respondent_other_children[i].familiar() }'s exact date of birth?: respondent_other_children[i].knows_other_child_birthdate
+    datatype: yesnoradio
+  - Enter ${ respondent_other_children[i].familiar() }'s date of birth: respondent_other_children[i].birthdate
+    datatype: date
+    show if:
+      variable: respondent_other_children[i].knows_other_child_birthdate
+      is: True
+  - Even if you do not know ${ respondent_other_children[i].familiar() }'s exact date of birth, you must provide your best guess of their age: respondent_other_children[i].estimated_age
+    datatype: integer
+    show if:
+      variable: respondent_other_children[i].knows_other_child_birthdate
       is: False
 ---
 id: respondent emancipated minor
@@ -1587,7 +1862,7 @@ question: |
 subquestion: |
   In Oakland County, either the Respondent's **address** or **phone number** must be provided in order to inform them of your petition for a protection order.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. 
+  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: other party parents intro
 question: |
@@ -1595,6 +1870,221 @@ question: |
 subquestion: |
   Beause ${ other_parties[0].name } is an unemancipated minor, both ${ other_parties[0].name } and their parent(s), guardian(s), or custodian(s) must be served with your petition for a personal protection order.
 continue button field: other_parties_parents_intro
+---
+id: minor children in common with respondent
+question: |
+  Minor children
+subquestion: |
+  *Minor children are children who are under 18 years old.*
+fields:
+  - Do you and ${ other_parties[0] } have any minor children in common?: has_minor_children_in_common
+    datatype: yesnoradio
+---
+id: petitioner's other children
+question: |
+  Your other children
+fields:
+  - Do you have any other children living in your home who are **not** the children of the respondent?: petitioner_has_other_children
+    help: |
+      For example: stepchildren or adopted children.
+    datatype: yesnoradio
+---
+id: respondent's other children
+question: |
+  ${ other_parties[0] }'s other children
+fields:
+  - Does ${ other_parties[0] } have any other children living in their home who are **not** your children?: respondent_has_other_children
+    help: |
+      For example: stepchildren or adopted children.
+    datatype: yesnomaybe
+---
+id: children in common with respondent kickout
+event: common_children_kickout
+question: |
+  We're sorry, but you'll need to go back and select a different type of PPO
+subquestion: |
+  If you have children in common with ${ other_parties[0] }, you should choose to file for a **Personal Protection Order - Domestic Relationship**.
+
+  Click the **${ MLH_back_button_label }** button to go back and change your answer.
+---
+id: domestic ppo children intro
+question: |
+  Next, you will need to enter information about any children that you have with ${ other_parties[0] }, along with any children in your homes
+subquestion: |
+  You will also need to enter information about any legal cases between you and ${ other_parties[0] } and describe the things that they have done that made you want a protection order.
+continue button field: domestic_ppo_children_intro
+---
+id: minor children in common target_number
+question: |
+  Number of children
+subquestion: |
+  *Minor children are children who are under 18 years old.*
+fields:
+  - How many **minor** children do you and ${ other_parties[0] } have in common?: children.target_number
+    datatype: integer
+    min: 1
+---
+id: petitioner's other children target_number
+question: |
+  Number of other children
+fields:
+  - How many other children are living in your home who are not the children of the respondent?: petitioner_other_children.target_number
+    datatype: integer
+    min: 1
+---
+id: petitioner knows names of respondent's other children
+question: |
+  Names of ${ other_parties[0] }'s other children
+fields:
+  - Do you know the names of ${ other_parties[0] }'s other children?: petitioner_knows_respondent_other_children_names
+    datatype: yesnoradio
+---
+id: respondent's other children target_number
+question: |
+  Number of other children
+fields:
+  - How many other children are living in your home who are not the children of the respondent?: respondent_other_children.target_number
+    datatype: integer
+    min: 1
+---
+id: custody and parenting time order
+question: |
+  Custody and parenting time order for ${ children[i] }
+subquestion: |
+  A personal protection order will affect any custody and parenting time order that is currently in effect. 
+  Please answer the following questions to help the court decide what arrangements should be made.
+fields:
+  - Enter the case number on your custody and parenting time order (if you were divorced, this will be your divorce case number.): children[i].custody_case_number
+  - Enter the name of the court where the case was filed: children[i].custody_case_court
+---
+id: who has physical custody
+question: |
+  Who has physical custody over ${ children[i] }?
+fields:
+  - According to the court order: children[i].physical_custody_by_order
+    datatype: radio
+    choices:
+      - I have sole physical custody: sole_petitioner
+      - ${ other_parties[0] } has sole physical custody: sole_respondent
+      - I and ${ other_parties[0] } have joint physical custody: joint_custody
+---
+id: what does the court order say about parenting time
+question: |
+  What does the court order for ${ children[i] } say about parenting time?
+fields:
+  - Select the response that best describes your court order: children[i].parenting_time_order
+    datatype: radio
+    choices:
+      - The order does not include a specific schedule with days and times. It says there will be “reasonable parenting time.”: reasonable_parenting_time
+      - The order lists specific days and times for parenting time.: specific_times
+      - The order gives one of the parents supervised parenting time.: one_parent_supervised
+      - One of us does not have any parenting time with the child.: one_parent_no_parenting_time
+---
+id: are custody and parenting time same for all children
+question: |
+  Provisions for other children
+fields:
+  - Are custody and parenting time provisions the same for all your children?: custody_parenting_time_provisions_same
+    datatype: yesnoradio
+---
+id: parenting time exchange location for individual child
+question: |
+  Location of parenting time exchanges for ${ children[i] }
+fields:
+  - Where do you want parenting time exchanges (pick-ups and drop-offs) to take place?: children[i].exchange_location
+    datatype: radio
+    choices:
+      - Police Department: police
+      - Other: other
+  - Enter the name of the police department where you would like to have parenting time exchanges: children[i].exchange_police_department_location
+    show if:
+      variable: children[i].exchange_location
+      is: "police"
+  - Enter the location where you would like parenting time exchanges to take place: children[i].exchange_other_location
+    show if:
+      variable: children[i].exchange_location
+      is: "other"
+---
+id: parenting time exchange location for all children
+question: |
+  Location of parenting time exchanges for all children in common with ${ other_parties[0] }
+fields:
+  - Where do you want parenting time exchanges (pick-ups and drop-offs) to take place?: exchange_location
+    datatype: radio
+    choices:
+      - Police Department: police
+      - Other: other
+  - Enter the name of the police department where you would like to have parenting time exchanges: exchange_police_department_location
+    show if:
+      variable: exchange_location
+      is: "police"
+  - Enter the location where you would like parenting time exchanges to take place: exchange_other_location
+    show if:
+      variable: exchange_location
+      is: "other"
+---
+id: who has supervised parenting time
+question: |
+  Supervised parenting time for ${ children[i] }
+fields:
+  - Who has supervised parenting time?: children[i].who_has_supervised_time
+    datatype: radio
+    choices:
+      - I do: petitioner
+      - ${ other_parties[0] } does: respondent
+  - Who is parenting time supervised by: children[i].who_supervises_parenting_time
+---
+id: who does not have parenting time
+question: |
+  Supervised parenting time for ${ children[i] }
+fields:
+  Who does **not** have parenting time?: children[i].parent_whithout_parenting_time
+  datatype: radio
+  choices:
+    - Me: petitioner
+    - ${ other_parties[0] }: respondent
+---
+id: child paternity
+question: |
+  ${ children[i] }'s paternity
+fields:
+  - Select the answer that applies to ${ children[i].familiar() }. If the father's paternity has not been established, select **None of the above**: children[i].paternity
+    datatype: radio
+    choices:
+      - Paternity was established by court order (also called an *Order of Filiation*): by_court_order
+      - Paternity has been established by an *Acknowledgment of Parentage*: by_acknowledgment_of_parentage
+      - A paternity case has been filed and is pending (there is no court order yet): paternity_case_pending
+---
+id: paternity case info
+question: |
+  ${ children[i] }'s paternity case details
+subquestion: |
+  Enter the case number and the name of the Court for ${ children[i].familiar() }'s case.
+fields:
+  - Case number: children[i].paternity_case_number
+  - Name of Court: children[i].paternity_case_court_name
+---
+id: desired parenting time change for individual child
+question: |
+  Parenting time changes for ${ children[i] }
+fields:
+  - Select the option below that best describes what you want to happen with parenting time: children[i].desired_parenting_time_changes
+    datatype: radio
+    choices:
+      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
+      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[i] } should take place at a neutral place.: no_change_except_exchange
+      - I think that the safety of ${ children[i] } is at risk. I would like all parenting time between ${ other_parties[0] } and ${ children[i] } suspended.: suspend_respondent_time
+---
+id: desired parenting time change for all common children
+question: |
+  Parenting time changes for all common children with ${ other_parties[0] }
+fields:
+  - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
+    datatype: radio
+    choices:
+      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
+      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of the children should take place at a neutral place.: no_change_except_exchange
+      - I think that the safety of the children is at risk. I would like all parenting time between ${ other_parties[0] } and our minor children suspended.: suspend_respondent_time
 ---
 id: pending_actions there_are_any
 question: |
@@ -2491,7 +2981,7 @@ subquestion: |
   Wayne
   % endif
   County, all PPO petitions are viewed as ex parte petitions. 
-  
+
   After you file your petition, the judge will consider it without a hearing and decide 
   whether to grant you a personal protection order within 
   % if county_choice == "Ingham":
