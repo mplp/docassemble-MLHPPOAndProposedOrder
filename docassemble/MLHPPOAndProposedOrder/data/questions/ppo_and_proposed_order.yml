@@ -176,7 +176,7 @@ code: |
 
   if ppo_type == "domestic" and county_choice == "Oakland":
     set_parties_same_gender
-    
+
   check_other_party_address_set_to_user_address
   respondent_carries_firearm_for_work_asked
 
@@ -3050,13 +3050,13 @@ fields:
 id: wants_no_message_posting
 question: |
   % if ppo_type == "nondomestic_sexual_assault":
-  Do you want the judge to order ${ other_parties[0].name } not to post electronic messages that could make other people to harrass you?
+  Do you want the judge to order ${ other_parties[0].name } not to post electronic messages with the intent to make other people harrass you?
   % elif ppo_type == "nondomestic":
   Do you want the judge to order ${ other_parties[0].name } not to harrass you by posting messages?
   % endif
 subquestion: |
   % if ppo_type == "nondomestic_sexual_assault":
-  This includes posting any electronic messages with the intent to cause others to contact you in a way that would make you feel terrorized, frightened, intimidated, threatened, harassed, or molested.
+  ${ other_parties[0].name } would be prohibited from posting electronic messages with the intent to cause others to contact you in a way that would make you feel terrorized, frightened, intimidated, threatened, harassed, or molested.
   % elif ppo_type == "nondomestic":
   This includes sending you messages through **any method**, including the Internet or any electronic medium. 
 
