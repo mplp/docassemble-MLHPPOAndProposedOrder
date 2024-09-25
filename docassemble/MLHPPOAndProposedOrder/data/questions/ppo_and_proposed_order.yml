@@ -42,6 +42,8 @@ code: |
 ---
 objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
+  - user_alias: ALPeopleList.using(complete_attribute="complete")
+  - other_party_alias: ALPeopleList.using(complete_attribute="complete")
   - next_friends: ALPeopleList.using(complete_attribute="complete")
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
@@ -87,6 +89,7 @@ code: |
       unauthorized_to_file_for_lii_kickout
 
   users.gather()
+
   petitioner_lives_in_michigan
 
   for user in users:
@@ -149,12 +152,18 @@ code: |
     else:
       safe_contact_info_notice
     user.address.address
+    if county_choice == "Oakland":
+      if user_alias.there_are_any:
+        user_alias.gather()
     if county_choice == "Oakland" and ppo_type == "domestic":
       user.gender
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
+  if county_choice == "Oakland":
+    if other_party_alias.there_are_any:
+      other_party_alias.gather()
 
   if respondent_is_minor:
     if (not respondent_is_emancipated_minor):
@@ -676,6 +685,14 @@ code: |
   users[i].complete = True
 ---
 code: |
+  user_alias[i].name.first
+  user_alias[i].complete = True
+---
+code: |
+  other_party_alias[i].name.first
+  other_party_alias[i].complete = True
+---
+code: |
   next_friends[i].name.first
   next_friends[i].complete = True
 ---
@@ -849,6 +866,30 @@ question: |
 fields:
   - code: |
       users[0].name_fields()
+---
+id: petitioner alias
+sets:
+  - user_alias[i].name.first
+  - user_alias[i].name.middle
+  - user_alias[i].name.last
+  - user_alias[i].name.suffix
+question: |
+  Enter the ${ ordinal(i) } other name you have been known by
+fields:
+  - code: |
+      user_alias[i].name_fields()
+---
+id: respondent alias
+sets:
+  - other_party_alias[i].name.first
+  - other_party_alias[i].name.middle
+  - other_party_alias[i].name.last
+  - other_party_alias[i].name.suffix
+question: |
+  Enter the ${ ordinal(i) } other name ${ other_parties[0] } has been known by
+fields:
+  - code: |
+      other_party_alias[i].name_fields()
 ---
 id: petitioner contact info
 sets:
@@ -1187,6 +1228,69 @@ fields:
       ppo_sexual_assault_threat_protectees[i].name_fields()
 ---
 #################### Overridden AL Questions End #####################
+---
+id: petitioner alias there_are_any
+question: |
+  Your aliases
+fields:
+  - Have you ever been known by another name?: user_alias.there_are_any
+    datatype: yesnoradio
+---
+id: petitioner alias there_is_another
+question: |
+  Your aliases
+subquestion: |
+  ${ collapse_template(user_alias_list_template) }
+fields:
+  - Have you ever been known by any other name?: user_alias.there_is_another
+    datatype: yesnoradio
+---
+template: user_alias_list_template
+subject: Which aliases have I listed so far?
+content: |
+  % if len(user_alias.complete_elements()) > 0:
+  So far you have listed:
+
+  % for alias in user_alias:
+
+    * ${ alias }
+
+  % endfor
+  % else:
+  You have not listed any aliases yet.
+  % endif
+---
+id: respondent alias there_are_any
+question: |
+  ${ other_parties[0] }'s aliases
+fields:
+  - Has ${ other_parties[0] } ever been known by another name?: other_party_alias.there_are_any
+    datatype: yesnomaybe
+---
+id: respondent alias there_is_another
+question: |
+  ${ other_parties[0] }'s aliasess
+subquestion: |
+  subquestion: |
+  ${ collapse_template(other_party_alias_list_template) }
+fields:
+  - Has ${ other_parties[0] } ever been known by any other name?: other_party_alias.there_is_another
+    datatype: yesnoradio
+---
+template: other_party_alias_list_template
+subject: Which aliases have I listed so far?
+content: |
+  % if len(other_party_alias.complete_elements()) > 0:
+  So far you have listed:
+
+  % for alias in other_party_alias:
+
+    * ${ alias }
+
+  % endfor
+  % else:
+  You have not listed any aliases yet.
+  % endif
 ---
 id: petitioner gender
 question: |
