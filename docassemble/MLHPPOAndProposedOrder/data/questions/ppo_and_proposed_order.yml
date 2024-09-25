@@ -161,6 +161,10 @@ code: |
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
+  if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
+  ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland":
+    relationship_to_respondent_exp
+
   if county_choice == "Oakland":
     if other_party_alias.there_are_any:
       other_party_alias.gather()
@@ -170,7 +174,9 @@ code: |
       other_parties_parents_intro
       other_parties_parents.gather()
 
-  set_parties_same_gender
+  if ppo_type == "domestic" and county_choice == "Oakland":
+    set_parties_same_gender
+    
   check_other_party_address_set_to_user_address
   respondent_carries_firearm_for_work_asked
 
@@ -1228,6 +1234,20 @@ fields:
       ppo_sexual_assault_threat_protectees[i].name_fields()
 ---
 #################### Overridden AL Questions End #####################
+---
+id: describe relationship to respondent
+question: |
+  Describe your relationship with ${ other_parties[0] }
+subquestion: |
+  For example:
+
+    * "The respondent is my neighbor."
+    * "The respondent used to be my co-worker."
+  
+  *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
+fields:
+  - no label: relationship_to_respondent_exp
+    datatype: area
 ---
 id: petitioner alias there_are_any
 question: |
