@@ -162,7 +162,9 @@ code: |
   respondent_intro_screen
   other_parties.gather()
   if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
-  ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland":
+  (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
+  (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland") and \
+  all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating'])):
     relationship_to_respondent_exp
 
   if county_choice == "Oakland":
