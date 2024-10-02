@@ -3147,6 +3147,89 @@ content: |
   Look for the two-letter case type code at the end of your case number.
   (This could be DM, DC, DS, DP, or a different code.)
 ---
+# for ETC-optional counties
+id: email to court choice
+question: |
+  Do you want your forms to be automatically emailed to the court?
+subquestion: |
+  You are able to email your forms to the Circuit Court directly from this tool so that you do not need to download and email or electronically file them yourself. 
+fields:
+  - Would you like to have this tool email your forms for you?: email_court_choice
+    datatype: radio
+    choices:
+      - Yes, I want my forms to be automatically emailed to the court: True
+      - No, I will file in another way: False
+---
+# for ETC counties:
+id: get docs screen
+continue button field: get_docs_screen
+continue button label: ":file-export: Email your forms to the clerk"
+question: |
+  Download and email forms
+subquestion: |
+  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+
+  **You will not receive an order from the court until you see a judge.**
+
+  **Note:** If you want to see an after-hours judge, click **Email your forms to the clerk**.
+
+  ${ action_button_html(url_action('review_full'), label=':edit: Make changes', color='success', size="md") }
+  
+  ${ al_user_bundle.download_list_html() }
+
+  &nbsp;
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+  **Note:** If you want to see an after-hours judge, click **Email your forms to the clerk**.
+  
+  Thank you for using ILAO Easy Forms!
+#event: get_docs_screen
+under: |
+  ###### **Worried about doing this on your own?**  
+  ###### Call the [**Illinois Domestic Violence Hotline**](https://the-network.org/get-help/) at 877-863-6338 (877-TO END DV) to talk with an advocate.
+  % if not user_logged_in():
+  
+  [${fa_icon("sign-in-alt", color="#0079d0", size="sm")} Sign-in](${url_of('login', next=interview_url())}) or [create](${url_of('register', next=interview_url())}) an ILAO Easy Form account to save your progress (optional).
+  % endif 
+
+  &nbsp;
+  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=current_context().question_id, easy_form_variable=current_context().variable, local=False,reset=1), label=':comment: Was this program helpful?', color="#181c36", size="md", new_window=True) }
+---
+id: get email to clerk details
+continue button field: clerk_email_prep
+continue button label: "Submit"
+question: |
+  Email forms to the clerk
+subquestion: |
+  Fill in these fields and click **Submit** to send your forms to the clerk. The phone number and email address you enter on this screen **will not** appear on your court forms.
+ 
+  For information about your next court date after today's after-hours hearing, see the "Next Steps" document. This is with your downloadble forms.
+  
+fields:
+  - How do you want to be contacted about the remote hearing?: preferred_contact
+    input type: radio
+    choices:
+      - Phone (preferred): phone
+      - Email: email
+  - Safe phone number: safe_phone_number
+    datatype: al_international_phone
+    show if:
+      variable: preferred_contact
+      is: "phone"
+  - Safe email address (required for after-hours hearing): safe_email    
+    datatype: email
+  - Notes for the clerk (optional): notes_to_clerk
+    input type: area
+    rows: 3
+    maxlength: 200
+    required: False
+---
+code: |
+  recipient = get_config('cook after hours email')
+  clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
+---
+# if no ETC
 id: download screen
 event: personal_protection_order_download
 question: |
@@ -3156,7 +3239,7 @@ subquestion: |
 
   View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
 
-  ${ action_button_html(url_action('review_form'), label='Edit answers', color='info') }
+  ${ action_button_html(url_action('review_full'), label='Edit answers', color='info') }
 
   ${ al_user_bundle.download_list_html() }
 
