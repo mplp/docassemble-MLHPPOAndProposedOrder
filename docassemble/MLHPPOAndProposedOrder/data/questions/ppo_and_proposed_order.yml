@@ -321,7 +321,6 @@ code: |
   
   if ETC_county_status == "not_allowed":
     personal_protection_order_download
-  
   else: 
     if ETC_county_status == "optional":
       ETC_optional_info
@@ -3163,7 +3162,7 @@ content: |
 code: |
   if county_choice == "Wayne" or "Oakland":
     ETC_county_status = "required"
-  elif county_choice == "Cass" or "Gogebic" or "Ionia" or "Iosco" or "Marquette" or "Montcalm"
+  elif county_choice == "Cass" or "Gogebic" or "Ionia" or "Iosco" or "Marquette" or "Montcalm":
     ETC_county_status = "optional"
   else:
     ETC_county_status = "not_allowed"
@@ -3190,17 +3189,15 @@ subquestion: |
 ---
 id: ETC review and download docs screen
 continue button field: ETC_review_docs_screen
-continue button label: ":file-export: Email your forms to the clerk"
+continue button label: ":file-export: E-mail your forms to the court"
 question: |
-  Download and email forms
+  Review your forms
 subquestion: |
-  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+  <h2 class="h3">Review and Finalize Your Forms </h2>
+  
+  Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
 
-  **You will not receive an order from the court until you see a judge.**
-
-  **Note:** If you want to see an after-hours judge, click **Email your forms to the clerk**.
-
-  ${ action_button_html(url_action('review_full'), label=':edit: Make changes', color='success', size="md") }
+  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='success', size="md") }
   
   ${ al_user_bundle.download_list_html() }
 
@@ -3208,9 +3205,16 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-  **Note:** If you want to see an after-hours judge, click **Email your forms to the clerk**.
+  <h2 class="h3">Ready to file?</h2>
+  % if ETC_county_status == "required":
+  Tap the button below when you're ready to e-mail your forms to the court. 
+  % else:
+  Tap the button below if you want to file now by e-mail. 
   
-  Thank you for using ILAO Easy Forms!
+  If you prefer to file in a different way, you can read the Instructions to learn about your options.
+  % endif
+  
+  Include "what if I want to wait" help text here.
 ---
 id: get email to clerk details
 continue button field: clerk_email_prep
@@ -3218,23 +3222,21 @@ continue button label: "Submit"
 question: |
   Email forms to the clerk
 subquestion: |
-  Fill in these fields and click **Submit** to send your forms to the clerk. The phone number and email address you enter on this screen **will not** appear on your court forms.
- 
-  For information about your next court date after today's after-hours hearing, see the "Next Steps" document. This is with your downloadble forms.
+  Fill in these fields and click **Submit** to send your forms to the court. 
+  
+  You must provide an e-mail address if at all posssible so that the court can contact you and send you a copy of your filed documents. If you don't have an e-mail, you must include a phone number.
+  
+  The phone number and email address you enter on this screen **will not** appear on your court forms.
+  
+  [note make it so that one or the other is required, maybe with check boxes that say you don't have them or something?]
+   
+  For information about your next steps, see the "Instructions" document. This is with your downloadable forms.
   
 fields:
-  - How do you want to be contacted about the remote hearing?: preferred_contact
-    input type: radio
-    choices:
-      - Phone (preferred): phone
-      - Email: email
+  - Safe e-mail address: safe_email
+    datatype: email
   - Safe phone number: safe_phone_number
     datatype: al_international_phone
-    show if:
-      variable: preferred_contact
-      is: "phone"
-  - Safe email address (required for after-hours hearing): safe_email    
-    datatype: email
   - Notes for the clerk (optional): notes_to_clerk
     input type: area
     rows: 3
@@ -3244,6 +3246,14 @@ fields:
 code: |
   recipient = get_config('cook after hours email')
   clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
+---
+template: clerk_email
+subject: |
+  Emergency Order of Protection Petition - ILAO Easy Form - ${ users[0].name.full(middle="full") } v. ${other_parties[0].name.full(middle="full")} - contact: ${ phone_number_formatted(safe_phone_number) }
+content: |
+  ${ users[0].name.full(middle="full") } is filing for a Petition for Order of Protection against ${other_parties[0].name.full(middle="full")}.
+  
+  Illinois has all sorts of stuff here but maybe ours can be simpler?
 ---
 id: email confirmation page
 continue button field: email_sent
@@ -3260,35 +3270,15 @@ subquestion: |
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
 
-  Thank you for using ILAO Easy Forms!
----
-id: email send error
-continue button field: email_not_sent
-question: |
-  Email error
-subquestion: |
-  **Your forms were not sent to the clerk.**
-
-  Click **Back** to try again or download your forms. 
-  
-  Thank you for using ILAO Easy Forms!
 ---
 id: email to court success screen
 event: ETC_success
 question: |
-  Download forms
+  You forms were e-mailed to the court!
 subquestion: |
-  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
-
-  **You will not receive an order from the court until you see a judge.**
-
-  % if clerk_email_sent_ok:
   **Note:** Your forms were already emailed to the clerk.
-  % else:
-  **Note:** Your forms were not emailed to the clerk.
-  % endif
-
-  ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
+  
+  You can download your forms below for your records if you want. Don't edit them now though.
   
   ${ al_user_bundle.download_list_html() }
 
@@ -3296,13 +3286,6 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-  % if clerk_email_sent_ok:
-  **Note:** Your forms were already emailed to the clerk.
-  % else:
-  **Note:** Your forms were not emailed to the clerk.
-  % endif
-
-  Thank you for using ILAO Easy Forms!
 buttons:
   - Exit: exit
   - Restart: restart
@@ -3310,17 +3293,11 @@ buttons:
 id: email to court error screen
 event: ETC_error
 question: |
-  Download forms
+  E-mail error!
 subquestion: |
-  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+  **Your forms were not sent to the clerk.**
 
-  **You will not receive an order from the court until you see a judge.**
-
-  % if clerk_email_sent_ok:
-  **Note:** Your forms were already emailed to the clerk.
-  % else:
-  **Note:** Your forms were not emailed to the clerk.
-  % endif
+  Click **Back** to try again. You can also download your forms below. 
 
   ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
   
@@ -3330,13 +3307,6 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-  % if clerk_email_sent_ok:
-  **Note:** Your forms were already emailed to the clerk.
-  % else:
-  **Note:** Your forms were not emailed to the clerk.
-  % endif
-
-  Thank you for using ILAO Easy Forms!
 buttons:
   - Exit: exit
   - Restart: restart
