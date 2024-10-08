@@ -328,6 +328,7 @@ code: |
       ETC_required_info
     ETC_review_docs_screen
     clerk_email_prep
+    email_status
     if clerk_email_sent_ok:
       ETC_success
     else:
@@ -3255,35 +3256,44 @@ content: |
   ${ users[0].name.full(middle="full") } is filing for a Petition for Order of Protection against ${other_parties[0].name.full(middle="full")}.
   
   Illinois has all sorts of stuff here but maybe ours can be simpler?
+  
+  Optional comment from sender: ${ notes_to_clerk }
 ---
 id: email confirmation page
-continue button field: email_sent
+continue button field: email_status
 question: |
-  Email sent to clerk
+  % if clerk_email_sent_ok:
+  You forms were e-mailed to the court!
+  % else:
+  Email Error
+  % endif
 subquestion: |
-  **Your forms were sent to the clerk.**
+  % if clerk_email_sent_ok:
+  **Your forms were sent to the court.**
   
-  If you sent them during an after-hours court session or in the hour before, they will contact you to set up a court hearing with the judge. If you sent them outside of that time frame, you may need to follow up.
+  **Important:** Read the "Instructions" document for what to do next. 
 
-  **Important:** Read the "Next steps" document for what to do next. 
-
-  If you did not download your forms yet, click **Next**. It may take a minute to get to the next screen. You do not need to refresh.
+  If you did not download your forms or instructions yet, click **Next**. It may take a minute to get to the next screen. You do not need to refresh.
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
+  % else:
+  There was an error with our email system. **Your forms were NOT sent to the court.**
 
+  Tap **Back** to return to the Submit page and try again. 
+  
+  Or tap "Continue" to download your forms. It may take a minute to get to the next screen. You do not need to refresh.
+  % endif
 ---
 id: email to court success screen
 event: ETC_success
 question: |
-  You forms were e-mailed to the court!
+  Your forms were e-mailed to the court!
 subquestion: |
-  **Note:** Your forms were already emailed to the clerk.
+  **Note:** Your forms were **already emailed** to the court.
   
-  You can download your forms below for your records if you want. Don't edit them now though.
+  You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
   
   ${ al_user_bundle.download_list_html() }
-
-  &nbsp;
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
@@ -3296,7 +3306,7 @@ event: ETC_error
 question: |
   E-mail error!
 subquestion: |
-  **Your forms were NOT sent to the clerk.**
+  **Your forms were NOT sent to the court.**
 
   Click **Back** to try again. You can also download your forms below. 
 
