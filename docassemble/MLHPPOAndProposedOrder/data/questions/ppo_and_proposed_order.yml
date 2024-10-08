@@ -3160,9 +3160,9 @@ content: |
   (This could be DM, DC, DS, DP, or a different code.)
 ---
 code: |
-  if county_choice == "Wayne" or "Oakland":
+  if county_choice == "Wayne" or county_choice == "Oakland":
     ETC_county_status = "required"
-  elif county_choice == "Cass" or "Gogebic" or "Ionia" or "Iosco" or "Marquette" or "Montcalm":
+  elif county_choice == "Cass" or county_choice == "Gogebic" or county_choice == "Ionia" or county_choice == "Iosco" or county_choice == "Marquette" or county_choice == "Montcalm":
     ETC_county_status = "optional"
   else:
     ETC_county_status = "not_allowed"
@@ -3174,6 +3174,7 @@ question: |
   ${ county_choice } Accepts Direct E-mail Filing from MLH-Forms
 subquestion: |
   On the next screen you can review and download copies of your forms. Then you have a choice to: 
+  
   * wait and file later, 
   * file now with a direct email from MLH-Forms, or 
   * file your forms in another way.
@@ -3244,7 +3245,7 @@ fields:
     required: False
 ---
 code: |
-  recipient = get_config(f'${ county_choice } ETC address')
+  recipient = get_config(f'{ county_choice } ETC address')
   clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
 ---
 template: clerk_email
@@ -3403,6 +3404,10 @@ objects:
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cover_page, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+---
+# this should include everything from al_user_bundle except the coversheet/instructions
+objects:
+  - al_court_bundle: ALDocumentBundle.using(elements=[oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to file", enabled=True)
 ---
 objects:
   - ppo_order_bundle: ALDocumentBundle.using(elements=[ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, proof_of_service_domestic, proof_of_service_domestic_minor, proof_of_service_nondomestic, proof_of_service_nondomestic_minor, proof_of_service_nondomestic_sa, proof_of_service_nondomestic_sa_minor], filename="Proposed Order.pdf", title="Proposed Order", enabled=True)
