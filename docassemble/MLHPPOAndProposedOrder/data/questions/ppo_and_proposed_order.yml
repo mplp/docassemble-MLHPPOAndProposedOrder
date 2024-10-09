@@ -82,8 +82,6 @@ code: |
     if next_friends.there_are_any:
       next_friends.gather()
       set_next_friend
-      if not next_friend_agrees_to_sign:
-        next_friend_signature_notice
       continue_as_next_friend_for_lii
     else:
       unauthorized_to_file_for_lii_kickout
@@ -106,8 +104,6 @@ code: |
           next_friends.gather()
           if next_friend_agrees_to_role:
             set_next_friend
-            if not next_friend_agrees_to_sign:
-              next_friend_signature_notice
           else:
             next_friend_role_kickout
         else:
@@ -310,16 +306,18 @@ code: |
       ex_parte_yes_screen
 
   nav.set_section("review_get_forms_info")
-  efile_notice
-
-  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-    if next_friend_agrees_to_sign:
-      signature_date
-  else:
-    if MLH_esign:
-      signature_date
-  
+  if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
+    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      if next_friend_agrees_to_sign:
+        signature_date
+      else:
+        next_friend_signature_notice
+    else:
+      if MLH_esign:
+        signature_date
+       
   if ETC_county_status == "not_allowed":
+    MLH_outro_filing_information
     personal_protection_order_download
   else: 
     if ETC_county_status == "optional":
@@ -328,6 +326,7 @@ code: |
       ETC_required_info
     ETC_review_docs_screen
     clerk_email_prep
+    ETC_esign
     email_status
     if clerk_email_sent_ok:
       ETC_success
@@ -3131,35 +3130,6 @@ subquestion: |
   In many courts this will not take longer than 24 hours, but in some courts it can take up to 72 hours. For information about how long it could take in your court, read the instructions that you will get with your forms.
 continue button field: ex_parte_yes_screen
 ---
-id: efile note question
-question: |
-  Completing this process does not file your forms with the court
-subquestion: |
-  You need to file them at court in person, by mail, e-mail, or by e-filing.
-  If you are e-filing, you must use [MiFILE](https://mifile.courts.michigan.gov/).
-  Read the instructions that you will get with your forms for more information.
-
-  ${ collapse_template(am_i_going_to_efile) }
-
-  This tool will create separate forms so you can more easily e-file using MiFILE, if you plan to e-file.
-
-  This means that **you may need to download multiple files to get all of the forms you will need**. At the end of this interview you will see a list of documents to download. Make sure you download each of them. 
-
-  You will also be able to get all forms you need by clicking the **Download Your Form(s)** button on the page at the end of this tool.
-
-continue button field: efile_notice
----
-template: am_i_going_to_efile
-subject: |
-  How do I know if I am going to e-file?
-content: |
-  Not all courts offer e-filing at this time. To find out if your court has e-filing, read the
-  [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) article.
-  The article tells you how to find out which courts have e-filing and what kinds of cases those courts are accepting by e-filing.
-
-  Look for the two-letter case type code at the end of your case number.
-  (This could be DM, DC, DS, DP, or a different code.)
----
 code: |
   if county_choice == "Wayne" or county_choice == "Oakland":
     ETC_county_status = "required"
@@ -3168,6 +3138,29 @@ code: |
   else:
     ETC_county_status = "not_allowed"
   ETC_status_check = True
+---
+code: |
+  if ETC_county_status == "optional" or ETC_county_status == "not_allowed":
+    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      if next_friend_agrees_to_sign == True:
+        someone_signed = True
+      else:
+        someone_signed = False
+    else:
+      if MLH_esign == True:
+        someone_signed = True
+      else:
+        someone_signed = False
+  else: 
+    someone_signed = False
+---
+code: |
+  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+    next_friend_agrees_to_sign = True
+  else:
+    MLH_esign = True
+  signature_date
+  ETC_esign = True
 ---
 id: ETC optional info
 continue button field: ETC_optional_info
@@ -3183,7 +3176,7 @@ subquestion: |
 id: ETC required info
 continue button field: ETC_required_info
 question: |
-  ${ county_choice } Requires Direct E-mail Filing from MLH-Forms
+  ${ county_choice } County Requires Direct E-mail Filing from MLH-Forms
 subquestion: |
   When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool. 
   
@@ -3203,9 +3196,7 @@ subquestion: |
   
   ${ al_user_bundle.download_list_html() }
 
-  &nbsp;
-
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  ${ collapse_template(email_to_self_option) }
 
   <h2 class="h3">Ready to file?</h2>
   % if ETC_county_status == "required":
@@ -3218,17 +3209,43 @@ subquestion: |
   
   Include "what if I want to wait" help text here.
 ---
+template: email_to_self_option
+subject: |
+  Want to email a copy of the forms to yourself?
+content: |
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  
+  This is **not** for filing in court. This is for sending a copy to yourself or someone you trust. To file with the court, click the button below.
+---
 id: get email to clerk details
 continue button field: clerk_email_prep
-continue button label: "Submit"
+continue button label: |
+  % if someone_signed:
+  "Submit"
+  % else:
+  "E-sign and Submit"
+  % endif
 question: |
-  Email forms to the clerk
+  Submit your forms to the court
 subquestion: |
+  % if someone_signed:
   Fill in these fields and click **Submit** to send your forms to the court. 
+  % else:
+  Fill in these fields and click **E-sign and Submit** to send your forms to the court. 
+  % endif
   
   You must provide an e-mail address if at all posssible so that the court can contact you and send you a copy of your filed documents. If you don't have an e-mail, you must include a phone number.
   
   The phone number and email address you enter on this screen **will not** appear on your court forms.
+  
+  % if not someone_signed:
+  Because these forms will be e-mailed directly to the court, **you must e-sign** them. 
+  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms.
+  % else:
+  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms.
+  % endif
+  % endif
   
   [note make it so that one or the other is required, maybe with check boxes that say you don't have them or something?]
    
