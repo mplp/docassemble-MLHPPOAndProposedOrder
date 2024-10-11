@@ -3230,7 +3230,7 @@ subquestion: |
   If you prefer to file in a different way, you can read the Instructions to learn about your options.
   % endif
   
-  Include "what if I want to wait" help text here.
+  ${ collapse_template(wait_to_file_help) }
 ---
 template: email_to_self_option
 subject: |
@@ -3239,6 +3239,27 @@ content: |
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
   
   This is **not** for filing in court. This is for sending a copy to yourself or someone you trust. To file with the court, tap the button below.
+---
+template: wait_to_file_help
+subject: |
+  What if I'm not ready to file yet?
+content: |
+  % if not user_logged_in():
+  **Important:** sign in or sign up using the menu at the top right of the page. That way, your forms will be saved here and you can come back to them later.
+  % endif
+  
+  You can log back in later to:
+  
+  * update your forms,
+  * download your forms, and/or
+  * email your forms to the court with the button below.
+  
+  Your forms will be saved here for **180 days** after you created your forms. To restart the 180 day clock:
+  
+  * sign in and return to this form, 
+  * tap **Undo** to go back a page,
+  * then tap **Continue** to come back to this page.
+ 
 ---
 id: get email to clerk details
 continue button field: clerk_email_prep
@@ -3319,7 +3340,7 @@ subquestion: |
   % else:
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
-  Tap **Back** to return to the Submit page and try again. 
+  Tap **Undo** to return to the Submit page and try again. 
   
   Or tap "Continue" to download your forms. It may take a minute to get to the next screen. You do not need to refresh.
   % endif
@@ -3348,7 +3369,7 @@ question: |
 subquestion: |
   **Your forms were NOT sent to the court.**
 
-  Click **Back** to try again. You can also download your forms below. 
+  Click **Undo** to try again. You can also download your forms below. 
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
   
