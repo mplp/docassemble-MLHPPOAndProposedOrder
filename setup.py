@@ -44,9 +44,9 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
     return out
 
 setup(name='docassemble.MLHPPOAndProposedOrder',
-      version='0.0.6',
+      version='0.0.8',
       description=('A Personal Protection Order for use in Michigan Courts'),
-      long_description='# docassemble.MLHPPOAndProposedOrder\r\n\r\nA personal protection order in Michigan\r\n\r\n## Authors:\r\n\r\n* Rami Lorca',
+      long_description='# docassemble.MLHMotionRegardingChangeOfDomicile\r\n\r\nA motion regarding change of domicile in Michigan\r\n\r\n## Authors:\r\n\r\n* Rami Lorca',
       long_description_content_type='text/markdown',
       author='Rami Lorca',
       author_email='rami@lemmalegal.com',

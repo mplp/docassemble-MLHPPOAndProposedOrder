@@ -104,8 +104,6 @@ code: |
     if next_friends.there_are_any:
       next_friends.gather()
       set_next_friend
-      if not next_friend_agrees_to_sign:
-        next_friend_signature_notice
       continue_as_next_friend_for_lii
     else:
       unauthorized_to_file_for_lii_kickout
@@ -128,8 +126,6 @@ code: |
           next_friends.gather()
           if next_friend_agrees_to_role:
             set_next_friend
-            if not next_friend_agrees_to_sign:
-              next_friend_signature_notice
           else:
             next_friend_role_kickout
         else:
@@ -343,16 +339,33 @@ code: |
     exhibit_attachment.exhibits.gather()
 
   nav.set_section("review_get_forms_info")
-  efile_notice
+  if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
 
-  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-    if next_friend_agrees_to_sign:
-      signature_date
-  else:
-    if MLH_esign:
-      signature_date
-
-  personal_protection_order_download
+    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      if next_friend_agrees_to_sign:
+        signature_date
+      else:
+        next_friend_signature_notice
+    else:
+      if MLH_esign:
+        signature_date
+       
+  if ETC_county_status == "not_allowed":
+    MLH_outro_filing_information
+    personal_protection_order_download
+  else: 
+    if ETC_county_status == "optional":
+      ETC_optional_info
+    else:
+      ETC_required_info
+    ETC_review_docs_screen
+    clerk_email_prep
+    ETC_esign
+    email_status
+    if clerk_email_sent_ok:
+      ETC_success
+    else:
+      ETC_error
 
   interview_ppo_and_proposed_order = True
 ---
@@ -1432,7 +1445,7 @@ subquestion: |
 
   Unless you have a guardianship or a power of attorney, you can’t file on behalf of another adult. 
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: inconsistent age kickout
 event: inconsistent_age_kickout
@@ -1441,7 +1454,7 @@ question: |
 subquestion: |
   You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0].possessive('birthday') } makes them a **minor**.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answers.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answers.
 ---
 id: continue as next friend for incapacitated adult
 question: |
@@ -1523,7 +1536,7 @@ subquestion: |
 
   Because you are under 18 and not emancipated, you must have a next friend file your petition for you. 
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
 id: next friend agrees to role
 question: |
@@ -1547,7 +1560,7 @@ subquestion: |
 
   If ${ users[0] } wants to continue preparing a PPO, they will need to find another adult who is willing to act as their next friend.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: next friend agrees to sign
 question: |
@@ -1728,7 +1741,7 @@ question: |
 subquestion: |
   To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 
   Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders).
 ---
@@ -1739,7 +1752,7 @@ question: |
 subquestion: |
   To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 
   Otherwise, **Exit** the interview.
 ---
@@ -1761,7 +1774,7 @@ subquestion: |
 
   There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: ppo court county_choice
 question: |
@@ -1807,7 +1820,7 @@ question: |
 subquestion: |
   Based on your answers, you can't use this tool to prepare a *Petition for Personal Protection Order*. If you do not know the county of residence for a respondent who is a minor, there are complicated legal issues that you will need a lawyer to help you with. Use the [Guide to Legal Help](https://michiganlegalhelp.org/guide-to-legal-help) to find a lawyer or legal services in your area.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 template: unknown_minor_respondent_county
 subject: |
@@ -1828,7 +1841,7 @@ subquestion: |
 
   To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/minors-and-personal-protection-orders).
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: safe_contact_info_notice
 question: |
@@ -2013,7 +2026,7 @@ question: |
 subquestion: |
   In Oakland County, either the Respondent's **address** or **phone number** must be provided in order to inform them of your petition for a protection order.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: other party parents intro
 question: |
@@ -2471,7 +2484,7 @@ subquestion: |
 
   There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
 ---
 id: petitioner property interest
 question: |
@@ -2513,7 +2526,7 @@ subquestion: |
     2. you do not have a property interest in the home, **and**
     3. ${ other_parties[0].name } has a property interest in the home.
 
-  If you made a mistake, click the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, click Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, tap Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
 continue button field: cannot_prohibit_respondent_entering_property
 ---
 template: stalking_harassing_explained
@@ -3165,75 +3178,217 @@ subquestion: |
   In many courts this will not take longer than 24 hours, but in some courts it can take up to 72 hours. For information about how long it could take in your court, read the instructions that you will get with your forms.
 continue button field: ex_parte_yes_screen
 ---
-id: efile note question
-question: |
-  Completing this process does not file your forms with the court
-subquestion: |
-  You need to file them at court in person, by mail, e-mail, or by e-filing.
-  If you are e-filing, you must use [MiFILE](https://mifile.courts.michigan.gov/).
-  Read the instructions that you will get with your forms for more information.
-
-  ${ collapse_template(am_i_going_to_efile) }
-
-  This tool will create separate forms so you can more easily e-file using MiFILE, if you plan to e-file.
-
-  This means that **you may need to download multiple files to get all of the forms you will need**. At the end of this interview you will see a list of documents to download. Make sure you download each of them. 
-
-  You will also be able to get all forms you need by clicking the **Download Your Form(s)** button on the page at the end of this tool.
-
-continue button field: efile_notice
+code: |
+  if county_choice == "Wayne" or county_choice == "Oakland":
+    ETC_county_status = "required"
+  elif county_choice == "Cass" or county_choice == "Gogebic" or county_choice == "Ionia" or county_choice == "Iosco" or county_choice == "Marquette" or county_choice == "Montcalm":
+    ETC_county_status = "optional"
+  else:
+    ETC_county_status = "not_allowed"
+  ETC_status_check = True
 ---
-template: am_i_going_to_efile
+code: |
+  if ETC_county_status == "optional" or ETC_county_status == "not_allowed":
+    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      if next_friend_agrees_to_sign == True:
+        someone_signed = True
+      else:
+        someone_signed = False
+    else:
+      if MLH_esign == True:
+        someone_signed = True
+      else:
+        someone_signed = False
+  else: 
+    someone_signed = False
+---
+only sets: ETC_esign
+code: |
+  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+    next_friend_agrees_to_sign = True
+  else:
+    MLH_esign = True
+  signature_date
+  ETC_esign = True
+---
+id: ETC optional info
+continue button field: ETC_optional_info
+question: |
+  ${ county_choice } Circuit Court Accepts Direct E-mail Filing from MLH-Forms
+subquestion: |
+  On the next screen you can review and download copies of your forms. Then you have a choice to: 
+  
+  * file now with a direct email from MLH-Forms, 
+  * wait and file later, or 
+  * file your forms in another way.
+---
+id: ETC required info
+continue button field: ETC_required_info
+question: |
+  ${ county_choice } Circuit Court Requires Direct E-mail Filing from MLH-Forms
+subquestion: |
+  When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool. 
+  
+  On the next screen you can review your forms. Then follow the on-screen directions to file by e-mail.
+---
+id: ETC review and download docs screen
+continue button field: ETC_review_docs_screen
+continue button label: ":file-export: E-mail your forms to the court"
+question: |
+  Review your forms
+subquestion: |
+  <h2 class="h3">Review and Finalize Your Forms </h2>
+  
+  Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
+
+  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
+  
+  ${ al_user_bundle.download_list_html() }
+
+  ${ collapse_template(email_to_self_option) }
+
+  <h2 class="h3">Ready to file?</h2>
+  % if ETC_county_status == "required":
+  Tap the button below when you're ready to e-mail your forms to the court. 
+  % else:
+  Tap the button below if you want to file now by e-mail. 
+  
+  If you prefer to file in a different way, you can read the Instructions to learn about your options.
+  % endif
+  
+  Include "what if I want to wait" help text here.
+---
+template: email_to_self_option
 subject: |
-  How do I know if I am going to e-file?
+  Want to email a copy of the forms to yourself?
 content: |
-  Not all courts offer e-filing at this time. To find out if your court has e-filing, read the
-  [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) article.
-  The article tells you how to find out which courts have e-filing and what kinds of cases those courts are accepting by e-filing.
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  
+  This is **not** for filing in court. This is for sending a copy to yourself or someone you trust. To file with the court, tap the button below.
+---
+id: get email to clerk details
+continue button field: clerk_email_prep
+continue button label: |
+  % if someone_signed:
+  Submit
+  % else:
+  E-sign and Submit
+  % endif
+question: |
+  Submit your forms to the court
+subquestion: |
+  % if someone_signed:
+  Fill in these fields and tap **Submit** to send your forms to the court. 
+  % else:
+  Fill in these fields and tap **E-sign and Submit** to send your forms to the court. 
+  % endif
+  
+  You must provide an e-mail address if at all posssible so that the court can contact you and send you a copy of your filed documents. If you don't have an e-mail, you must include a phone number.
+  
+  The phone number and email address you enter on this screen **will not** appear on your court forms.
+  
+  % if not someone_signed:
+  Because these forms will be e-mailed directly to the court, **you must e-sign** them. 
+  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms.
+  % else:
+  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms.
+  % endif
+  % endif
+  
+  [note make it so that one or the other is required, maybe with check boxes that say you don't have them or something?]
+   
+  For information about your next steps, see the "Instructions" document. This is with your downloadable forms.
+  
+fields:
+  - Safe e-mail address: ETC_safe_email
+    datatype: email
+  - Safe phone number: ETC_safe_phone
+    datatype: al_international_phone
+  - Notes for the clerk (optional): notes_to_clerk
+    input type: area
+    rows: 3
+    maxlength: 200
+    required: False
+---
+code: |
+  recipient = get_config(f'{ county_choice } ETC address')
+  clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
+---
+template: clerk_email
+subject: |
+  Emergency Order of Protection Petition - ILAO Easy Form - ${ users[0].name.full(middle="full") } v. ${other_parties[0].name.full(middle="full")} - contact: ${ phone_number_formatted(ETC_safe_phone) }
+content: |
+  ${ users[0].name.full(middle="full") } is filing for a Petition for Order of Protection against ${other_parties[0].name.full(middle="full")}.
+  
+  Illinois has all sorts of stuff here but maybe ours can be simpler?
+  
+  Optional comment from sender: ${ notes_to_clerk }
+---
+id: email confirmation page
+continue button field: email_status
+question: |
+  % if clerk_email_sent_ok:
+  You forms were e-mailed to the court!
+  % else:
+  Email Error
+  % endif
+subquestion: |
+  % if clerk_email_sent_ok:
+  **Your forms were sent to the court.**
+  
+  **Important:** Read the "Instructions" document for what to do next. 
 
-  Look for the two-letter case type code at the end of your case number.
-  (This could be DM, DC, DS, DP, or a different code.)
+  If you did not download your forms or instructions yet, tap **Continue**. It may take a minute to get to the next screen. You do not need to refresh.
+
+  Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
+  % else:
+  There was an error with our email system. **Your forms were NOT sent to the court.**
+
+  Tap **Back** to return to the Submit page and try again. 
+  
+  Or tap "Continue" to download your forms. It may take a minute to get to the next screen. You do not need to refresh.
+  % endif
 ---
-generic object: ALExhibitList
-id: any exhibits
+id: email to court success screen
+event: ETC_success
 question: |
-  Supporting documents
+  Your forms were e-mailed to the court!
 subquestion: |
-  If you have any supporting documents that you want to attach to your Personal Protection Order, you can also use this tool to add them to upload them.   
-fields:
-  - Do you have any documents you want to upload?: x.has_exhibits
-    datatype: yesnoradio
+  **Note:** Your forms were **already emailed** to the court.
+  
+  You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
+  
+  ${ al_user_bundle.download_list_html() }
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+buttons:
+  - Exit: exit
+  - Restart: restart
 ---
-generic object: ALExhibitList
-id: upload exhibits
+id: email to court error screen
+event: ETC_error
 question: |
-  Upload documents
+  E-mail error!
 subquestion: |
-  **Okay**. You will have a chance to upload multiple documents. 
-  You can also add additional pages to this document.
-fields:
-  - First document title: x[0].title
-    maxlength: 60 # longer might break TOC
-  - Upload the first document: x[0].pages
-    datatype: files
-    maximum image size: 1024
-    image upload type: jpeg
-    accept: |
-      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"
-validation code: |
-  full_size = sum(a_page.size_in_bytes() for a_page in x[0].pages)
-  if full_size > (15 * 1024 * 1024):
-    validation_error("Upload a file smaller than 15 MB.")
-  if hasattr(x, 'maximum_size'):
-    if full_size > x.maximum_size:
-      validation_error(f"Upload a file smaller than {humanize.naturalsize(x.maximum_size)}")
-  try:
-    pdf_concatenate(x[0].pages)
-  except:
-    validation_error("Unable to convert this file. Please upload a new one.")
-  x[0].pages.complete_attribute = 'ok'
-  x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
+  **Your forms were NOT sent to the court.**
+
+  Click **Back** to try again. You can also download your forms below. 
+
+  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
+  
+  ${ al_user_bundle.download_list_html() }
+
+  &nbsp;
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+buttons:
+  - Exit: exit
+  - Restart: restart
 ---
+# if no ETC
 id: download screen
 event: personal_protection_order_download
 question: |
@@ -3241,9 +3396,9 @@ question: |
 subquestion: |
   Thank you ${users}. Your form is ready to download and deliver.
 
-  View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
+  View, download and send your form below. Click the "✎ Review / Edit" button to fix any mistakes.
 
-  ${ action_button_html(url_action('review_form'), label='Edit answers', color='info') }
+  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
 
   ${ al_user_bundle.download_list_html() }
 
@@ -3276,6 +3431,18 @@ objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing - CC 381", filename="Notice of Hearing - CC 381", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[ppo_cover_page, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+---
+# this should include everything from al_user_bundle except the coversheet/instructions
+objects:
+  - al_court_bundle: ALDocumentBundle.using(elements=[oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to file", enabled=True)
+---
+objects:
+  - ppo_order_bundle: ALDocumentBundle.using(elements=[ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, proof_of_service_domestic, proof_of_service_domestic_minor, proof_of_service_nondomestic, proof_of_service_nondomestic_minor, proof_of_service_nondomestic_sa, proof_of_service_nondomestic_sa_minor], filename="Proposed Order.pdf", title="Proposed Order", enabled=True)
+---
+objects:
   - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
   - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", enabled=True)
   - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
@@ -3732,23 +3899,62 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
-    - other_properties1_address: ${ other_properties[0].on_one_line() }
-    - pending_actions1_docket_number: ${ pending_actions[0].docket_number }
-    - pending_actions1_court_info_line: ${ pending_actions[0].court_info_line }
-    - pending_actions1_court_name: ${ pending_actions[0].court_name }
-    - pending_actions1_court_county: ${ pending_actions[0].court_county }
-    - pending_actions1_court_state: ${ pending_actions[0].court_state }
-    - pending_actions1_court_judge: ${ pending_actions[0].court_judge }
+    - other_properties1_address: |
+        % if other_properties.there_are_any:
+        ${ other_properties[0].on_one_line() }
+        % endif
+    - pending_actions1_docket_number: |
+        % if pending_actions_between_parties_yes:
+        ${ pending_actions[0].docket_number }
+        % endif
+    - pending_actions1_court_info_line: |
+        % if pending_actions_between_parties_yes:
+        ${ pending_actions[0].court_info_line }
+        % endif
+    - pending_actions1_court_name: |
+        % if pending_actions_between_parties_yes:
+        ${ pending_actions[0].court_name }
+        % endif
+    - pending_actions1_court_county: |
+        % if pending_actions_between_parties_yes:
+        ${ pending_actions[0].court_county }
+        % endif
+    - pending_actions1_court_state: |
+        % if pending_actions_between_parties_yes:
+        ${ pending_actions[0].court_state }
+        % endif
+    - pending_actions1_court_judge: |
+        % if pending_actions_between_parties_yes:
+        ${ pending_actions[0].court_judge }
+        % endif
     - pending_actions_see_attached: |
         % if pending_actions_between_parties_yes:
         See attachment.
         % endif
-    - orders_judgments1_docket_number: ${ orders_judgments[0].docket_number }
-    - orders_judgments1_court_info_line: ${ orders_judgments[0].court_info_line }
-    - orders_judgments1_court_name: ${ orders_judgments[0].court_name }
-    - orders_judgments1_court_county: ${ orders_judgments[0].court_county }
-    - orders_judgments1_court_state: ${ orders_judgments[0].court_state }
-    - orders_judgments1_court_judge: ${ orders_judgments[0].court_judge }
+    - orders_judgments1_docket_number: |
+        % if orders_judgments_re_parties_yes:
+        ${ orders_judgments[0].docket_number }
+        % endif
+    - orders_judgments1_court_info_line: |
+        % if orders_judgments_re_parties_yes:
+        ${ orders_judgments[0].court_info_line }
+        % endif
+    - orders_judgments1_court_name: |
+        % if orders_judgments_re_parties_yes:
+        ${ orders_judgments[0].court_name }
+        % endif
+    - orders_judgments1_court_county: |
+        % if orders_judgments_re_parties_yes:
+        ${ orders_judgments[0].court_county }
+        % endif
+    - orders_judgments1_court_state: |
+        % if orders_judgments_re_parties_yes:
+        ${ orders_judgments[0].court_state }
+        % endif
+    - orders_judgments1_court_judge: |
+        % if orders_judgments_re_parties_yes:
+        ${ orders_judgments[0].court_judge }
+        % endif
     - orders_judgments_see_attached: |
         % if orders_judgments_re_parties_yes:
         See attachment.
@@ -4188,7 +4394,10 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
-    - other_properties1_address: ${ other_properties[0].on_one_line() }
+    - other_properties1_address: |
+        % if other_properties.there_are_any:
+        ${ other_properties[0].on_one_line() }
+        % endif
     - pending_actions_see_attached: |
         % if pending_actions_between_parties_yes:
         See attachment.
