@@ -3317,9 +3317,17 @@ code: |
 ---
 template: clerk_email
 subject: |
+  % if len(next_friends.complete_elements()) > 0:
+  Emergency Order of Protection Petition - ILAO Easy Form - ${ next_friends[0].name.full(middle="full") } v. ${other_parties[0].name.full(middle="full")} - contact: ${ phone_number_formatted(ETC_safe_phone) }
+  % else:
   Emergency Order of Protection Petition - ILAO Easy Form - ${ users[0].name.full(middle="full") } v. ${other_parties[0].name.full(middle="full")} - contact: ${ phone_number_formatted(ETC_safe_phone) }
+  % endif
 content: |
+  % if len(next_friends.complete_elements()) > 0:
+  ${ next_friends[0].name.full(middle="full") } is filing for a Petition for Order of Protection against ${other_parties[0].name.full(middle="full")}.
+  % else:
   ${ users[0].name.full(middle="full") } is filing for a Petition for Order of Protection against ${other_parties[0].name.full(middle="full")}.
+  % endif
   
   Illinois has all sorts of stuff here but maybe ours can be simpler?
   
