@@ -3404,6 +3404,13 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 ---
+generic object: ALDocumentBundle
+template: x.send_email_template
+subject: |
+  Your Personal Protection Order petition documents are ready
+content: |
+  The documents you'll need to ask the court for a Personal Protection Order are attached.
+---
 #################### Documents Start #####################
 ---
 objects:
