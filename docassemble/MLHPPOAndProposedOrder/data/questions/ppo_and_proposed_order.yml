@@ -3732,6 +3732,7 @@ attachments:
         % else:
         ${ '' }
         % endif
+    - next_friend1_name: ${ next_friends[0] }
     - next_friend1_signature: |
         % if next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
