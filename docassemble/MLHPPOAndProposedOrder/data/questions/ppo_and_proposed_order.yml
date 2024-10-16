@@ -3245,21 +3245,23 @@ subject: |
   What if I'm not ready to file yet?
 content: |
   % if not user_logged_in():
-  **Important:** sign in or sign up using the menu at the top right of the page. That way, your forms will be saved here and you can come back to them later.
-  % endif
+  **Important:** To save your forms here for later, you must **sign in or sign up** now using the menu at the top right of the page or the link below. 
   
+  % else:
   You can log back in later to:
   
   * update your forms,
   * download your forms, and/or
   * email your forms to the court with the button below.
   
-  Your forms will be saved here for **180 days** after you created your forms. To restart the 180 day clock:
+  Your forms will be **saved here for 180 days**. To restart the 180 day clock and keep your forms here for longer:
   
-  * sign in and return to this form, 
-  * tap **Undo** to go back a page,
-  * then tap **Continue** to come back to this page.
- 
+  * come back to [forms.michiganlegalhelp.org](forms.michiganlegalhelp.org),
+  * sign in, and
+  * open this form by selecting it on the My Forms page. 
+  
+  Opening this form again will restart the 180 days.
+  % endif
 ---
 id: get email to clerk details
 continue button field: clerk_email_prep
