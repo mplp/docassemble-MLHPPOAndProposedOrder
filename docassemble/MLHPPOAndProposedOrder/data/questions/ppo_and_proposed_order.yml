@@ -117,11 +117,15 @@ code: |
 
   check_if_petitioner_under_fourteen
   check_if_petitioner_minor
+  check_if_petitioner_at_least_sixteen
   if petitioner_is_minor:
     if is_incapacitated_adult:
       inconsistent_age_kickout
     else:
-      if not petitioner_is_emancipated_minor:
+      if petitioner_at_least_sixteen:
+        petitioner_is_emancipated_minor
+
+      if (not petitioner_at_least_sixteen) or (not petitioner_is_emancipated_minor):
         if next_friends.there_are_any:
           next_friends.gather()
           if next_friend_agrees_to_role:
@@ -714,6 +718,14 @@ code: |
 
 #   check_oakland_respondent_contact_info = True
 ---
+code: |
+  if users[0].age_in_years() >= 16:
+    petitioner_at_least_sixteen = True
+  else:
+    petitioner_at_least_sixteen = False
+
+  check_if_petitioner_at_least_sixteen = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -1004,6 +1016,7 @@ question: |
 fields:
   - Street Address or P.O. Box: other_parties[0].address.address
     required: False
+    address autocomplete: True
   - Apartment, suite, etc.: other_parties[0].address.unit
     required: False
   - City: other_parties[0].address.city
