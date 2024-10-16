@@ -21,12 +21,13 @@ features:
   labels above fields: True
 ---
 sections:
-  - review_intro: "Introduction"
+  - signpost_intro: "Introduction"
   - review_petitioner_info: "Petitioner Information"
   - review_respondent_info: "Respondent Information"
   - review_abuse_history_info: "History of Abuse"
   - review_what_you_want_in_ppo_info: "What You Want in the PPO"
   - review_get_forms_info: "Get Your Forms"
+  - review_full: "✎ <u>Review / Edit</u>"
 ---
 code: |
   al_form_type = "other_form"
@@ -39,7 +40,8 @@ code: |
   MLH_time_max = 60
   MLH_case_type_language = 'Look for the two-letter case type code at the end of your case number. This could be PP or PH. Also look at the column labeled "Type of Filing." If this column only says "Subsequent Filings" for your court, then you cannot e-File the Petition. However, if the judge grants your Petition, you would be able to e-File any motions in your PPO case later on. If you are allowed to e-File your initial papers, this column will say "Case Initiation.'
   MLH_esign_supported = True
-  survey_link_url_only = "https://www.surveymonkey.com/EXAMPLE_URL"
+  survey_link_url_only = "https://www.surveymonkey.com/r/3BXDW9M"
+  MLH_form_type = "forms"
 ---
 code: |
   if ppo_type == "domestic":
@@ -55,7 +57,7 @@ code: |
 template: survey_embed_script
 content: |
   <script>
-    UNIQUE SCRIPT GOES HERE
+    (function(t,e,s,n){var o,a,c;t.SMCX=t.SMCX||[],e.getElementById(n)||(o=e.getElementsByTagName(s),a=o[o.length-1],c=e.createElement(s),c.type="text/javascript",c.async=!0,c.id=n,c.src="https://widget.surveymonkey.com/collect/website/js/tRaiETqnLgj758hTBazgd782KAg15IQSF7hfzpppcaKLYPE5Lrp4hVW_2FtjqJHqCD.js",a.parentNode.insertBefore(c,a))})(window,document,"script","smcx-sdk");
   </script>
 ---
 objects:
@@ -85,8 +87,10 @@ objects:
 id: interview_order_ppo_and_proposed_order
 mandatory: True
 code: |
-  nav.set_section("review_intro")
-  MLH_intro_screen
+  snapshot_start
+  nav.set_section('review_full')
+  nav.set_section("signpost_intro")
+  MLH_intro_landing
   MLH_intro_roles
   MLH_intro_time
   MLH_agree_terms
