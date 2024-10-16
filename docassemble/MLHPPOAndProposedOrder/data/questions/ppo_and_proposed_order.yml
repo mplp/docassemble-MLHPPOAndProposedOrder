@@ -21,12 +21,13 @@ features:
   labels above fields: True
 ---
 sections:
-  - review_intro: "Introduction"
+  - signpost_intro: "Introduction"
   - review_petitioner_info: "Petitioner Information"
   - review_respondent_info: "Respondent Information"
   - review_abuse_history_info: "History of Abuse"
   - review_what_you_want_in_ppo_info: "What You Want in the PPO"
   - review_get_forms_info: "Get Your Forms"
+  - review_full: "✎ <u>Review / Edit</u>"
 ---
 code: |
   al_form_type = "other_form"
@@ -39,6 +40,25 @@ code: |
   MLH_time_max = 60
   MLH_case_type_language = 'Look for the two-letter case type code at the end of your case number. This could be PP or PH. Also look at the column labeled "Type of Filing." If this column only says "Subsequent Filings" for your court, then you cannot e-File the Petition. However, if the judge grants your Petition, you would be able to e-File any motions in your PPO case later on. If you are allowed to e-File your initial papers, this column will say "Case Initiation.'
   MLH_esign_supported = True
+  survey_link_url_only = "https://www.surveymonkey.com/r/3BXDW9M"
+  MLH_form_type = "forms"
+---
+code: |
+  if ppo_type == "domestic":
+    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-domestic-relationship"
+    resource_page_name = "Filing for a Personal Protection Order - Domestic Relationship"
+  elif ppo_type == "nondomestic":
+    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-non-domestic-stalking"
+    resource_page_name = "Filing for a Personal Protection Order - Non-Domestic Stalking"
+  elif ppo_type == "nondomestic_sexual_assault":
+    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-non-domestic-sexual-assault"
+    resource_page_name = "Filing for a Personal Protection Order - Non-Domestic Sexual Assault"
+---
+template: survey_embed_script
+content: |
+  <script>
+    (function(t,e,s,n){var o,a,c;t.SMCX=t.SMCX||[],e.getElementById(n)||(o=e.getElementsByTagName(s),a=o[o.length-1],c=e.createElement(s),c.type="text/javascript",c.async=!0,c.id=n,c.src="https://widget.surveymonkey.com/collect/website/js/tRaiETqnLgj758hTBazgd782KAg15IQSF7hfzpppcaKLYPE5Lrp4hVW_2FtjqJHqCD.js",a.parentNode.insertBefore(c,a))})(window,document,"script","smcx-sdk");
+  </script>
 ---
 objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
@@ -67,8 +87,10 @@ objects:
 id: interview_order_ppo_and_proposed_order
 mandatory: True
 code: |
-  nav.set_section("review_intro")
-  MLH_intro_screen
+  snapshot_start
+  nav.set_section('review_full')
+  nav.set_section("signpost_intro")
+  MLH_intro_landing
   MLH_intro_roles
   MLH_intro_time
   MLH_agree_terms
@@ -312,9 +334,13 @@ code: |
     wants_other_request
     if wants_ex_parte_order:
       ex_parte_yes_screen
+  
+  if exhibit_attachment.exhibits.has_exhibits:
+    exhibit_attachment.exhibits.gather()
 
   nav.set_section("review_get_forms_info")
   if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
+
     if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
       if next_friend_agrees_to_sign:
         signature_date
@@ -3382,74 +3408,28 @@ subquestion: |
 ---
 objects:
   - proof_of_service_domestic: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - proof_of_service_nondomestic: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - proof_of_service_nondomestic_sa: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - proof_of_service_domestic_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - proof_of_service_nondomestic_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - proof_of_service_nondomestic_sa_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - identifying_information: ALDocument.using(title="Identifying Information", filename="Identifying Information", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - cc_377_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_376: ALDocument.using(title="Personal Protection Order (Domestic Relationship) - CC 376", filename="Personal Protection Order (Domestic Relationship) - CC 376", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_376m: ALDocument.using(title="Personal Protection Order Against Minor (Domestic Relationship) - CC 376M", filename="Personal Protection Order Against Minor (Domestic Relationship) - CC 376M", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_380: ALDocument.using(title="Personal Protection Order (Non-Domestic Relationship) - CC 380", filename="Personal Protection Order (Non-Domestic Relationship) - CC 380", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_380m: ALDocument.using(title="Personal Protection Order Against Minor (Non-Domestic Relationship) - CC 380M", filename="Personal Protection Order Against Minor (Non-Domestic Relationship) - CC 380M", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_396: ALDocument.using(title="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", filename="Personal Protection Order (Non-Domestic Sexual Assault) - CC 396", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_396m: ALDocument.using(title="Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M", filename="Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing - CC 381", filename="Notice of Hearing - CC 381", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -3464,30 +3444,22 @@ objects:
 ---
 objects:
   - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
----
-objects:
   - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", enabled=True)
----
-objects:
   - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
----
-objects:
-  - instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
-  - oakland_county_instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
-  - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
-  - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
----
-objects:
   - ppo_mc_319: ALDocument.using(title="Request for Next Friend - MC 319", filename="Request for Next Friend - MC 319", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_cover_page, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet, exhibit_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_cover_page, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet, exhibit_attachment], filename="Personal Protection Order and Proposed Order.pdf", title="All forms to download for your records", enabled=True)  
+  - ppo_order_bundle: ALDocumentBundle.using(elements=[ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, proof_of_service_domestic, proof_of_service_domestic_minor, proof_of_service_nondomestic, proof_of_service_nondomestic_minor, proof_of_service_nondomestic_sa, proof_of_service_nondomestic_sa_minor], filename="Proposed Order.pdf", title="Proposed Order", enabled=True)
   - ppo_cover_page: ALDocument.using(title="Cover Page", filename="Cover Page", enabled=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - oakland_county_instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - instructions: ALDocument.using(filename="Instructions - Do not file this", title="Instructions", enabled=True, has_addendum=False)
+  - instructions_bundle: ALDocumentBundle.using(elements=[instructions, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte], filename="Instructions - Do not file this", title="Instructions", enabled=True, has_addendum=False)
+  - exhibit_attachment: ALExhibitDocument.using(title="Exhibits to Personal Protection Order", filename="Exhibits to Personal Protection Order", include_exhibit_cover_pages=True, add_page_numbers=True)
 ---
 code: |
   if county_choice == "Wayne":
@@ -3704,6 +3676,13 @@ code: |
         proof_of_service_nondomestic_minor.enabled = False
         proof_of_service_domestic_minor.enabled = False
         proof_of_service_domestic.enabled = False
+---
+attachment:
+  name: instructions  
+  variable name: instructions[i]
+  skip undefined: False
+  tagged pdf: True
+  docx template file: Instructions_-_Motion.docx
 ---
 attachments:
   name: Request for Next Friend
@@ -4715,6 +4694,13 @@ attachments:
     - wants_no_message_posting: ${ wants_no_message_posting }
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
+---
+attachments:
+  variable name: exhibit_attachment.table_of_contents
+  docx template file: exhibit_attachment_table_of_contents.docx
+  field code:
+    exhibits: raw(exhibit_attachment.exhibits)
+    include_exhibit_cover_pages: raw(exhibit_attachment.include_exhibit_cover_pages)
 ---
 #################### Documents End #####################
 ---

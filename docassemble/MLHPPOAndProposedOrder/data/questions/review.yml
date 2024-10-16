@@ -1,1 +1,217 @@
-     
+---
+id: personal protection order review screen
+event: review_full
+question: |
+  Review your answers
+review:
+  - note: |
+      % if not defined('docket_number'):
+      ${ review_empty_explainer }
+      % endif
+  - note: |
+      <hr>
+      <h2 class='h5'>Parties and Children</h2>
+  - Edit: users.revisit
+    button: |-
+      **Your Information**
+
+      % for item in users:
+        ${ item }
+        % if len(user_alias.complete_elements()) > 0:
+
+        Aliases: ${ comma_and_list(user_alias) }
+        % endif
+        
+        Age: ${ item.age_in_years() }
+      
+        ${ item.address.block() }
+
+        ${ word("") if item.no_phone_number else item.phone_numbers() }
+      % endfor
+  - Edit: next_friends.revisit
+    button: |-
+      **Your Next Friend**
+
+      % for item in next_friends:
+        ${ item }
+      % endfor
+  - Edit: children.revisit
+    button: |-
+      **Children**
+
+      % for item in children:
+        ${ item }
+
+        DOB: ${ item.birthdate }
+        % if item.lives_with:
+
+        Lives with: ${ item.lives_with }
+        % endif
+        % if item.parties_married_when_born:
+
+        How was paternity established?: Parties married when item.familiar() was born
+        % elif (not item.parties_married_when_born) and item.paternity == "by_court_order":
+
+        Paternity established by court order: 
+        
+          * Case number: ${ item.paternity_case_number }
+
+          * Court: ${ item.paternity_case_court_name }
+        % elif (not item.parties_married_when_born) and item.paternity == "by_acknowledgment_of_parentage":
+        
+        Paternity established by *Acknowledgment of Parentage*
+        % elif (not item.parties_married_when_born) and item.paternity == "paternity_case_pending":
+        
+        Paternity case still pending: 
+        
+          * Case number: ${ item.paternity_case_number }
+
+          * Court: ${ item.paternity_case_court_name }
+        % endif
+        % if item.has_order_in_effect:
+
+        Custody/parenting time order in effect:
+
+          * Case number: ${ item.custody_case_number }
+
+          * Court: ${ item.custody_case_court }
+
+          * Who has custody?: ${ {users[0]} if item.physical_custody_by_order == "sole_petitio }
+        % endif
+      % endfor
+  - note: |
+      <hr>
+      <h2 class='h5'>Case and Court Information</h2>
+    show if: docket_number
+  - Edit: other_parties.revisit
+    button: |-
+      **The Other Party**
+
+      % for item in other_parties:
+        ${ item }
+        % if len(other_party_alias.complete_elements()) > 0:
+
+        Aliases: ${ comma_and_list(other_party_alias) }
+        % endif
+        
+        % if knows_respondents_birthdate:
+        Age: ${ item.age_in_years() }
+        % else:
+        Est. Age: ${ item.estimated_age }
+        % endif
+        % if item.race:
+
+        Race: ${ item.race }
+        % endif
+        % if item.gender:
+
+        Gender: ${ item.gender }
+        % endif
+        % if item.height:
+
+        Height: ${ item.height }
+        % endif
+        % if item.weight:
+
+        Weight: ${ item.weight }
+        % endif
+        % if item.hair_color:
+
+        Hair Color: ${ item.hair_color }
+        % endif
+        % if item.eye_color:
+
+        Eye Color: ${ item.eye_color }
+        % endif
+        % if item.license_number:
+
+        License Number: ${ item.license_number }
+        % endif
+        % if item.other_identifying_info:
+
+        Other Identifying Info: ${ item.other_identifying_info }
+        % endif
+
+        Carries gun for work?: ${ word("Yes") if item.carries_gun_for_work else word("No") }
+      
+        ${ item.address.block() }
+        
+        ${ word("") if item.no_phone_number else item.phone_numbers() }
+      % endfor
+  - Edit: 
+    - county_choice
+    - recompute:
+      - court_index
+      - the_court
+    button: |
+      **Court Information**
+      
+      ${ the_court }
+
+      ${ county_choice } County
+  - Edit: docket_number
+    button: |
+      **What is your case number?**
+
+      ${ docket_number }
+  - note: |
+      <hr>
+      <h2 class='h5'>Uploaded Documents</h2>
+  - Edit:
+    - exhibit_attachment.exhibits.has_exhibits
+    button: |
+      **Do you have documents you want the judge to see?**:
+
+      % if exhibit_attachment.exhibits.has_exhibits:
+      Yes
+      % elif not exhibit_attachment.exhibits.has_exhibits:
+      No
+      % endif
+  - note: |
+      **Uploaded Documents**
+
+      ${ exhibit_attachment.exhibits.add_action() }
+
+      % if exhibit_attachment.exhibits.there_are_any:
+      ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
+      % else:
+      You have not uploaded any documents yet.
+      % endif
+
+    css class: bg-secondary-subtle
+    show if: exhibit_attachment.exhibits.has_exhibits
+---
+generic object: ALExhibitList
+table: exhibit_attachment.exhibits.rearrange_exhibits_table
+rows: exhibit_attachment.exhibits
+allow reordering: True
+delete buttons: True
+columns:
+  - ${ al_exhibit_title_label }: |
+      row_item.title
+  - ${ al_exhibit_preview_label }: |
+      row_item.pages.show(width="50%")
+  - ${ al_exhibit_total_pages_label }: |
+      row_item.pages.num_pages()
+edit:
+  - rearrange_pages
+---
+generic object: ALExhibitList
+template: exhibit_attachment.exhibits.in_progress_exhibits
+subject: |
+  View your uploaded documents
+content: |
+  ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
+---
+table: children.table
+rows: children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Birthdate: |
+      row_item.birthdate
+edit:
+  - name.first
+  - birthdate
+confirm: True
+---
