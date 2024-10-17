@@ -76,9 +76,9 @@ review:
 
           * Court: ${ item.custody_case_court }
 
-          * Who has custody?: ${ {users[0]} if item.physical_custody_by_order == "sole_petitio }
         % endif
       % endfor
+  # note, removed previous line 79 "Who has custody?: ..." becasuse it was cut off mid-line and causing syntax errors. Needs to be added back.
   - note: |
       <hr>
       <h2 class='h5'>Case and Court Information</h2>
