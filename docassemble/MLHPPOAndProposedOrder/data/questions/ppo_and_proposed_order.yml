@@ -81,6 +81,7 @@ objects:
   - orders_judgments: DAList.using(object_type=DAObject, complete_attribute="complete")
   - incidents: DAList.using(object_type=DAObject, complete_attribute="complete")
   - accounts: DAList.using(object_type=DAObject, complete_attribute="complete")
+  - ETC_court_phones: DADict.using(auto_gather=False)
 ---
 #################### Interview Order Start #####################
 ---
@@ -3224,6 +3225,10 @@ code: |
   signature_date
   ETC_esign = True
 ---
+code: |
+  ETC_court_phones = {'Cass': '269-445-4416', 'Ionia': '616-527-5322', 'Montcalm': '989-831-3520, option 1', 'Wayne': '313-967-3579'}
+  ETC_court_phones.gathered = True
+---
 id: ETC optional info
 continue button field: ETC_optional_info
 question: |
@@ -3360,15 +3365,15 @@ code: |
 template: clerk_email
 subject: |
   % if len(next_friends.complete_elements()) > 0:
-  Petition for PPO by next friend ${ next_friends[0].name.full(middle="full") }
+  PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
   % else:
-  Petition for PPO by ${ users[0].name.full(middle="full") }
+  Petition for PPO by ${ users[0] }
   % endif
 content: |
   % if len(next_friends.complete_elements()) > 0:
-  ${ next_friends[0].name.full(middle="full") } (as next friend) is filing a PPO petition via MLH-forms.
+  ${ next_friends[0] } (next friend for ${ users[0] }) is filing a PPO petition via MLH-forms.
   % else:
-  ${ users[0].name.full(middle="full") } is filing a PPO petition via MLH-Forms.
+  ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
   
   Petitioner contact information (keep this confidential if different from contact info listed on forms): 
@@ -3390,7 +3395,10 @@ question: |
   % endif
 subquestion: |
   % if clerk_email_sent_ok:
-  **Your forms were sent to the court.**
+  **Your forms were sent to the court.** 
+  % if county_choice in ETC_court_phones:
+  You can contact the court to confirm your forms were processed at ETC_court_phones[county_choice]
+  % endif
   
   **Important:** Read the **Instructions** document for what to do next. 
   
