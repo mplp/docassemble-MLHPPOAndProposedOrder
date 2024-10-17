@@ -3352,7 +3352,10 @@ under: |
 ---
 code: |
   recipient = get_config(f'{ county_choice } ETC address')
-  clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
+  if ETC_safe_email_NONE:
+    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
+  else:
+    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=ETC_safe_email, template=clerk_email) 
 ---
 template: clerk_email
 subject: |
@@ -3366,6 +3369,13 @@ content: |
   ${ next_friends[0].name.full(middle="full") } (as next friend) is filing a PPO petition via MLH-forms.
   % else:
   ${ users[0].name.full(middle="full") } is filing a PPO petition via MLH-Forms.
+  % endif
+  
+  Petitioner contact information (keep this confidential if different from contact info listed on forms): 
+  % if ETC_safe_email_NONE:
+  ETC_safe_phone
+  % else:
+  ETC_safe_email
   % endif
   
   **Optional** note from sender: ${ notes_to_clerk }
