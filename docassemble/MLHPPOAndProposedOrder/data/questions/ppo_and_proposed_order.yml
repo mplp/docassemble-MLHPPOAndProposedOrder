@@ -126,7 +126,7 @@ code: |
       if petitioner_at_least_sixteen:
         petitioner_is_emancipated_minor
 
-      if (not petitioner_at_least_sixteen) or (not petitioner_is_emancipated_minor):
+      if not petitioner_is_emancipated_minor:
         if next_friends.there_are_any:
           next_friends.gather()
           if next_friend_agrees_to_role:
@@ -724,6 +724,7 @@ code: |
     petitioner_at_least_sixteen = True
   else:
     petitioner_at_least_sixteen = False
+    petitioner_is_emancipated_minor = False
 
   check_if_petitioner_at_least_sixteen = True
 ---
@@ -1046,8 +1047,6 @@ sets:
   - other_parties[0].phone_number
 question: |
   Enter ${ other_parties[0].name }'s telephone number
-subquestion: |
-  If none or unknown, leave blank.
 fields:
   - Phone: other_parties[0].phone_number
     show if:
@@ -2575,7 +2574,9 @@ id: abuse history intro 3
 question: |
   Attaching Evidence
 subquestion: |
-  If you have any documents you want to show the judge, you should attach copies to your petition. However, even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
+  If you have any documents you want to show the judge, you should attach copies to your petition. You'll have a chance to upload electronic documents before your forms are finalized.
+  
+  Even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
 
   If you have audio or video evidence, include descriptions about what is in the evidence when you are typing your descriptions of the incidents in the following screens. Save any audio/video evidence you have. If there will be a hearing for your case, you can submit the audio/video evidence to the court directly.
 
@@ -3227,7 +3228,6 @@ code: |
 ---
 code: |
   ETC_court_phones = {'Cass': '269-445-4416', 'Ionia': '616-527-5322', 'Montcalm': '989-831-3520, option 1', 'Wayne': '313-967-3579'}
-  ETC_court_phones.gathered = True
 ---
 id: ETC optional info
 continue button field: ETC_optional_info
@@ -3376,11 +3376,11 @@ content: |
   ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
   
-  Petitioner contact information (keep this confidential if different from contact info listed on forms): 
+  Petitioner contact information (confidential if different from contact info listed on forms): 
   % if ETC_safe_email_NONE:
-  ETC_safe_phone
+  ${ ETC_safe_phone }
   % else:
-  ETC_safe_email
+  ${ ETC_safe_email }
   % endif
   
   **Optional** note from sender: ${ notes_to_clerk }
@@ -3395,9 +3395,9 @@ question: |
   % endif
 subquestion: |
   % if clerk_email_sent_ok:
-  **Your forms were sent to the court.** 
+  **Your forms were sent to the ${ county_choice } County Circuit Court.** 
   % if county_choice in ETC_court_phones:
-  You can contact the court to confirm your forms were processed at ETC_court_phones[county_choice]
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
   % endif
   
   **Important:** Read the **Instructions** document for what to do next. 
@@ -3419,7 +3419,10 @@ event: ETC_success
 question: |
   Your forms were e-mailed to the court!
 subquestion: |
-  **Note:** Your forms were **already emailed** to the court.
+  Your forms were **already emailed** to the ${ county_choice } County Circuit Court.
+  % if county_choice in ETC_court_phones:
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
+  % endif
   
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
   
