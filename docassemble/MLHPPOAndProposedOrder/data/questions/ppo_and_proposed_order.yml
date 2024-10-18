@@ -81,6 +81,7 @@ objects:
   - orders_judgments: DAList.using(object_type=DAObject, complete_attribute="complete")
   - incidents: DAList.using(object_type=DAObject, complete_attribute="complete")
   - accounts: DAList.using(object_type=DAObject, complete_attribute="complete")
+  - ETC_court_phones: DADict.using(auto_gather=False)
 ---
 #################### Interview Order Start #####################
 ---
@@ -125,7 +126,7 @@ code: |
       if petitioner_at_least_sixteen:
         petitioner_is_emancipated_minor
 
-      if (not petitioner_at_least_sixteen) or (not petitioner_is_emancipated_minor):
+      if not petitioner_is_emancipated_minor:
         if next_friends.there_are_any:
           next_friends.gather()
           if next_friend_agrees_to_role:
@@ -723,6 +724,7 @@ code: |
     petitioner_at_least_sixteen = True
   else:
     petitioner_at_least_sixteen = False
+    petitioner_is_emancipated_minor = False
 
   check_if_petitioner_at_least_sixteen = True
 ---
@@ -1045,8 +1047,6 @@ sets:
   - other_parties[0].phone_number
 question: |
   Enter ${ other_parties[0].name }'s telephone number
-subquestion: |
-  If none or unknown, leave blank.
 fields:
   - Phone: other_parties[0].phone_number
     show if:
@@ -2574,7 +2574,9 @@ id: abuse history intro 3
 question: |
   Attaching Evidence
 subquestion: |
-  If you have any documents you want to show the judge, you should attach copies to your petition. However, even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
+  If you have any documents you want to show the judge, you should attach copies to your petition. You'll have a chance to upload electronic documents before your forms are finalized.
+  
+  Even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
 
   If you have audio or video evidence, include descriptions about what is in the evidence when you are typing your descriptions of the incidents in the following screens. Save any audio/video evidence you have. If there will be a hearing for your case, you can submit the audio/video evidence to the court directly.
 
@@ -3224,21 +3226,24 @@ code: |
   signature_date
   ETC_esign = True
 ---
+code: |
+  ETC_court_phones = {'Cass': '269-445-4416', 'Ionia': '616-527-5322', 'Montcalm': '989-831-3520, option 1', 'Wayne': '313-967-3579'}
+---
 id: ETC optional info
 continue button field: ETC_optional_info
 question: |
-  ${ county_choice } Circuit Court Accepts Direct E-mail Filing from MLH-Forms
+  ${ county_choice } County Circuit Court Accepts Direct E-mail Filing from MLH-Forms
 subquestion: |
-  On the next screen you can review and download copies of your forms. Then you have a choice to: 
+  On the next screen you can review your forms. Then you have a choice to: 
   
-  * file now with a direct email from MLH-Forms, 
+  * file now with a direct email from this tool, 
   * wait and file later, or 
-  * file your forms in another way.
+  * download and file your forms in another way.
 ---
 id: ETC required info
 continue button field: ETC_required_info
 question: |
-  ${ county_choice } Circuit Court Requires Direct E-mail Filing from MLH-Forms
+  ${ county_choice } County Circuit Court Requires Direct E-mail Filing from MLH-Forms
 subquestion: |
   When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool. 
   
@@ -3266,18 +3271,18 @@ subquestion: |
   % else:
   Tap the button below if you want to file now by e-mail. 
   
-  If you prefer to file in a different way, you can read the Instructions to learn about your options.
+  If you prefer to file in a different way, read the **Instructions** to learn about your options.
   % endif
   
   ${ collapse_template(wait_to_file_help) }
 ---
 template: email_to_self_option
 subject: |
-  Want to email a copy of the forms to yourself?
+  Want to email these forms to yourself or someone you trust?
 content: |
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
   
-  This is **not** for filing in court. This is for sending a copy to yourself or someone you trust. To file with the court, tap the button below.
+  This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **E-mail your forms to the court** button below.
 ---
 template: wait_to_file_help
 subject: |
@@ -3290,7 +3295,7 @@ content: |
   You can log back in later to:
   
   * update your forms,
-  * download your forms, and/or
+  * download your forms, or
   * email your forms to the court with the button below.
   
   Your forms will be **saved here for 180 days**. To restart the 180 day clock and keep your forms here for longer:
@@ -3299,7 +3304,7 @@ content: |
   * sign in, and
   * open this form by selecting it on the My Forms page. 
   
-  Opening this form again will restart the 180 days.
+  Opening this form again restarts the 180 days.
   % endif
 ---
 id: get email to clerk details
@@ -3313,16 +3318,6 @@ continue button label: |
 question: |
   Submit your forms to the court
 subquestion: |
-  % if someone_signed:
-  Fill in these fields and tap **Submit** to send your forms to the court. 
-  % else:
-  Fill in these fields and tap **E-sign and Submit** to send your forms to the court. 
-  % endif
-  
-  You must provide an e-mail address if at all posssible so that the court can contact you and send you a copy of your filed documents. If you don't have an e-mail, you must include a phone number.
-  
-  The phone number and email address you enter on this screen **will not** appear on your court forms.
-  
   % if not someone_signed:
   Because these forms will be e-mailed directly to the court, **you must e-sign** them. 
   % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
@@ -3332,42 +3327,63 @@ subquestion: |
   % endif
   % endif
   
-  [note make it so that one or the other is required, maybe with check boxes that say you don't have them or something?]
-   
-  For information about your next steps, see the "Instructions" document. This is with your downloadable forms.
+  You **must** provide an e-mail address if at all posssible so that the court can contact you and send you a copy of your filed documents. If you don't have a safe e-mail to use, you must include a phone number.
+  
+  The e-mail address or phone number you enter on this screen **will not** appear on your court forms, and will be kept confidential.
   
 fields:
-  - Safe e-mail address: ETC_safe_email
+  - E-mail address: ETC_safe_email
     datatype: email
+    show if:
+      variable: ETC_safe_email_NONE
+      is: False
+  - There's NO safe e-mail for the court to contact me at.: ETC_safe_email_NONE
+    required: False
+    datatype: yesno
   - Safe phone number: ETC_safe_phone
     datatype: al_international_phone
-  - Notes for the clerk (optional): notes_to_clerk
+    show if: ETC_safe_email_NONE
+  - Notes for the court clerk (optional): notes_to_clerk
     input type: area
     rows: 3
     maxlength: 200
     required: False
+under: |
+  % if someone_signed:
+  Tap **Submit** to send your forms to the court now. 
+  % else:
+  Tap **E-sign and Submit** to send your forms to the court now. 
+  % endif
 ---
 code: |
   recipient = get_config(f'{ county_choice } ETC address')
-  clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
+  if ETC_safe_email_NONE:
+    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
+  else:
+    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=ETC_safe_email, template=clerk_email) 
 ---
 template: clerk_email
 subject: |
   % if len(next_friends.complete_elements()) > 0:
-  Emergency Order of Protection Petition - ILAO Easy Form - ${ next_friends[0].name.full(middle="full") } v. ${other_parties[0].name.full(middle="full")} - contact: ${ phone_number_formatted(ETC_safe_phone) }
+  PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
   % else:
-  Emergency Order of Protection Petition - ILAO Easy Form - ${ users[0].name.full(middle="full") } v. ${other_parties[0].name.full(middle="full")} - contact: ${ phone_number_formatted(ETC_safe_phone) }
+  Petition for PPO by ${ users[0] }
   % endif
 content: |
   % if len(next_friends.complete_elements()) > 0:
-  ${ next_friends[0].name.full(middle="full") } is filing for a Petition for Order of Protection against ${other_parties[0].name.full(middle="full")}.
+  ${ next_friends[0] } (next friend for ${ users[0] }) is filing a PPO petition via MLH-forms.
   % else:
-  ${ users[0].name.full(middle="full") } is filing for a Petition for Order of Protection against ${other_parties[0].name.full(middle="full")}.
+  ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
   
-  Illinois has all sorts of stuff here but maybe ours can be simpler?
+  Petitioner contact information (confidential if different from contact info listed on forms): 
+  % if ETC_safe_email_NONE:
+  ${ ETC_safe_phone }
+  % else:
+  ${ ETC_safe_email }
+  % endif
   
-  Optional comment from sender: ${ notes_to_clerk }
+  **Optional** note from sender: ${ notes_to_clerk }
 ---
 id: email confirmation page
 continue button field: email_status
@@ -3379,13 +3395,17 @@ question: |
   % endif
 subquestion: |
   % if clerk_email_sent_ok:
-  **Your forms were sent to the court.**
+  **Your forms were sent to the ${ county_choice } County Circuit Court.** 
+  % if county_choice in ETC_court_phones:
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
+  % endif
   
-  **Important:** Read the "Instructions" document for what to do next. 
-
+  **Important:** Read the **Instructions** document for what to do next. 
+  
   If you did not download your forms or instructions yet, tap **Continue**. It may take a minute to get to the next screen. You do not need to refresh.
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
+  
   % else:
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
@@ -3399,7 +3419,10 @@ event: ETC_success
 question: |
   Your forms were e-mailed to the court!
 subquestion: |
-  **Note:** Your forms were **already emailed** to the court.
+  Your forms were **already emailed** to the ${ county_choice } County Circuit Court.
+  % if county_choice in ETC_court_phones:
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
+  % endif
   
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
   
