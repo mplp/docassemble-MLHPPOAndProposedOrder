@@ -2061,7 +2061,7 @@ id: petitioner's other children
 question: |
   Your other children
 fields:
-  - Do you have any other children living in your home who are **not** the children of the respondent?: petitioner_has_other_children
+  - Do you have any children living in your home who are **not** the children of the respondent?: petitioner_has_other_children
     help: |
       For example: stepchildren or adopted children.
     datatype: yesnoradio
@@ -2070,7 +2070,7 @@ id: respondent's other children
 question: |
   ${ other_parties[0] }'s other children
 fields:
-  - Does ${ other_parties[0] } have any other children living in their home who are **not** your children?: respondent_has_other_children
+  - Does ${ other_parties[0] } have any children living in their home who are **not** your children?: respondent_has_other_children
     help: |
       For example: stepchildren or adopted children.
     datatype: yesnomaybe
@@ -2086,7 +2086,7 @@ subquestion: |
 ---
 id: domestic ppo children intro
 question: |
-  Next, you will need to enter information about any children that you have with ${ other_parties[0] }, along with any children in your homes
+  Next, you will need to enter information about any children that you or ${ other_parties[0] } have.
 subquestion: |
   You will also need to enter information about any legal cases between you and ${ other_parties[0] } and describe the things that they have done that made you want a protection order.
 continue button field: domestic_ppo_children_intro
@@ -3237,7 +3237,7 @@ code: |
   if ETC_safe_email_NONE:
     etc_cover_contact_info += f"Phone: { ETC_safe_phone }"
   else:
-    etc_cover_contact_info += f"E-mail: { ETC_safe_email }"
+    etc_cover_contact_info += f"Email: { ETC_safe_email }"
 ---
 id: ETC optional info
 continue button field: ETC_optional_info
@@ -4220,7 +4220,6 @@ attachments:
   filename: Cover Page
   docx template file: ppo_cover_page.docx
   variable name: etc_cover_page[i]
-  skip undefined: True
 ---
 attachments:
   name: Personal Protection Order (Domestic Relationship) - CC 376
