@@ -694,7 +694,7 @@ code: |
   relationship_choices.append({'live_together':'We live together or used to live together'})
   relationship_choices.append({'dating':'We dated or are dating'}) 
   if parent_choice: 
-    relationship_choices.append({'parent':'They are my parent and we live together'})
+    relationship_choices.append({'parent':'They are my parent and we live together (or used to live together)'})
 ---
 code: |
   if other_parties_parents[i].shares_respondent_address:
