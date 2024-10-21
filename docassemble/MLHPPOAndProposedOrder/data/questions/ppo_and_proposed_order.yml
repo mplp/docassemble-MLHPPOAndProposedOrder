@@ -1100,9 +1100,9 @@ validation code: |
 ---
 id: other_parties_parents there_is_another
 question: |
-  Does ${ other_parties[0].name } have another parent, guardian, or custodian?
+  Other parent, guardian, or custodian
 fields:
-  - no label: other_parties_parents.there_is_another
+  - Does ${ other_parties[0].name } have another parent, guardian, or custodian?: other_parties_parents.there_is_another
     datatype: yesnoradio
 ---
 id: does respondent parent share address with respondent
@@ -1208,9 +1208,9 @@ fields:
 ---
 id: married when child born
 question: |
-  Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?
+  Relationship to ${ other_parties[0] }
 fields:
-  - no label: children[i].parties_married_when_born
+  - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?: children[i].parties_married_when_born
     datatype: yesnoradio
 ---
 id: custody or parenting time order
@@ -1290,7 +1290,7 @@ fields:
 ---
 id: describe relationship to respondent
 question: |
-  Describe your relationship with ${ other_parties[0] }
+  Your relationship with ${ other_parties[0] }
 subquestion: |
   For example:
 
@@ -1299,7 +1299,7 @@ subquestion: |
   
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
-  - no label: relationship_to_respondent_exp
+  - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
     datatype: area
 ---
 id: petitioner alias there_are_any
@@ -1369,7 +1369,7 @@ id: petitioner gender
 question: |
   What is your gender?
 fields:
-  - no label: users[i].gender
+  - Choose one: users[i].gender
     datatype: radio
     choices:
       - Male: M
@@ -1493,19 +1493,19 @@ content: |
 ---
 id: user birthdate
 question: |
-  Enter your date of birth
+  Date of birth
 fields:
-  - no label: users[0].birthdate
+  - Enter your date of birth: users[0].birthdate
     datatype: date
     required: True
 ---
 id: emancipated minor
 question: |
-  Are you an emancipated minor?
+  Emancipated minor status
 subquestion: |
   ${ collapse_template(emancipated_minor_explained) }
 fields:
-  - no label: petitioner_is_emancipated_minor
+  - Are you an emancipated minor?: petitioner_is_emancipated_minor
     datatype: yesnoradio
 ---
 template: emancipated_minor_explained
@@ -1594,16 +1594,16 @@ continue button field: next_friend_signature_notice
 ---
 id: respondent living in michigan
 question: |
-  ${ users[0] }, does the Respondent (the person you want to be protected from) live in Michigan?
+  Respondent's residence
 fields:
-  - no label: respondent_lives_in_michigan
+  - ${ users[0] }, does the Respondent (the person you want to be protected from) live in Michigan?: respondent_lives_in_michigan
     datatype: yesnoradio
 ---
 id: petitioner living in michigan
 question: |
-  Do you live in Michigan?
+  Your residence
 fields:
-  - no label: petitioner_lives_in_michigan
+  - Do you live in Michigan?: petitioner_lives_in_michigan
     datatype: yesnoradio
 ---
 id: respondent birthdate
@@ -1687,7 +1687,7 @@ question: |
 subquestion: |
   ${ collapse_template(ppo_types_explained) }
 fields:
-  - no label: ppo_type
+  - Choose one: ppo_type
     datatype: radio
     choices:
       - 1. Personal Protection Order - Domestic Relationship: domestic
@@ -1732,11 +1732,11 @@ continue button field: ppo_nondomestic_intro
 ---
 id: two or more noncontinuous incidents
 question: |
-  Were there two or more **separate**, **noncontinuous** incidents where the respondent stalked or harassed you?
+  Minimum number of incidents
 subquestion: |
   ${ collapse_template(separate_noncontinuous_incidents_explained) }
 fields:
-  - no label: has_two_separate_noncontinuous_incidents
+  - Were there two or more **separate**, **noncontinuous** incidents where the respondent stalked or harassed you?: has_two_separate_noncontinuous_incidents
     datatype: yesnoradio
 ---
 template: separate_noncontinuous_incidents_explained
@@ -1875,16 +1875,16 @@ continue button field: respondent_intro_screen
 ---
 id: petitioner and respondent living together
 question: |
-  Do you and ${ other_parties[0].name.first } live together?
+  Shared home
 fields:
-  - no label: petitioner_and_respondent_living_together
+  - Do you and ${ other_parties[0].name.first } live together?: petitioner_and_respondent_living_together
     datatype: yesnoradio
 ---
 id: respondent race
 question: |
   Enter ${ other_parties[0].name }'s race
 fields:
-  - no label: other_parties[0].race
+  - Choose one: other_parties[0].race
     choices:
       - White, not Hispanic or Latino: White
       - Hispanic or Latino: Hispanic/Latino
@@ -1898,7 +1898,7 @@ id: respondent gender
 question: |
   Enter ${ other_parties[0].name }'s gender
 fields:
-  - no label: other_parties[0].gender
+  - Choose one: other_parties[0].gender
     datatype: radio
     choices:
       - Male: M
@@ -1945,7 +1945,7 @@ question: |
 subquestion: |
   If unknown, select "Unknown."
 fields:
-  - no label: other_parties[0].hair_color
+  - Choose one: other_parties[0].hair_color
     choices:
       - Bald: Bald
       - Black: Black
@@ -1963,7 +1963,7 @@ question: |
 subquestion: |
   If unknown, select "Unknown."
 fields:
-  - no label: other_parties[0].eye_color
+  - Choose one: other_parties[0].eye_color
     choices:
       - Black: Black
       - Blue: Blue
@@ -1975,11 +1975,11 @@ fields:
 ---
 id: respondent license number
 question: |
-  Enter ${ other_parties[0].name }'s driver's license number
+  ${ other_parties[0].name }'s driver's license number
 subquestion: |
   If none or unknown, leave blank.
 fields:
-  - no label: other_parties[0].license_number
+  - Enter ${ other_parties[0].name }'s driver's license number: other_parties[0].license_number
     required: False
 ---
 mandatory: True
@@ -1993,7 +1993,7 @@ subquestion: |
 fields:
   - note: |
       <div id="show_maxlength"> </div>
-  - no label: other_parties[0].other_identifying_info
+  - Enter the information here: other_parties[0].other_identifying_info
     required: False
     maxlength: 50
 script: |
@@ -2023,9 +2023,9 @@ script: |
 ---
 id: respondent required to carry gun for work
 question: |
-  Is ${ other_parties[0].name } required to carry a gun for work?
+  Gun possession
 fields:
-  - no label: other_parties[0].carries_gun_for_work
+  - Is ${ other_parties[0].name } required to carry a gun for work?: other_parties[0].carries_gun_for_work
     datatype: radio
     choices:
       - Yes: yes
@@ -2265,24 +2265,24 @@ fields:
 ---
 id: pending_actions there_are_any
 question: |
-  Are there any pending legal cases between you and ${ other_parties[0].name }?
+  Pending legal cases
 subquestion: |
   % if ppo_type == "domestic":
   This includes any court cases, such as divorce, custody, PPO, a criminal case, or others.
   % endif
 fields:
-  - no label: pending_actions.there_are_any
+  - Are there any pending legal cases between you and ${ other_parties[0].name }?: pending_actions.there_are_any
     datatype: yesnoradio
 ---
 id: pending_actions docket number
 sets:
   - pending_actions[i].docket_number
 question: |
-  Enter the case number
+  Pending action case number
 subquestion: |
   Leave blank if unknown.
 fields:
-  - no label: pending_actions[i].docket_number
+  - Enter the case number: pending_actions[i].docket_number
     required: False
 ---
 id: pending_actions court and county
@@ -2307,13 +2307,13 @@ fields:
 ---
 id: pending_actions there_is_another
 question: |
-  Are there any more pending legal cases between you and ${ other_parties[0].name }?
+  Pending legal cases
 subquestion: |
   % if len(pending_actions.complete_elements()) > 0:
   ${ collapse_template(pending_actions_list_template) }
   % endif
 fields:
-  - no label: pending_actions.there_is_another
+  - Are there any more pending legal cases between you and ${ other_parties[0].name }?: pending_actions.there_is_another
     datatype: yesnoradio
 ---
 template: pending_actions_list_template
@@ -2340,24 +2340,24 @@ content: |
 ---
 id: orders_judgments there_are_any
 question: |
-  Are there any court orders or judgments entered in any court regarding you and ${ other_parties[0].name }?
+  Court orders and judgments
 subquestion: |
   % if ppo_type == "domestic":
   Includes divorce, custody, previous protection orders, criminal convictions, or others.
   % endif
 fields:
-  - no label: orders_judgments.there_are_any
+  - Are there any court orders or judgments entered in any court regarding you and ${ other_parties[0].name }?: orders_judgments.there_are_any
     datatype: yesnoradio
 ---
 id: orders_judgments docket number
 sets:
   - orders_judgments[i].docket_number
 question: |
-  Enter the case number
+  Court order or judgment's case number
 subquestion: |
   Leave blank if unknown.
 fields:
-  - no label: orders_judgments[i].docket_number
+  - Enter the case number: orders_judgments[i].docket_number
     required: False
 ---
 id: orders_judgments court and county
@@ -2382,13 +2382,13 @@ fields:
 ---
 id: orders_judgments there_is_another
 question: |
-  Are there any more court orders or judgments entered between you and ${ other_parties[0].name }?
+  Other court orders or judgments
 subquestion: |
   % if len(orders_judgments.complete_elements()) > 0:
   ${ collapse_template(orders_judgments_list_template) }
   % endif
 fields:
-  - no label: orders_judgments.there_is_another
+  - Are there any more court orders or judgments entered between you and ${ other_parties[0].name }?: orders_judgments.there_is_another
     datatype: yesnoradio
 ---
 template: orders_judgments_list_template
@@ -2451,33 +2451,33 @@ continue button field: sexual_assault_intro
 ---
 id: respondent sexual assault conviction
 question: |
-  Was ${ other_parties[0].name } convicted of sexual assault against you?
+  Sexual assault convictions
 fields:
-  - no label: respondent_sexual_assault_conviction
+  - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
     datatype: yesnoradio
 ---
 #NOTE: need to link this question to new entry in orders_judgments
 id: sexual assault conviction listed in orders and judgments
 question: |
-  Did you list this case when asked about orders or judgments between you and ${ other_parties[0].name }?
+  Including sexual assault convistion in orders and judgments 
 fields:
-  - no label: orders_judgments_include_sa_conviction
+  - Did you list this case when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
     datatype: yesnoradio
 ---
 id: fear of future sexual assault
 question: |
-  Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?
+  Fear of future sexual assault
 fields:
-  - no label: fears_future_sexual_assault
+  - Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?: fears_future_sexual_assault
     datatype: yesnoradio
 ---
 id: potential sexual assault explained
 question: |
-  Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }
+  Fear of future sexual assault explanation
 subquestion: |
   ${ collapse_template(fears_future_sexual_assault_explained) }
 fields:
-  - no label: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
     input type: area
 ---
 template: fears_future_sexual_assault_explained
@@ -2501,18 +2501,18 @@ subquestion: |
 ---
 id: petitioner property interest
 question: |
-  Do you have a property interest in this home?
+  Property interest
 subquestion: |
   ${ collapse_template(property_interest_explained) }
 fields:
-  - no label: has_property_interest_in_home
+  - Do you have a property interest in this home?: has_property_interest_in_home
     datatype: yesnoradio
 ---
 id: respondent property interest
 question: |
-  Does ${ other_parties[0].name } have a property interest in this home?
+  Property interest
 fields:
-  - no label: respondent_has_property_interest_in_home
+  - Does ${ other_parties[0].name } have a property interest in this home?: respondent_has_property_interest_in_home
     datatype: yesnoradio
 ---
 template: property_interest_explained
@@ -2610,7 +2610,7 @@ subquestion: |
 
   ${ collapse_template(incident_date_explained) }
 fields:
-  - no label: incidents[i].date
+  - Enter your answer here: incidents[i].date
 ---
 template: incident_date_explained
 subject: |
@@ -2645,7 +2645,7 @@ content: |
 ---
 id: incidents other party actions
 question: |
-  Please describe what happened during the incident
+  Incident details
 subquestion: |
   Be sure to use complete sentences and be as descriptive as you can. List as many details as you can remember.
 
@@ -2655,7 +2655,7 @@ subquestion: |
   ${ collapse_template(incident_other_party_actions_explained) }
   % endif
 fields:
-  - no label: incidents[i].other_party_actions
+  - Please describe what happened during the incident: incidents[i].other_party_actions
     input type: area
 ---
 template: incident_other_party_actions_explained
@@ -2724,13 +2724,13 @@ content: |
 ---
 id: incidents physical injury
 question: |
-  Were you physically injured?
+  Physical injuries
 subquestion: |
   Being physically injured includes being sore or bruised, having other injuries you took care of yourself, or having injuries that were seen by a doctor.
 
   ${ collapse_template(incident_injury_explained) }
 fields:
-  - no label: incidents[i].petitioner_injured
+  - Were you physically injured?: incidents[i].petitioner_injured
     datatype: yesnoradio
   - Describe your injuries: incidents[i].physical_injury
     input type: area
@@ -2746,13 +2746,13 @@ content: |
 ---
 id: incidents witnesses
 question: |
-  Were there any witnesses to the incident?
+  Witnesses
 subquestion: |
   You don't have to list the names of witnesses here, but if there are witnesses, it is possible the judge will want to hear from them if there is a court hearing.
 
   ${ collapse_template(incident_witnesses_explained) }
 fields:
-  - no label: incidents[i].had_witnesses
+  - Were there any witnesses to the incident?: incidents[i].had_witnesses
     datatype: yesnoradio
 ---
 template: incident_witnesses_explained
@@ -2763,11 +2763,11 @@ content: |
 ---
 id: incidents police
 question: |
-  Were the police called?
+  Police involvement
 subquestion: |
   ${ collapse_template(incident_police_explained) }
 fields:
-  - no label: incidents[i].had_police
+  - Were the police called?: incidents[i].had_police
     datatype: yesnoradio
   - What did the police do?: incidents[i].police_actions
     input type: area
@@ -2799,7 +2799,7 @@ question: |
   Is there another incident of violence, threat of violence, or other abuse?
   % endif
 fields:
-  - no label: incidents.there_is_another
+  - Choose one: incidents.there_is_another
     datatype: yesnoradio
 ---
 id: nondomestic_subsequent_incident_intro
@@ -2810,7 +2810,7 @@ continue button field: nondomestic_subsequent_incident_intro
 ---
 id: other details
 question: |
-  Include anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }
+  Other details
 subquestion: |
   You can use this space to tell the judge other things about ${ other_parties[0].name } that make you feel threatened, abused, or afraid.
 
@@ -2820,7 +2820,7 @@ subquestion: |
   ${ collapse_template(incident_other_details_explained) }
   % endif
 fields:
-  - no label: other_details
+  - Is there anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }?: other_details
     input type: area
     required: False
 ---
@@ -2862,18 +2862,18 @@ continue button field: relief_requested_intro
 ---
 id: wants_no_entering_residential_property
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to enter the property where you live?
+  Prohibiting entry to your residence
 fields:
-  - no label: wants_no_entering_residential_property
+  - Do you want the judge to order ${ other_parties[0].name } not to enter the property where you live?: wants_no_entering_residential_property
     datatype: yesnoradio
 ---
 id: wants no entering other property
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to enter other property (not your residence)?
+  Prohibiting entry to your other property
 subquestion: |
   ${ collapse_template(wants_no_entering_other_property_explained) }
 fields:
-  - no label: other_properties.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to enter other property (not your residence)?: other_properties.there_are_any
     datatype: yesnoradio
 ---
 template: wants_no_entering_other_property_explained
@@ -2884,23 +2884,23 @@ content: |
 ---
 id: wants no sexual assault threats
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** you?
+  Prohibiting threats
 fields:
-  - no label: wants_no_sexual_assault_threats
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** you?: wants_no_sexual_assault_threats
     datatype: yesnoradio
 ---
 id: wants no harming petitioner
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** you?
+  Prohibiting harm
 fields:
-  - no label: wants_no_harming_petitioner
+  - Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** you?: wants_no_harming_petitioner
     datatype: yesnoradio
 ---
 id: wants no harming others
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** another person?
+  Prohibiting harm
 fields:
-  - no label: ppo_harm_protectees.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** another person?: ppo_harm_protectees.there_are_any
     datatype: yesnoradio
 ---
 id: ppo_harm_protectees there_is_another
@@ -2930,11 +2930,11 @@ content: |
 ---
 id: wants_no_removing_minor
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to remove your minor child(ren) from your custody?
+  Removing your minor children
 subquestion: |
   This protection **will not** prohibit ${ other_parties[0].name } from removing your minor children if ${ other_parties[0].name } is allowed to have the children based on a custody or parenting time order and if the visitation or transfer of the children does not violate other conditions of the personal protection order.
 fields:
-  - no label: wants_no_removing_minor
+  - Do you want the judge to order ${ other_parties[0].name } not to remove your minor child(ren) from your custody?: wants_no_removing_minor
     datatype: yesnoradio
 ---
 id: no_stalking_choices
@@ -2962,11 +2962,11 @@ fields:
 ---
 id: wants_no_children_property_removal_interference
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to interfere with your efforts to remove your children or personal property from a place that ${ other_parties[0].name } owns or leases?
+  Protecting your ability to remove your children or property
 subquestion: |
   ${ collapse_template(wants_no_children_property_removal_interference_explained) }
 fields:
-  - no label: wants_no_children_property_removal_interference
+  - Do you want the judge to order ${ other_parties[0].name } not to interfere with your efforts to remove your children or personal property from a place that ${ other_parties[0].name } owns or leases?: wants_no_children_property_removal_interference
     datatype: yesnoradio
 ---
 template: wants_no_children_property_removal_interference_explained
@@ -2977,18 +2977,18 @@ content: |
 ---
 id: wants no threatening petitioner
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure you?
+  Prohibiting threats
 fields:
-  - no label: wants_no_threatening_petitioner
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure you?: wants_no_threatening_petitioner
     datatype: yesnoradio
 ---
 id: wants no threatening others
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person?
+  Prohibiting threats
 subquestion: |
   ${ collapse_template(wants_no_threatening_others_explained) }
 fields:
-  - no label: ppo_threat_protectees.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person?: ppo_threat_protectees.there_are_any
     datatype: yesnoradio
 ---
 template: wants_no_threatening_others_explained
@@ -2999,11 +2999,11 @@ content: |
 ---
 id: ppo_threat_protectees there_is_another
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person not yet listed?
+  Prohibiting threats
 subquestion: |
   ${ collapse_template(threat_protectees_listed_so_far) }
 fields:
-  - no label: ppo_threat_protectees.there_is_another
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person not yet listed?: ppo_threat_protectees.there_is_another
     datatype: yesnoradio
 ---
 template: threat_protectees_listed_so_far
@@ -3024,18 +3024,18 @@ content: |
 ---
 id: wants_no_work_education_interference
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?
+  Protecting your schoolwork or employment
 fields:
-  - no label: wants_no_work_education_interference
+  - Do you want the judge to order ${ other_parties[0].name } not to interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?: wants_no_work_education_interference
     datatype: yesnoradio
 ---
 id: wants no sexual assault threats to others
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** another person?
+  Prohibiting threats
 subquestion: |
   ${ collapse_template(wants_no_sexual_assault_threats_to_others_explained) }
 fields:
-  - no label: ppo_sexual_assault_threat_protectees.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** another person?: ppo_sexual_assault_threat_protectees.there_are_any
     datatype: yesnoradio
 ---
 template: wants_no_sexual_assault_threats_to_others_explained
@@ -3046,11 +3046,11 @@ content: |
 ---
 id: ppo_sexual_assault_threat_protectees there_is_another
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill or physically injure** another person not yet listed?
+  Prohibiting threats
 subquestion: |
   ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
 fields:
-  - no label: ppo_sexual_assault_threat_protectees.there_is_another
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill or physically injure** another person not yet listed?: ppo_sexual_assault_threat_protectees.there_is_another
     datatype: yesnoradio
 ---
 template: ppo_sexual_assault_threat_protectees_listed_so_far
@@ -3071,11 +3071,11 @@ content: |
 ---
 id: wants_no_access_to_personal_info_records
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to have access to information in your child's records that shows your (or your child's) home address, phone number, or work address?
+  Access to child's information
 subquestion: |
   ${ collapse_template(wants_no_access_to_personal_info_records_explained) }
 fields:
-  - no label: wants_no_access_to_personal_info_records
+  - Do you want the judge to order ${ other_parties[0].name } not to have access to information in your child's records that shows your (or your child's) home address, phone number, or work address?: wants_no_access_to_personal_info_records
     datatype: yesnoradio
 ---
 template: wants_no_access_to_personal_info_records_explained
@@ -3097,9 +3097,9 @@ fields:
 ---
 id: wants_no_firearm_purchase_or_possession
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to buy or have a gun?
+  Prohibiting gun possession
 fields:
-  - no label: wants_no_firearm_purchase_or_possession
+  - Do you want the judge to order ${ other_parties[0].name } not to buy or have a gun?: wants_no_firearm_purchase_or_possession
     datatype: yesnoradio
 ---
 id: wants_no_message_posting
@@ -3118,16 +3118,16 @@ subquestion: |
   ${ other_parties[0].name } would be prohibited from using social media, such as Facebook or Twitter, or falsely using your name to send messages to other people in order to harass you.
   % endif
 fields:
-  - no label: wants_no_message_posting
+  - Choose one: wants_no_message_posting
     datatype: yesnoradio
 ---
 id: wants_other_request
 question: |
-  Is there anything else you want the judge to order in the PPO?
+  Other information for the judge
 subquestion: |
   ${ collapse_template(wants_other_request_explained) }
 fields:
-  - no label: wants_other_request
+  - Is there anything else you want the judge to order in the PPO?: wants_other_request
     datatype: yesnoradio
   - List the other things you want the judge to order ${ other_parties[0].name } not to do.: other_request_exp
     input type: area
