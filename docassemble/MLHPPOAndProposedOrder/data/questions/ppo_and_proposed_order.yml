@@ -345,6 +345,7 @@ code: |
     ETC_optional_info
   elif ETC_county_status == "required":
     ETC_required_info
+    ETC_esign
 
   if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
     if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
@@ -367,9 +368,11 @@ code: |
     personal_protection_order_download
   else: 
     ETC_review_docs_screen
-    ETC_review_exhibits
+    if ETC_county_status == "optional":
+      ETC_review_exhibits
     clerk_email_prep
-    ETC_esign
+    if ETC_county_status == "optional":
+      ETC_esign
     email_status
     if clerk_email_sent_ok:
       ETC_success
@@ -3351,8 +3354,6 @@ code: |
         signatures_complete = True
       else:
         signatures_complete = False
-  else: 
-    signatures_complete = False
 ---
 only sets: ETC_esign
 code: |
@@ -3364,6 +3365,7 @@ code: |
   else:
     MLH_esign = True
   signature_date
+  signatures_complete = True
   ETC_esign = True
 ---
 code: |
@@ -3394,16 +3396,23 @@ subquestion: |
 ---
 id: ETC required info
 continue button field: ETC_required_info
+continue button label: "E-sign and continue"
 question: |
   ${ county_choice } County Circuit Court Requires Direct E-mail Filing from MLH-Forms
 subquestion: |
-  When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool. 
+  When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool.
   
-  On the next screen, attach any documents you want the judge to see. Then continue to review your forms and file by e-mail when you're ready.
+  % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+  This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
+  % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
+  % else:
+  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
+  % endif
 ---
 id: ETC review and download docs screen
 continue button field: ETC_review_docs_screen
-continue button label: ":file-export: E-mail your forms to the court"
+continue button label: "E-mail your forms to the court"
 question: |
   Review your forms
 subquestion: |
@@ -3421,7 +3430,11 @@ subquestion: |
   % if ETC_county_status == "required":
   Tap the button below when you're ready to e-mail your forms to the court. 
   % else:
+  % if not signatures_complete:
+  Tap the button below if you want to finish e-signing and file now by e-mail. 
+  % else:
   Tap the button below if you want to file now by e-mail. 
+  % endif  
   
   If you prefer to file in a different way, read the **Instructions** to learn about your options.
   % endif
@@ -3497,9 +3510,9 @@ id: get email to clerk details
 continue button field: clerk_email_prep
 continue button label: |
   % if signatures_complete:
-  Submit
+  :file-export: Submit
   % else:
-  E-sign and Submit
+  :file-export: E-sign and Submit
   % endif
 question: |
   Submit your forms to the court
@@ -3515,7 +3528,7 @@ subquestion: |
   % endif
   % endif
   
-  You **must** provide an e-mail address if at all posssible so that the court can contact you and send you a copy of your filed documents. If you don't have a safe e-mail to use, you must include a phone number.
+  You **must** provide an e-mail address if at all possible so that the court can contact you and send you a copy of your filed documents. If you don't have a safe e-mail to use, you must include a phone number.
   
   The e-mail address or phone number you enter on this screen **will not** appear on your court forms, and will be kept confidential.
   
