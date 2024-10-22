@@ -339,14 +339,18 @@ code: |
     wants_other_request
     if wants_ex_parte_order:
       ex_parte_yes_screen
-  
-  if exhibit_attachment.exhibits.has_exhibits:
-    exhibit_attachment.exhibits.gather()
 
   nav.set_section("review_get_forms_info")
-  if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
+  if ETC_county_status == "optional":
+    ETC_optional_info
+  elif ETC_county_status == "required":
+    ETC_required_info
 
-    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
+    if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+      if fourteen_plus_agrees_to_sign:
+        signature_date
+    elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
       if next_friend_agrees_to_sign:
         signature_date
       else:
@@ -354,16 +358,16 @@ code: |
     else:
       if MLH_esign:
         signature_date
+
+  if exhibit_attachment.exhibits.has_exhibits:
+    exhibit_attachment.exhibits.gather()
        
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
     personal_protection_order_download
   else: 
-    if ETC_county_status == "optional":
-      ETC_optional_info
-    else:
-      ETC_required_info
     ETC_review_docs_screen
+    ETC_review_exhibits
     clerk_email_prep
     ETC_esign
     email_status
@@ -1592,6 +1596,41 @@ subquestion: |
   If you do not want to have your e-signature added to the forms automatically, you will need to download them, print them, sign them, and scan them before they can be filed.
 continue button field: next_friend_signature_notice
 ---
+id: minor 14 and up e-sign
+question: |
+  E-signatures
+subquestion: |
+  Because ${ users[0] } is over 14, they must sign the request for a next friend. The next friend, ${ next_friends[0] }, must sign the other forms.
+  
+  This tool can put "**/s/ ${ users[0] }**" and "**/s/ ${ next_friends[0] }**" where you would sign your names so you do not have to sign the forms by hand. The court will accept these electronic signatures.
+fields:
+  - Does ${ users[0] }, agree to add their electronic signature to the forms now?: fourteen_plus_agrees_to_sign
+    datatype: yesnoradio
+  - Does the next friend, ${ next_friends[0] }, agree to add their electronic signature to the forms now?: next_friend_agrees_to_sign
+    datatype: yesnoradio
+under: |
+  ${ collapse_template(signature_info_template) }
+---
+template: signature_info_template
+subject: |
+  I plan to file by direct e-mail or e-file. What should I choose?
+content: |
+  % if ETC_county_status == "optional":
+  E-signatures are required to use the direct e-mail filing option. Choose *Yes* to e-sign now. You can also e-sign later.
+
+  If you're not going to use direct e-mail filing, you can still add your electronic signature now if you wish.
+  % else:    
+  If you **plan to e-file**, you may want to sign electronically. Choose *Yes* to add your electronic signature now.
+  
+  If you prefer to sign by hand, choose *No*. You will need to print your forms, sign them, and then scan them before you can e-file.
+  
+  To find out **if you can e-file**, read [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) The article tells you how to find out which courts have e-filing for which case types. 
+  
+  ${ MLH_case_type_language }
+
+   If you're **not e-filing**, you can still add your electronic signature now if you wish.
+  % endif
+---
 # overriding version from ql_baseline
 generic object: ALExhibitList
 id: any exhibits
@@ -1603,18 +1642,37 @@ question: |
   % endif
 subquestion: |
   % if ETC_county_status == "required":
-  If you have any documents you want to show the judge, attach them now. This could include police reports, photos of injuries, medical reports, or other documents.
+  If you have any documents you want to show the judge, attach them now. This could include things like:
+  
+  * Police reports
+  * Medical records
+  * Photos
+  * Copies of e-mails or text messages
+  * Letters
+
   % elif ETC_county_status == "optional":
-  If you have any documents you want to show the judge, you can attach them now. This could include police reports, photos of injuries, medical reports, or other documents.
+  If you have any documents you want to show the judge, you can attach them now. This could include things like:
+  
+  * Police reports
+  * Medical records
+  * Photos
+  * Copies of e-mails or text messages
+  * Letters
 
-  If you plan to file directly by e-mail, attach any documents now. 
-
-  If you plan to file in a different way, you can choose to:
+  If you plan to file by direct e-mail from this tool, attach any documents now. If you plan to file in a different way, you can choose to:
   
   * upload documents using this tool, or
   * attach documents yourself outside of this tool.
   % else:
-  If you have any documents you want to show the judge, you can attach them now. This could include police reports, photos of injuries, medical reports, or other documents. You can choose to:
+  If you have any documents you want to show the judge, you can attach them now. This could include things like:
+  
+  * Police reports
+  * Medical records
+  * Photos
+  * Copies of e-mails or text messages
+  * Letters
+  
+  You can choose to:
   
   * upload documents using this tool, or
   * attach documents yourself after you get your forms.
@@ -3278,22 +3336,30 @@ code: |
 ---
 code: |
   if ETC_county_status == "optional" or ETC_county_status == "not_allowed":
-    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-      if next_friend_agrees_to_sign == True:
-        someone_signed = True
+    if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+      if fourteen_plus_agrees_to_sign == True and next_friend_agrees_to_sign == True:
+        signatures_complete = True
       else:
-        someone_signed = False
+        signatures_complete = False
+    elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      if next_friend_agrees_to_sign == True:
+        signatures_complete = True
+      else:
+        signatures_complete = False
     else:
       if MLH_esign == True:
-        someone_signed = True
+        signatures_complete = True
       else:
-        someone_signed = False
+        signatures_complete = False
   else: 
-    someone_signed = False
+    signatures_complete = False
 ---
 only sets: ETC_esign
 code: |
-  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+    next_friend_agrees_to_sign = True
+    fourteen_plus_agrees_to_sign = True
+  elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
     next_friend_agrees_to_sign = True
   else:
     MLH_esign = True
@@ -3318,11 +3384,13 @@ continue button field: ETC_optional_info
 question: |
   ${ county_choice } County Circuit Court Accepts Direct E-mail Filing from MLH-Forms
 subquestion: |
-  On the next screen you can review your forms. Then you have a choice to: 
+  You can choose whether to: 
   
-  * file now with a direct email from this tool, 
+  * file your forms right away with a direct email from this tool, 
   * wait and file later, or 
   * download and file your forms in another way.
+
+  On the next few screens you can choose whether to e-sign and attach any documents you want the judge to see. Then you can review your forms and, if you want, file by direct e-mail from this tool.
 ---
 id: ETC required info
 continue button field: ETC_required_info
@@ -3331,7 +3399,7 @@ question: |
 subquestion: |
   When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool. 
   
-  On the next screen you can review your forms. Then follow the on-screen directions to file by e-mail.
+  On the next screen, attach any documents you want the judge to see. Then continue to review your forms and file by e-mail when you're ready.
 ---
 id: ETC review and download docs screen
 continue button field: ETC_review_docs_screen
@@ -3368,6 +3436,40 @@ content: |
   
   This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **E-mail your forms to the court** button below.
 ---
+continue button field: ETC_review_exhibits
+id: exhibit review for ETC optional counties
+question: |
+  Have you attached all the documents you want the judge to see?
+review:
+  - note: |
+      Review your answers below and add any documents you want the court to see.
+  - Edit:
+    - exhibit_attachment.exhibits.has_exhibits
+    button: |
+      **Do you have documents you want the judge to see?**:
+
+      % if exhibit_attachment.exhibits.has_exhibits:
+      Yes
+      % elif not exhibit_attachment.exhibits.has_exhibits:
+      No
+      % endif
+  - note: |
+      **Uploaded Documents**
+
+      ${ exhibit_attachment.exhibits.add_action() }
+
+      % if exhibit_attachment.exhibits.there_are_any:
+      ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
+      % else:
+      You have not uploaded any documents yet.
+      % endif
+
+    css class: bg-secondary-subtle
+    show if: exhibit_attachment.exhibits.has_exhibits
+  - note: |
+      ${ collapse_template(no_documents) }
+      ${ collapse_template(audiovisual_evidence) }
+---
 template: wait_to_file_help
 subject: |
   What if I'm not ready to file yet?
@@ -3394,7 +3496,7 @@ content: |
 id: get email to clerk details
 continue button field: clerk_email_prep
 continue button label: |
-  % if someone_signed:
+  % if signatures_complete:
   Submit
   % else:
   E-sign and Submit
@@ -3402,12 +3504,14 @@ continue button label: |
 question: |
   Submit your forms to the court
 subquestion: |
-  % if not someone_signed:
-  Because these forms will be e-mailed directly to the court, **you must e-sign** them. 
-  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms.
+  % if not signatures_complete:
+  Because these forms will be e-mailed directly to the court, **e-signatures are required**. 
+  % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+  This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
+  % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
   % else:
-  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms.
+  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
   % endif
   % endif
   
@@ -3433,10 +3537,10 @@ fields:
     maxlength: 200
     required: False
 under: |
-  % if someone_signed:
+  % if signatures_complete:
   Tap **Submit** to send your forms to the court now. 
   % else:
-  Tap **E-sign and Submit** to send your forms to the court now. 
+  Tap **E-sign and Submit** to e-sign and send your forms to the court now. 
   % endif
 ---
 code: |
@@ -3898,6 +4002,20 @@ attachments:
         ${ '' }
         % endif
     - next_friend1_name: ${ next_friends[0] }
+    - requestor_signature: |
+        % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+        % if fourteen_plus_agrees_to_sign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+        % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+        % if next_friend_agrees_to_sign:
+        /s/ ${ next_friends[0] }
+        % else:
+        ${ '' }
+        % endif
+        % endif
     - next_friend1_signature: |
         % if next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
@@ -3905,6 +4023,14 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if next_friend_agrees_to_sign else "" }
+    - signature_date_requestor: |
+        % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
+        ${ signature_date }
+        % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
+        ${ signature_date }
+        % else:
+        ${ '' }
+        % endif
     - users1_name: ${ users[0] }
     - is_minor: ${ petitioner_is_minor }
     - is_incapacitated_adult: ${ is_incapacitated_adult }
