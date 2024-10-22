@@ -10,13 +10,13 @@ review:
       % endif
   - note: |
       <hr>
-      <h2 class='h5'>Parties and Children</h2>
+      <h2 class='h5'>Parties & Children</h2>
+  - raw html: |
+      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>', showing=True) }
   - Edit: users.revisit
     button: |-
-      **Your Information**
-
       % for item in users:
-        ${ item }
+        **${ item }**
         % if len(user_alias.complete_elements()) > 0:
 
         Aliases: ${ comma_and_list(user_alias) }
@@ -30,65 +30,17 @@ review:
       % endfor
   - Edit: next_friends.revisit
     button: |-
-      **Your Next Friend**
+      **Next Friend**
 
       % for item in next_friends:
         ${ item }
       % endfor
-  - Edit: children.revisit
-    button: |-
-      **Children**
-
-      % for item in children:
-        ${ item }
-
-        DOB: ${ item.birthdate }
-        % if item.lives_with:
-
-        Lives with: ${ item.lives_with }
-        % endif
-        % if item.parties_married_when_born:
-
-        How was paternity established?: Parties married when item.familiar() was born
-        % elif (not item.parties_married_when_born) and item.paternity == "by_court_order":
-
-        Paternity established by court order: 
-        
-          * Case number: ${ item.paternity_case_number }
-
-          * Court: ${ item.paternity_case_court_name }
-        % elif (not item.parties_married_when_born) and item.paternity == "by_acknowledgment_of_parentage":
-        
-        Paternity established by *Acknowledgment of Parentage*
-        % elif (not item.parties_married_when_born) and item.paternity == "paternity_case_pending":
-        
-        Paternity case still pending: 
-        
-          * Case number: ${ item.paternity_case_number }
-
-          * Court: ${ item.paternity_case_court_name }
-        % endif
-        % if item.has_order_in_effect:
-
-        Custody/parenting time order in effect:
-
-          * Case number: ${ item.custody_case_number }
-
-          * Court: ${ item.custody_case_court }
-
-        % endif
-      % endfor
-  # note, removed previous line 79 "Who has custody?: ..." becasuse it was cut off mid-line and causing syntax errors. Needs to be added back.
-  - note: |
-      <hr>
-      <h2 class='h5'>Case and Court Information</h2>
-    show if: docket_number
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Respondent</h2>') }
   - Edit: other_parties.revisit
     button: |-
-      **The Other Party**
-
       % for item in other_parties:
-        ${ item }
+        **${ item }**
         % if len(other_party_alias.complete_elements()) > 0:
 
         Aliases: ${ comma_and_list(other_party_alias) }
@@ -138,22 +90,87 @@ review:
         
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Children</h2>') }
+  - Edit: children.revisit
+    button: |-
+      % for item in children:
+
+        **${ item }**
+
+        DOB: ${ item.birthdate }
+        % if item.lives_with:
+
+        Lives with: ${ item.lives_with }
+        % endif
+        % if item.parties_married_when_born:
+
+        Paternity established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born
+        % elif (not item.parties_married_when_born) and item.paternity == "by_court_order":
+
+        Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif (not item.parties_married_when_born) and item.paternity == "by_acknowledgment_of_parentage":
+        
+        Paternity established by *Acknowledgment of Parentage*
+        % elif (not item.parties_married_when_born) and item.paternity == "paternity_case_pending":
+        
+        Paternity case still pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % endif
+        % if item.has_order_in_effect:
+
+        Custody/parenting time order in effect (Case \#${ item.custody_case_number } - ${ item.custody_case_court })
+        % if item.parenting_time_order == "reasonable_parenting_time":
+
+        Parenting time order only says there will be "reasonable parenting time"
+        % elif item.parenting_time_order == "specific_times":
+
+        Parenting time order lists specific days and times
+        % elif item.parenting_time_order == "one_parent_supervised":
+
+        Parenting time order says ${ users[0] if item.who_has_supervised_time == "petitioner" else other_parties[0] } will be supervised by ${ item.who_supervises_parenting_time }
+        % elif item.parenting_time_order == "one_parent_no_parenting_time":
+
+        Parenting time order says ${ users[0] if item.parent_whithout_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
+        % endif
+        % if item.physical_custody_by_order == 'sole_petitioner':
+
+        Custody: ${ users[0] } has sole custody
+        % elif item.physical_custody_by_order == 'sole_respondent':
+
+        Custody: ${ other_parties[0] } has sole custody
+        % elif item.physical_custody_by_order == 'joint_custody':
+
+        Custody: ${ users[0] } and ${ other_parties[0] } share custody
+        % endif
+        % if not custody_parenting_time_provisions_same:
+        % if item.desired_parenting_time_changes == "no_change":
+
+        Desired parenting time changes: None
+        % elif item.desired_parenting_time_changes == "no_change_except_exchange":
+
+        Desired parenting time change: No change to parenting time, but exchange should take place at ${ item.exchange_police_department_location if item.exchange_location == "police" else item.exchange_other_location }
+        % elif item.desired_parenting_time_changes == "suspend_respondent_time":
+
+        Desired parenting time change: ${ other_parties }'s parenting time should be suspended
+        % endif
+        % endif
+        % endif
+
+      % endfor
+  # note, removed previous line 79 "Who has custody?: ..." becasuse it was cut off mid-line and causing syntax errors. Needs to be added back.
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Court Where You Will File This Petition</h2>') }
   - Edit: 
     - county_choice
     - recompute:
       - court_index
       - the_court
     button: |
-      **Court Information**
-      
       ${ the_court }
 
       ${ county_choice } County
-  - Edit: docket_number
-    button: |
-      **What is your case number?**
-
-      ${ docket_number }
+  - raw html: |
+      ${ end_accordion() }
   - note: |
       <hr>
       <h2 class='h5'>Uploaded Documents</h2>
