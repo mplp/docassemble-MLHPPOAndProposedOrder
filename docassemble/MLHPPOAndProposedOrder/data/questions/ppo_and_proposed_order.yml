@@ -116,9 +116,7 @@ code: |
   for user in users:
     user.birthdate
 
-  check_if_petitioner_under_fourteen
   check_if_petitioner_minor
-  check_if_petitioner_at_least_sixteen
   if petitioner_is_minor:
     if is_incapacitated_adult:
       inconsistent_age_kickout
@@ -351,6 +349,8 @@ code: |
     if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
       if fourteen_plus_agrees_to_sign:
         signature_date
+      elif next_friend_agrees_to_sign:
+        signature_date
     elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
       if next_friend_agrees_to_sign:
         signature_date
@@ -388,7 +388,7 @@ code: |
 generic object: ALIndividual
 code: |
   if x.no_phone_number:
-    x.phone_number = "Does not have phone"
+    x.phone_number = "Unknown phone"
 ---
 code: |
   if users[0].no_phone_number:
@@ -412,14 +412,16 @@ code: |
     petitioner_is_minor = True
   else:
     petitioner_is_minor = False
-  check_if_petitioner_minor = True
----
-code: |
   if users[0].age_in_years() < 14:
     petitioner_under_fourteen = True
   else:
     petitioner_under_fourteen = False
-  check_if_petitioner_under_fourteen = True
+  if users[0].age_in_years() >= 16:
+    petitioner_at_least_sixteen = True
+  else:
+    petitioner_at_least_sixteen = False
+    petitioner_is_emancipated_minor = False
+  check_if_petitioner_minor = True
 ---
 code: |
   if knows_respondents_birthdate:
@@ -726,15 +728,6 @@ code: |
 
 #   check_oakland_respondent_contact_info = True
 ---
-code: |
-  if users[0].age_in_years() >= 16:
-    petitioner_at_least_sixteen = True
-  else:
-    petitioner_at_least_sixteen = False
-    petitioner_is_emancipated_minor = False
-
-  check_if_petitioner_at_least_sixteen = True
----
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -829,7 +822,7 @@ code: |
   else:
     other_parties[i].address.address
   if other_parties[i].no_phone_number:
-    other_parties[i].phone_number = "Does not have phone"
+    other_parties[i].phone_number = "Unknown phone"
   if county_choice == "Oakland":
     if ((other_parties[0].address.address == "") or (other_parties[0].address.city == "") or (other_parties[0].address.state == "")) and (other_parties[0].no_phone_number):
       respondent_contact_info_kickout
@@ -861,7 +854,7 @@ code: |
     else:
       other_parties_parents[i].address.address
   if other_parties_parents[i].no_phone_number:
-    other_parties_parents[i].phone_number = "Does not have phone"
+    other_parties_parents[i].phone_number = "Unknown phone"
   other_parties_parents[i].complete = True
 ---
 code: |
@@ -1588,8 +1581,10 @@ question: |
 subquestion: |
   This tool can put "**/s/ ${ next_friends[0] }**" where you would sign your name so you do not have to sign the forms by hand. The court will accept this as your signature.
 fields:
-  - Do YOU, ${ next_friends[0] }, agree to have this tool place your e-signature on the forms?: next_friend_agrees_to_sign
+  - Do YOU, ${ next_friends[0] }, agree to add your electronic signature to the forms now?: next_friend_agrees_to_sign
     datatype: yesnoradio
+under: |
+  ${ collapse_template(signature_info_template) }
 ---
 id: next friend signature notice
 event: next_friend_signature_notice
@@ -1599,6 +1594,7 @@ subquestion: |
   If you do not want to have your e-signature added to the forms automatically, you will need to download them, print them, sign them, and scan them before they can be filed.
 continue button field: next_friend_signature_notice
 ---
+only sets: fourteen_plus_agrees_to_sign
 id: minor 14 and up e-sign
 question: |
   E-signatures
@@ -3373,7 +3369,7 @@ code: |
 ---
 code: |
   if len(next_friends.complete_elements()) > 0:
-    etc_cover_contact_info = f"Petitioner: { next_friends[0] }, next friend for ${ users[0] }; "
+    etc_cover_contact_info = f"Petitioner: { next_friends[0] }, next friend for { users[0] }; "
   else:
     etc_cover_contact_info = f"Petitioner: { users[0] }; "
   etc_cover_contact_info += f"Email: { contact_email }"
@@ -3452,7 +3448,7 @@ question: |
   Have you attached all the documents you want the judge to see?
 review:
   - note: |
-      Review your answers below and add any documents you want the court to see.
+      Review your answers below and add any documents you want the court to see. When you're finished, tap **${MLH_continue_button_label}**.
   - Edit:
     - exhibit_attachment.exhibits.has_exhibits
     button: |
@@ -3545,6 +3541,8 @@ under: |
 code: |
   recipient = get_config(f'{ county_choice } ETC address')
   clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=contact_email, template=clerk_email) 
+  if clerk_email_sent_ok:
+    prevent_going_back()
 ---
 template: clerk_email
 subject: |
@@ -3594,6 +3592,7 @@ subquestion: |
   % endif
 ---
 id: email to court success screen
+prevent going back: True
 event: ETC_success
 question: |
   Your forms were e-mailed to the court!
@@ -3865,7 +3864,7 @@ code: |
     ppo_contact_information_sheet.enabled = False
 ---
 code: |
-  if is_incapacitated_adult or petitioner_is_minor:
+  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
     if has_next_friend_petitioning:
       ppo_mc_319.enabled = True
     else:
@@ -4017,7 +4016,7 @@ attachments:
     - signature_date_requestor: |
         % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
         ${ signature_date }
-        % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
+        % elif is_incapacitated_adult or (petitioner_is_minor and petitioner_under_fourteen) and next_friend_agrees_to_sign:
         ${ signature_date }
         % else:
         ${ '' }
