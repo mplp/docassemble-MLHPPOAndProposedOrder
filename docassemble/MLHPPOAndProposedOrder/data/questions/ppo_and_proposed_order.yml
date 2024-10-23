@@ -3376,10 +3376,7 @@ code: |
     etc_cover_contact_info = f"Petitioner: { next_friends[0] }, next friend for ${ users[0] }; "
   else:
     etc_cover_contact_info = f"Petitioner: { users[0] }; "
-  if ETC_safe_email_NONE:
-    etc_cover_contact_info += f"Phone: { ETC_safe_phone }"
-  else:
-    etc_cover_contact_info += f"Email: { ETC_safe_email }"
+  etc_cover_contact_info += f"Email: { contact_email }"
 ---
 id: ETC optional info
 continue button field: ETC_optional_info
@@ -3528,22 +3525,11 @@ subquestion: |
   % endif
   % endif
   
-  You **must** provide an e-mail address if at all possible so that the court can contact you and send you a copy of your filed documents. If you don't have a safe e-mail to use, you must include a phone number.
-  
-  The e-mail address or phone number you enter on this screen **will not** appear on your court forms, and will be kept confidential.
-  
+  Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
+# if this email should be NF and oakland forms needs user, will need to add an extra field here for NF/Oakland situations to gather both addresses. And also should clarify language above to say it should be NF's email address if that's so.  
 fields:
-  - E-mail address: ETC_safe_email
+  - E-mail address: contact_email
     datatype: email
-    show if:
-      variable: ETC_safe_email_NONE
-      is: False
-  - There's NO safe e-mail for the court to contact me at.: ETC_safe_email_NONE
-    required: False
-    datatype: yesno
-  - Safe phone number: ETC_safe_phone
-    datatype: al_international_phone
-    show if: ETC_safe_email_NONE
   - Notes for the court clerk (optional): notes_to_clerk
     input type: area
     rows: 3
@@ -3558,10 +3544,7 @@ under: |
 ---
 code: |
   recipient = get_config(f'{ county_choice } ETC address')
-  if ETC_safe_email_NONE:
-    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
-  else:
-    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=ETC_safe_email, template=clerk_email) 
+  clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=contact_email, template=clerk_email) 
 ---
 template: clerk_email
 subject: |
@@ -3577,14 +3560,9 @@ content: |
   ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
   
-  Petitioner contact information (confidential if different from contact info listed on forms): 
-  % if ETC_safe_email_NONE:
-  ${ ETC_safe_phone }
-  % else:
-  ${ ETC_safe_email }
-  % endif
+  Petitioner contact information (keep confidential): ${ contact_email }
   
-  **Optional** note from sender: ${ notes_to_clerk }
+  **Optional note from sender:** ${ notes_to_clerk }
 ---
 id: email confirmation page
 continue button field: email_status
@@ -4903,7 +4881,7 @@ attachments:
     - users1_city_state_zip: |
         ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
-    - users1_email: ${ users[0].email }
+    - users1_email: ${ contact_email }
     - users1_signature: ${ f"/s/ {users[0]}" if MLH_esign else "" }
     - pursuant_to: |
         % if MLH_esign:
