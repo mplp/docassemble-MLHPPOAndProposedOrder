@@ -363,18 +363,22 @@ code: |
        
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
+    snapshot_download
     personal_protection_order_download
   else: 
+    snapshot_download
     ETC_review_docs_screen
     if ETC_county_status == "optional":
       ETC_review_exhibits
     clerk_email_prep
     if ETC_county_status == "optional":
       ETC_esign
-    email_status
     if clerk_email_sent_ok:
+      snapshot_ETC
+      email_status_sent
       ETC_success
     else:
+      email_status_failed
       ETC_error
 
   interview_ppo_and_proposed_order = True
@@ -3391,7 +3395,7 @@ subquestion: |
   This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
   % endif
 ---
-id: ETC review and download docs screen
+id: ETC review and download docs DownloadScreen
 continue button field: ETC_review_docs_screen
 continue button label: "E-mail your forms to the court"
 question: |
@@ -3550,16 +3554,11 @@ content: |
   
   **Optional note from sender:** ${ notes_to_clerk }
 ---
-id: email confirmation page
-continue button field: email_status
+id: email confirmation ETCSent
+continue button field: email_status_sent
 question: |
-  % if clerk_email_sent_ok:
   You forms were e-mailed to the court!
-  % else:
-  Email Error
-  % endif
 subquestion: |
-  % if clerk_email_sent_ok:
   **Your forms were sent to the ${ county_choice } County Circuit Court.** 
   % if county_choice in ETC_court_phones:
   You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
@@ -3570,14 +3569,17 @@ subquestion: |
   If you did not download your forms or instructions yet, tap **Continue**. It may take a minute to get to the next screen. You do not need to refresh.
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
-  
-  % else:
+---
+id: email not sent ETCFailed
+continue button field: email_status_failed
+question: |
+  Email Error
+subquestion: |
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
   Tap **Undo** to return to the Submit page and try again. 
   
   Or tap "Continue" to download your forms. It may take a minute to get to the next screen. You do not need to refresh.
-  % endif
 ---
 id: email to court success screen
 prevent going back: True
@@ -3596,9 +3598,6 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-buttons:
-  - Exit: exit
-  - Restart: restart
 ---
 id: email to court error screen
 event: ETC_error
@@ -3617,9 +3616,11 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-buttons:
-  - Exit: exit
-  - Restart: restart
+---
+code: |
+  stuff_to_snapshot['ETC_sent'] = showifdef('clerk_email_sent_ok')
+  reconsider('snapshot_interview_state')
+  snapshot_ETC = True
 ---
 # if no ETC
 id: download screen
