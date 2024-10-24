@@ -1592,6 +1592,8 @@ fields:
   - Do YOU, ${ next_friends[0] }, agree to have this tool place your e-signature on the forms?: next_friend_agrees_to_sign
     datatype: yesnoradio
     label above field: True
+under: |
+  ${ collapse_template(signature_info_template) }
 ---
 id: next friend signature notice
 event: next_friend_signature_notice
