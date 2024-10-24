@@ -354,8 +354,6 @@ code: |
     elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
       if next_friend_agrees_to_sign:
         signature_date
-      else:
-        next_friend_signature_notice
     else:
       if MLH_esign:
         signature_date
@@ -1586,14 +1584,6 @@ fields:
 under: |
   ${ collapse_template(signature_info_template) }
 ---
-id: next friend signature notice
-event: next_friend_signature_notice
-question: |
-  You will still need to sign the forms later
-subquestion: |
-  If you do not want to have your e-signature added to the forms automatically, you will need to download them, print them, sign them, and scan them before they can be filed.
-continue button field: next_friend_signature_notice
----
 only sets: fourteen_plus_agrees_to_sign
 id: minor 14 and up e-sign
 question: |
@@ -1612,22 +1602,20 @@ under: |
 ---
 template: signature_info_template
 subject: |
-  I plan to file by direct e-mail or e-file. What should I choose?
+  What if I don't e-sign?
 content: |
   % if ETC_county_status == "optional":
   E-signatures are required to use the direct e-mail filing option. Choose *Yes* to e-sign now. You can also e-sign later.
 
-  If you're not going to use direct e-mail filing, you can still add your electronic signature now if you wish.
+  If you're not going to use direct e-mail filing, you can e-sign now or sign the forms yourself after you download them.
   % else:    
-  If you **plan to e-file**, you may want to sign electronically. Choose *Yes* to add your electronic signature now.
+  You can choose to e-sign now or sign the forms yourself after you download them.
   
-  If you prefer to sign by hand, choose *No*. You will need to print your forms, sign them, and then scan them before you can e-file.
+  If you **plan to e-file**, you may want to e-sign. Otherwise, you will need to print your forms, sign them, and then scan them before you can e-file.
   
   To find out **if you can e-file**, read [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) The article tells you how to find out which courts have e-filing for which case types. 
   
   ${ MLH_case_type_language }
-
-   If you're **not e-filing**, you can still add your electronic signature now if you wish.
   % endif
 ---
 # overriding version from ql_baseline
