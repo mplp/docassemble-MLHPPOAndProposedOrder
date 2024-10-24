@@ -1587,9 +1587,10 @@ subquestion: |
 ---
 id: next friend agrees to sign
 question: |
-  Your signature
+  Next friend's signature
 subquestion: |
-  This tool can put "**/s/ ${ next_friends[0] }**" where you would sign your name so you do not have to sign the forms by hand. The court will accept this as your signature.
+  This tool can add "**/s/ ${ next_friends[0] }**" to the forms as an electronic signature. The court will accept this as ${ next_friends[0] }'s signature.
+# let's make two different versions with a show if that asks if the person filling this out is user or nxt friend, and asks the question the right way as appropriate.  and then simplify the original agree to role question.
 fields:
   - Do YOU, ${ next_friends[0] }, agree to add your electronic signature to the forms now?: next_friend_agrees_to_sign
     datatype: yesnoradio
