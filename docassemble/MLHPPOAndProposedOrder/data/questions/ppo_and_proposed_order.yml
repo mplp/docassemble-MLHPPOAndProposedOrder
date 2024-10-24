@@ -3579,9 +3579,15 @@ subquestion: |
   This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
   % endif
   % endif
+
+  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  Enter an e-mail address that you check often and do not share with anyone else. ${ next_friends[0] }, this should be **your** e-mail address, not ${ users[0] }'s.
   
+  When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
+  % else:
   Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
-# if this email should be NF and oakland forms needs user, will need to add an extra field here for NF/Oakland situations to gather both addresses. And also should clarify language above to say it should be NF's email address if that's so.  
+  % endif
+  
 fields:
   - E-mail address: contact_email
     datatype: email
@@ -3617,7 +3623,7 @@ content: |
   ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
   
-  Petitioner contact information (keep confidential): ${ contact_email }
+  Petitioner contact information: ${ contact_email }
   
   **Optional note from sender:** ${ notes_to_clerk }
 ---
