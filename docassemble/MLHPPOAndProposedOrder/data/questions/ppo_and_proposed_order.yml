@@ -354,8 +354,6 @@ code: |
     elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
       if next_friend_agrees_to_sign:
         signature_date
-      else:
-        next_friend_signature_notice
     else:
       if MLH_esign:
         signature_date
@@ -365,18 +363,22 @@ code: |
        
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
+    snapshot_download
     personal_protection_order_download
   else: 
+    snapshot_download
     ETC_review_docs_screen
     if ETC_county_status == "optional":
       ETC_review_exhibits
     clerk_email_prep
     if ETC_county_status == "optional":
       ETC_esign
-    email_status
     if clerk_email_sent_ok:
+      snapshot_ETC
+      email_status_sent
       ETC_success
     else:
+      email_status_failed
       ETC_error
 
   interview_ppo_and_proposed_order = True
@@ -1595,14 +1597,6 @@ fields:
 under: |
   ${ collapse_template(signature_info_template) }
 ---
-id: next friend signature notice
-event: next_friend_signature_notice
-question: |
-  You will still need to sign the forms later
-subquestion: |
-  If you do not want to have your e-signature added to the forms automatically, you will need to download them, print them, sign them, and scan them before they can be filed.
-continue button field: next_friend_signature_notice
----
 only sets: fourteen_plus_agrees_to_sign
 id: minor 14 and up e-sign
 question: |
@@ -1621,22 +1615,20 @@ under: |
 ---
 template: signature_info_template
 subject: |
-  I plan to file by direct e-mail or e-file. What should I choose?
+  What if I don't e-sign?
 content: |
   % if ETC_county_status == "optional":
   E-signatures are required to use the direct e-mail filing option. Choose *Yes* to e-sign now. You can also e-sign later.
 
-  If you're not going to use direct e-mail filing, you can still add your electronic signature now if you wish.
+  If you're not going to use direct e-mail filing, you can e-sign now or sign the forms yourself after you download them.
   % else:    
-  If you **plan to e-file**, you may want to sign electronically. Choose *Yes* to add your electronic signature now.
+  You can choose to e-sign now or sign the forms yourself after you download them.
   
-  If you prefer to sign by hand, choose *No*. You will need to print your forms, sign them, and then scan them before you can e-file.
+  If you **plan to e-file**, you may want to e-sign. Otherwise, you will need to print your forms, sign them, and then scan them before you can e-file.
   
   To find out **if you can e-file**, read [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) The article tells you how to find out which courts have e-filing for which case types. 
   
   ${ MLH_case_type_language }
-
-   If you're **not e-filing**, you can still add your electronic signature now if you wish.
   % endif
 ---
 # overriding version from ql_baseline
@@ -3470,7 +3462,7 @@ subquestion: |
   This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
   % endif
 ---
-id: ETC review and download docs screen
+id: ETC review and download docs DownloadScreen
 continue button field: ETC_review_docs_screen
 continue button label: "E-mail your forms to the court"
 question: |
@@ -3629,16 +3621,11 @@ content: |
   
   **Optional note from sender:** ${ notes_to_clerk }
 ---
-id: email confirmation page
-continue button field: email_status
+id: email confirmation ETCSent
+continue button field: email_status_sent
 question: |
-  % if clerk_email_sent_ok:
   You forms were e-mailed to the court!
-  % else:
-  Email Error
-  % endif
 subquestion: |
-  % if clerk_email_sent_ok:
   **Your forms were sent to the ${ county_choice } County Circuit Court.** 
   % if county_choice in ETC_court_phones:
   You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
@@ -3649,14 +3636,17 @@ subquestion: |
   If you did not download your forms or instructions yet, tap **Continue**. It may take a minute to get to the next screen. You do not need to refresh.
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
-  
-  % else:
+---
+id: email not sent ETCFailed
+continue button field: email_status_failed
+question: |
+  Email Error
+subquestion: |
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
   Tap **Undo** to return to the Submit page and try again. 
   
   Or tap "Continue" to download your forms. It may take a minute to get to the next screen. You do not need to refresh.
-  % endif
 ---
 id: email to court success screen
 prevent going back: True
@@ -3675,9 +3665,6 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-buttons:
-  - Exit: exit
-  - Restart: restart
 ---
 id: email to court error screen
 event: ETC_error
@@ -3696,9 +3683,11 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-buttons:
-  - Exit: exit
-  - Restart: restart
+---
+code: |
+  stuff_to_snapshot['ETC_sent'] = showifdef('clerk_email_sent_ok')
+  reconsider('snapshot_interview_state')
+  snapshot_ETC = True
 ---
 # if no ETC
 id: download screen
