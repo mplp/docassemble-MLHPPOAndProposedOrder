@@ -368,8 +368,7 @@ code: |
   else: 
     snapshot_download
     ETC_review_docs_screen
-    if ETC_county_status == "optional":
-      ETC_review_exhibits
+    ETC_review_exhibits
     clerk_email_prep
     if ETC_county_status == "optional":
       ETC_esign
@@ -1475,7 +1474,7 @@ event: inconsistent_age_kickout
 question: |
   You cannot continue using this tool
 subquestion: |
-  You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0].possessive('birthday') } makes them a **minor**.
+  You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0] }'s birthday makes them a **minor**.
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answers.
 ---
@@ -1563,15 +1562,17 @@ subquestion: |
 ---
 id: next friend agrees to role
 question: |
-  ${ next_friends[0] } must agree to be ${ users[0].possessive('next friend') }
+  ${ next_friends[0] } must agree to be ${ users[0] }'s next friend 
 subquestion: |
-  Before your *Petition for Personal Protection Order* can be filed, ${ next_friends[0] } must sign it. This tool can place ${ next_friends[0].possessive('e-signature') } on the petition if they agree to it.
+  Before your *Petition for Personal Protection Order* can be filed, ${ next_friends[0] } must sign it. This tool can place ${ next_friends[0] }'s e-signature on the petition if they agree to it.
 
-  If ${ next_friends[0] } is with you (or if you have a way of contacting them right now), have them read (or read to them) the information on the next pages and answer that they consent to act as your next friend and have their e-signature placed on your forms.
+  ${ collapse_template(next_friend_explained) }
 
-  **If ${ next_friends[0] } is not available** to give their consent right now, exit the interview and start over when they are available.
+  Have ${ next_friends[0] } read (or read to them) the information above. Ask them if they agree to act as your next friend.
+
+  **If ${ next_friends[0] } is not available** to ask right now, exit this tool and start over when they are available.
 fields:
-  - Do YOU, ${ next_friends[0] }, agree to act as ${ users[0].possessive(' next friend') }?: next_friend_agrees_to_role
+  - Do YOU, ${ next_friends[0] }, agree to act as ${ users[0] }'s next friend?: next_friend_agrees_to_role
     datatype: yesnoradio
 ---
 id: next friend role kickout
@@ -1579,7 +1580,7 @@ event: next_friend_role_kickout
 question: |
   You cannot continue using this tool
 subquestion: |
-  Since you do not agree to act as ${ users[0].possessive(' next friend') }, this tool can’t be used to prepare a PPO.
+  Since ${ next_friends[0] } does not agree to act as ${ users[0] }'s next friend, this tool can’t be used to prepare a PPO.
 
   If ${ users[0] } wants to continue preparing a PPO, they will need to find another adult who is willing to act as their next friend.
 
@@ -1587,11 +1588,11 @@ subquestion: |
 ---
 id: next friend agrees to sign
 question: |
-  Your signature
+  Next friend's signature
 subquestion: |
-  This tool can put "**/s/ ${ next_friends[0] }**" where you would sign your name so you do not have to sign the forms by hand. The court will accept this as your signature.
+  This tool can add "**/s/ ${ next_friends[0] }**" to the forms as an electronic signature. The court will accept this as ${ next_friends[0] }'s signature.
 fields:
-  - Do YOU, ${ next_friends[0] }, agree to add your electronic signature to the forms now?: next_friend_agrees_to_sign
+  - Does ${ next_friends[0] } agree to add their electronic signature to the forms now?: next_friend_agrees_to_sign
     datatype: yesnoradio
     label above field: True
 under: |
@@ -1602,33 +1603,41 @@ id: minor 14 and up e-sign
 question: |
   E-signatures
 subquestion: |
-  Because ${ users[0] } is over 14, they must sign the request for a next friend. The next friend, ${ next_friends[0] }, must sign the other forms.
+  Because ${ users[0] } is over 14, they must sign the *Request for Next Friend*. The next friend, ${ next_friends[0] }, must sign the other forms.
   
   This tool can put "**/s/ ${ users[0] }**" and "**/s/ ${ next_friends[0] }**" where you would sign your names so you do not have to sign the forms by hand. The court will accept these electronic signatures.
 fields:
-  - Does ${ users[0] }, agree to add their electronic signature to the forms now?: fourteen_plus_agrees_to_sign
+  - Does ${ users[0] }, agree to add their electronic signature to the *Request for Next Friend* now?: fourteen_plus_agrees_to_sign
     datatype: yesnoradio
-  - Does the next friend, ${ next_friends[0] }, agree to add their electronic signature to the forms now?: next_friend_agrees_to_sign
+  - Does the next friend, ${ next_friends[0] }, agree to add their electronic signature to the other forms now?: next_friend_agrees_to_sign
     datatype: yesnoradio
 under: |
   ${ collapse_template(signature_info_template) }
 ---
 template: signature_info_template
 subject: |
-  What if I don't e-sign?
+  Are e-signatures required?
 content: |
   % if ETC_county_status == "optional":
-  E-signatures are required to use the direct e-mail filing option. Choose *Yes* to e-sign now. You can also e-sign later.
-
-  If you're not going to use direct e-mail filing, you can e-sign now or sign the forms yourself after you download them.
-  % else:    
-  You can choose to e-sign now or sign the forms yourself after you download them.
+  E-signatures are required to use the direct e-mail filing option. Choose **Yes** to e-sign now. There will be another chance to e-sign later.
   
-  If you **plan to e-file**, you may want to e-sign. Otherwise, you will need to print your forms, sign them, and then scan them before you can e-file.
+  % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+  If you're not going to use direct e-mail filing, ${ next_friends[0] } and ${ users[0] } can e-sign now or sign the forms after you download and print them.
+  % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  If you're not going to use direct e-mail filing, ${ next_friends[0] } can e-sign now or sign the forms after you download and print them.
+  % else:
+  If you're not going to use direct e-mail filing, you can e-sign now or sign the forms yourself after you download and print them.
+  % endif
+  % elif ETC_county_status == "not_allowed":    
+  The court will accept e-signatures or written signatures.
+  
+  If you **plan to e-file**, e-signing simplifies the process. Otherwise, you will need to print your forms and then scan signed copies before you can e-file.
   
   To find out **if you can e-file**, read [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) The article tells you how to find out which courts have e-filing for which case types. 
   
   ${ MLH_case_type_language }
+  % else:
+  Yes. Because these forms will be e-mailed directly to the court, e-signatures are required. 
   % endif
 ---
 # overriding version from ql_baseline
@@ -2775,7 +2784,7 @@ subquestion: |
 
   ${ collapse_template(incident_date_explained) }
 fields:
-  - Complete the sentence ${ word("\"Another") if len(incidents.complete_elements()) > 0 else word("\"One") } incident occured on or about...": incidents[i].date
+  - Complete the sentence "This incident occured on or about...": incidents[i].date
     label above field: True
 ---
 template: incident_date_explained
@@ -2786,11 +2795,7 @@ content: |
 ---
 id: incidents location
 question: |
-  % if county_choice == "Oakland" and wants_confidential_contact_details:
   Incident location
-  % else:
-  Complete this sentence
-  % endif
 subquestion: |
   % if county_choice == "Oakland" and wants_confidential_contact_details:
   *If you answered that you want to keep your home address confidential and this incident happened at your home, DO NOT type your address. Instead, type 'my home.'*
@@ -2821,7 +2826,7 @@ subquestion: |
   ${ collapse_template(incident_other_party_actions_explained) }
   % endif
 fields:
-  - Please describe what happened during the incident: incidents[i].other_party_actions
+  - Please describe what happened during the incident.: incidents[i].other_party_actions
     label above field: True
     input type: area
 ---
@@ -3457,10 +3462,12 @@ subquestion: |
   % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
   This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
   % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
+  This tool will add "**/s/ ${ next_friends[0] }**" as the next friend's e-signature on the forms. Continue only if ${ next_friends[0] } agrees to e-sign.
   % else:
   This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
   % endif
+under: |
+  ${ collapse_template(signature_info_template) }
 ---
 id: ETC review and download docs DownloadScreen
 continue button field: ETC_review_docs_screen
@@ -3569,27 +3576,33 @@ continue button label: |
 question: |
   Submit your forms to the court
 subquestion: |
-  % if not signatures_complete:
-  Because these forms will be e-mailed directly to the court, **e-signatures are required**. 
-  % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
-  This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
-  % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
+  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
+  
+  When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail ${ next_friends[0] } at this address.
   % else:
-  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
-  % endif
+  Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
   % endif
   
-  Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
-# if this email should be NF and oakland forms needs user, will need to add an extra field here for NF/Oakland situations to gather both addresses. And also should clarify language above to say it should be NF's email address if that's so.  
 fields:
-  - E-mail address: contact_email
+  - Contact e-mail address: contact_email
     datatype: email
   - Notes for the court clerk (optional): notes_to_clerk
     input type: area
     rows: 3
     maxlength: 200
     required: False
+  - note: |
+      % if not signatures_complete:
+      Because these forms will be e-mailed directly to the court, **e-signatures are required**. 
+      % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+      This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
+      % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      This tool will add "**/s/ ${ next_friends[0] }**" as the next friend's e-signature on the forms. Continue only if ${ next_friends[0] } agrees to e-sign.
+      % else:
+      This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
+      % endif
+      % endif
 under: |
   % if signatures_complete:
   Tap **Submit** to send your forms to the court now. 
@@ -3617,7 +3630,7 @@ content: |
   ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
   
-  Petitioner contact information (keep confidential): ${ contact_email }
+  Petitioner contact information: ${ contact_email }
   
   **Optional note from sender:** ${ notes_to_clerk }
 ---
@@ -3626,9 +3639,9 @@ continue button field: email_status_sent
 question: |
   You forms were e-mailed to the court!
 subquestion: |
-  **Your forms were sent to the ${ county_choice } County Circuit Court.** 
+  Your forms **were e-mailed** to the ${ county_choice } County Circuit Court. 
   % if county_choice in ETC_court_phones:
-  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
   % endif
   
   **Important:** Read the **Instructions** document for what to do next. 
@@ -3741,10 +3754,10 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet, exhibit_attachment], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
-  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet, exhibit_attachment], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
+  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
 ---
 objects:
   - ppo_order_bundle: ALDocumentBundle.using(elements=[ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, proof_of_service_domestic, proof_of_service_domestic_minor, proof_of_service_nondomestic, proof_of_service_nondomestic_minor, proof_of_service_nondomestic_sa, proof_of_service_nondomestic_sa_minor], filename="Proposed Order.pdf", title="Proposed Order", enabled=True)
