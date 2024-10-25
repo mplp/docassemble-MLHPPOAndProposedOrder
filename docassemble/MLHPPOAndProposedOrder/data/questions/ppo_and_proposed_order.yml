@@ -1603,7 +1603,7 @@ id: minor 14 and up e-sign
 question: |
   E-signatures
 subquestion: |
-  Because ${ users[0] } is over 14, they must sign *the Request for Next Friend*. The next friend, ${ next_friends[0] }, must sign the other forms.
+  Because ${ users[0] } is over 14, they must sign the *Request for Next Friend*. The next friend, ${ next_friends[0] }, must sign the other forms.
   
   This tool can put "**/s/ ${ users[0] }**" and "**/s/ ${ next_friends[0] }**" where you would sign your names so you do not have to sign the forms by hand. The court will accept these electronic signatures.
 fields:
