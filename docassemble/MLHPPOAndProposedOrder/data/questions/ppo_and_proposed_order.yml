@@ -38,7 +38,7 @@ code: |
   MLH_court_forms = True
   MLH_time_min = 40
   MLH_time_max = 60
-  MLH_case_type_language = 'Look for the two-letter case type code at the end of your case number. This could be PP or PH. Also look at the column labeled "Type of Filing." If this column only says "Subsequent Filings" for your court, then you cannot e-File the Petition. However, if the judge grants your Petition, you would be able to e-File any motions in your PPO case later on. If you are allowed to e-File your initial papers, this column will say "Case Initiation.'
+  MLH_case_type_language = 'The two-letter case type code will be PP, PH, or PJ.'
   MLH_esign_supported = True
   survey_link_url_only = "https://www.surveymonkey.com/r/3BXDW9M"
   MLH_form_type = "forms"
