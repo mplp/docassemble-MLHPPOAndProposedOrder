@@ -4188,7 +4188,7 @@ attachments:
     - other_parties1_weight: ${ other_parties[0].weight }
     - other_parties1_race: ${ other_parties[0].race }
     - other_parties1_gender: ${ other_parties[0].gender }
-    - other_parties1_age: |
+    - other_parties1_birthdate: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
         % else:
