@@ -1018,14 +1018,14 @@ question: |
   What is ${ other_parties[0].name }'s address?
 fields:
   - Street Address or P.O. Box: other_parties[0].address.address
-    required: False
+    required: True if ppo_type == "domestic" else False
     address autocomplete: True
   - Apartment, suite, etc.: other_parties[0].address.unit
     required: False
   - City: other_parties[0].address.city
-    required: False
-  - State: other_parties[0].address.state
-    required: False
+    required: True if ppo_type == "domestic" else False
+  - State or Province: other_parties[0].address.state
+    required: True if ppo_type == "domestic" else False
   - Zip or Postal Code: other_parties[0].address.zip
     required: False
   - Country: other_parties[0].country
