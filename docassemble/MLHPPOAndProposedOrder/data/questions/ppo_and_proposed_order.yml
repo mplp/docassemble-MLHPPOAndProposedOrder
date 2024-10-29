@@ -4040,7 +4040,7 @@ attachments:
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
     - users1_address_block: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4055,7 +4055,7 @@ attachments:
         ${ other_parties[0].address_block() }
         ${ other_parties[0].phone_number }
     - pursuant_to: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
@@ -4169,7 +4169,7 @@ attachments:
   pdf template file: identifying_information.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4211,13 +4211,13 @@ attachments:
   pdf template file: cc_375_petition_for_personal_protection_order_domestic.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -4231,7 +4231,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -4239,13 +4239,13 @@ attachments:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
     - signature_date: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ signature_date }
         % else:
         ${ '' }
@@ -4490,7 +4490,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4541,7 +4541,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4601,7 +4601,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4649,7 +4649,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4705,13 +4705,13 @@ attachments:
   pdf template file: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -4725,7 +4725,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -4733,13 +4733,13 @@ attachments:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
     - signature_date: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ signature_date }
         % else:
         ${ '' }
@@ -4821,7 +4821,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4867,7 +4867,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4921,7 +4921,7 @@ attachments:
   pdf template file: cc_381_notice_of_hearing.pdf
   fields:
     - users1_name: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4969,13 +4969,13 @@ attachments:
   pdf template file: cc_377_petition_for_personal_protection_order_nondomestic.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -4989,7 +4989,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -4997,13 +4997,13 @@ attachments:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
     - signature_date: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ signature_date }
         % else:
         ${ '' }
