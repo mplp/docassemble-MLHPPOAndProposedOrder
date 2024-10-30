@@ -392,10 +392,6 @@ code: |
     x.phone_number = "Unknown phone"
 ---
 code: |
-  if users[0].no_phone_number:
-    users[0].phone_number = "Does not have phone"
----
-code: |
   users.there_is_another = False
 ---
 code: |
@@ -743,6 +739,8 @@ code: |
 ---
 code: |
   users[i].name.first
+  if users[i].no_phone_number:
+    users[i].phone_number = "Does not have phone"
   users[i].complete = True
 ---
 code: |
