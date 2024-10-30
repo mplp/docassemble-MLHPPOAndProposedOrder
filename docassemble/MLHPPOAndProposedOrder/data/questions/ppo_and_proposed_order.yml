@@ -1302,8 +1302,13 @@ question: |
 subquestion: |
   For example:
 
+    % if ppo_type == "domestic":
+    * "The respondent and I are siblings."
+    * "The respondent and I used to be roomates. We are not related to each other."
+    % else:
     * "The respondent is my neighbor."
     * "The respondent used to be my co-worker."
+    % endif
   
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
