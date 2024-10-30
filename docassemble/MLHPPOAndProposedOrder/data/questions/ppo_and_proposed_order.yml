@@ -1016,6 +1016,10 @@ sets:
   - other_parties[0].address.state
 question: |
   What is ${ other_parties[0].name }'s address?
+subquestion: |
+  % if ppo_type != "domestic":
+  If unknown, leave blank.
+  % endif
 fields:
   - Street Address or P.O. Box: other_parties[0].address.address
     required: True if ppo_type == "domestic" else False
