@@ -4055,7 +4055,7 @@ attachments:
         ${ other_parties[0].address_block() }
         ${ other_parties[0].phone_number }
     - pursuant_to: |
-        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
@@ -4231,7 +4231,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -4711,7 +4711,7 @@ attachments:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -4725,7 +4725,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -4989,7 +4989,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
