@@ -93,7 +93,6 @@ code: |
   nav.set_section("signpost_intro")
   MLH_intro_landing
   MLH_intro_roles
-  MLH_intro_time
   MLH_agree_terms
   MLH_intro_navigate_save
   if not MLH_intro_agree_no_pii:
@@ -1359,9 +1358,8 @@ fields:
 ---
 id: respondent alias there_is_another
 question: |
-  ${ other_parties[0] }'s aliasess
+  ${ other_parties[0] }'s aliases
 subquestion: |
-  subquestion: |
   ${ collapse_template(other_party_alias_list_template) }
 fields:
   - Has ${ other_parties[0] } ever been known by any other name?: other_party_alias.there_is_another
