@@ -173,6 +173,7 @@ code: |
     else:
       safe_contact_info_notice
     user.address.address
+    check_user_no_phone
     if county_choice == "Oakland":
       if user_alias.there_are_any:
         user_alias.gather()
@@ -390,6 +391,11 @@ generic object: ALIndividual
 code: |
   if x.no_phone_number:
     x.phone_number = "Unknown phone"
+---
+code: |
+  if users[0].no_phone_number:
+    users[0].phone_number = "Does not have phone"
+  check_user_no_phone = True
 ---
 code: |
   users.there_is_another = False
@@ -739,8 +745,6 @@ code: |
 ---
 code: |
   users[i].name.first
-  if users[i].no_phone_number:
-    users[i].phone_number = "Does not have phone"
   users[i].complete = True
 ---
 code: |
