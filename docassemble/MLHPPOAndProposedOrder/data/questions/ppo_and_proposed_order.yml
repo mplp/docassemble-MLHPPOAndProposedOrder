@@ -200,7 +200,6 @@ code: |
   if ppo_type == "domestic" and county_choice == "Oakland":
     set_parties_same_gender
 
-  check_other_party_address_set_to_user_address
   respondent_carries_firearm_for_work_asked
 
   if county_choice == "Oakland":
@@ -821,6 +820,8 @@ code: |
   if ppo_type == "domestic":
     if not petitioner_and_respondent_living_together:
       other_parties[i].address.address
+    else:
+      check_other_party_address_set_to_user_address
   else:
     other_parties[i].address.address
   if other_parties[i].no_phone_number:
