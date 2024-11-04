@@ -1805,21 +1805,27 @@ id: respondent other child birthdate
 question: |
   ${ respondent_other_children[i] }'s date of birth
 fields:
-  - Do you know ${ respondent_other_children[i].familiar() }'s exact date of birth?: respondent_other_children[i].knows_other_child_birthdate
+  - Do you know ${ respondent_other_children[i].familiar() }'s date of birth?: respondent_other_children[i].knows_other_child_birthdate
     datatype: yesnoradio
     label above field: True
-  - Enter ${ respondent_other_children[i].familiar() }'s date of birth: respondent_other_children[i].birthdate
+  - What is ${ respondent_other_children[i].familiar() }'s date of birth?: respondent_other_children[i].birthdate
     datatype: date
     show if:
       variable: respondent_other_children[i].knows_other_child_birthdate
       is: True
     label above field: True
-  - Even if you do not know ${ respondent_other_children[i].familiar() }'s exact date of birth, you must provide your best guess of their age: respondent_other_children[i].estimated_age
+  - What is ${ respondent_other_children[i].familiar() }'s approximate age?: respondent_other_children[i].estimated_age
     datatype: integer
+    required: False
     show if:
       variable: respondent_other_children[i].knows_other_child_birthdate
       is: False
     label above field: True
+  - note: |
+      *If you don't know, you can leave this blank.*
+    show if:
+      variable: respondent_other_children[i].knows_other_child_birthdate
+      is: False
 ---
 id: respondent emancipated minor
 question: |
