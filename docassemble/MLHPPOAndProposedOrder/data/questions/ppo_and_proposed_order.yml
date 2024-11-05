@@ -728,6 +728,11 @@ code: |
 
   check_if_petitioner_at_least_sixteen = True
 ---
+code: |
+  if not petitioner_knows_respondent_other_children_names:
+    respondent_other_children.clear()
+  set_respondent_has_other_children = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
