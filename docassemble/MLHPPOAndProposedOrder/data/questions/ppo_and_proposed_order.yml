@@ -3788,17 +3788,35 @@ code: |
 ---
 code: |
   if ppo_type == "domestic":
+    ppo_domestic_attachment.enabled = True
+    ppo_domestic_attachment_court.enabled = True
     ppo_cc_375.enabled = True
     ppo_cc_375_etc.enabled = True
     cc_375_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
+    ppo_nondomestic_sexual_assault_attachment.enabled = False
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = False
+    ppo_nondomestic_attachment.enabled = False
+    ppo_nondomestic_attachment_court.enabled = False
+  elif ppo_type == "nondomestic":
+    ppo_nondomestic_attachment.enabled = True
+    ppo_nondomestic_attachment_court.enabled = True
+    ppo_cc_377.enabled = True
+    ppo_cc_377_etc.enabled = True
+    cc_377_addendum.enabled = True
+    ppo_domestic_attachment_court.enabled = False
+    ppo_domestic_attachment.enabled = False
+    ppo_nondomestic_sexual_assault_attachment.enabled = False
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = False
   else:
-    ppo_cc_375.enabled = False
-    ppo_cc_375_etc.enabled = False
-    cc_375_addendum.enabled = False
+    ppo_nondomestic_sexual_assault_attachment.enabled = True
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = True
+    ppo_cc_395.enabled = True
+    ppo_cc_395_etc.enabled = True
+    cc_395_addendum.enabled = True
+    ppo_domestic_attachment_court.enabled = False
+    ppo_domestic_attachment.enabled = False
+    ppo_nondomestic_attachment.enabled = False
+    ppo_nondomestic_attachment_court.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and county_choice != "Wayne":
@@ -3817,22 +3835,6 @@ code: |
     ppo_cc_376m.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic":
-    ppo_cc_381.enabled = True
-    ppo_cc_377.enabled = True
-    ppo_cc_377_etc.enabled = True
-    cc_377_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
-  else:
-    ppo_cc_377.enabled = False
-    ppo_cc_377_etc.enabled = False
-    ppo_cc_381.enabled = False
-    cc_377_addendum.enabled = False
----
-code: |
   if ppo_type == "nondomestic" and county_choice != "Wayne":
     if respondent_is_minor:
       if not respondent_is_emancipated_minor:
@@ -3849,20 +3851,6 @@ code: |
     ppo_cc_380m.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault":
-    ppo_cc_395.enabled = True
-    ppo_cc_395_etc.enabled = True
-    cc_395_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
-  else:
-    ppo_cc_395.enabled = False
-    ppo_cc_395_etc.enabled = False
-    cc_395_addendum.enabled = False
----
-code: |
   if ppo_type == "nondomestic_sexual_assault" and county_choice != "Wayne":
     if respondent_is_minor:
       if not respondent_is_emancipated_minor:
@@ -3877,6 +3865,12 @@ code: |
   else:
     ppo_cc_396.enabled = False
     ppo_cc_396m.enabled = False
+---
+code: |
+  if wants_ex_parte_order:
+    ppo_cc_381.enabled = False
+  else:
+    ppo_cc_381.enabled = True
 ---
 code: |
   if (not wants_ex_parte_order) and (county_choice != "Oakland"):
@@ -3923,8 +3917,10 @@ code: |
 code: |
   if str(county_choice) == "Oakland":
     ppo_contact_information_sheet.enabled = True
+    etc_cover_page.enabled = False
   else:
     ppo_contact_information_sheet.enabled = False
+    etc_cover_page.enabled = True
 ---
 code: |
   if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
