@@ -3748,10 +3748,10 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
-  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, identifying_information, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
+  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
 ---
 objects:
   - ppo_order_bundle: ALDocumentBundle.using(elements=[ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, proof_of_service_domestic, proof_of_service_domestic_minor, proof_of_service_nondomestic, proof_of_service_nondomestic_minor, proof_of_service_nondomestic_sa, proof_of_service_nondomestic_sa_minor], filename="Proposed Order.pdf", title="Proposed Order", enabled=True)
@@ -3762,12 +3762,12 @@ objects:
   - ppo_cc_395_etc: ALDocumentBundle.using(elements=[etc_cover_page, ppo_cc_395], title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
 ---
 objects:
-  - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
-  - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", enabled=True)
-  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
-  - ppo_domestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375_etc, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
-  - ppo_nondomestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_377_etc, cc_377_addendum, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", enabled=True)
-  - ppo_nondomestic_sexual_assault_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_395_etc, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
+  - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
+  - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
+  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
+  - ppo_domestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375_etc, cc_375_addendum, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
+  - ppo_nondomestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_377_etc, cc_377_addendum, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
+  - ppo_nondomestic_sexual_assault_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_395_etc, cc_395_addendum, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
   - ppo_mc_319: ALDocument.using(title="Request for Next Friend - MC 319", filename="Request for Next Friend - MC 319", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -3781,24 +3781,26 @@ objects:
   - exhibit_attachment: ALExhibitDocument.using(title="Exhibits to Personal Protection Order", filename="Exhibits to Personal Protection Order", include_exhibit_cover_pages=True, add_page_numbers=True)
 ---
 code: |
-  if county_choice == "Wayne":
-    identifying_information.enabled = True
+  if county_choice != "Oakland":
+    etc_cover_page.enabled = True
+    if county_choice == "Wayne":
+      identifying_information.enabled = True
+    else:
+      identifying_information.enabled = False
   else:
+    etc_cover_page.enabled = False
     identifying_information.enabled = False
 ---
 code: |
   if ppo_type == "domestic":
+    ppo_domestic_attachment.enabled = True
+    ppo_domestic_attachment_court.enabled = True
     ppo_cc_375.enabled = True
     ppo_cc_375_etc.enabled = True
     cc_375_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
   else:
-    ppo_cc_375.enabled = False
-    ppo_cc_375_etc.enabled = False
-    cc_375_addendum.enabled = False
+    ppo_domestic_attachment.enabled = False
+    ppo_domestic_attachment_court.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and county_choice != "Wayne":
@@ -3818,19 +3820,15 @@ code: |
 ---
 code: |
   if ppo_type == "nondomestic":
+    ppo_nondomestic_attachment.enabled = True
+    ppo_nondomestic_attachment_court.enabled = True
     ppo_cc_381.enabled = True
     ppo_cc_377.enabled = True
     ppo_cc_377_etc.enabled = True
     cc_377_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
   else:
-    ppo_cc_377.enabled = False
-    ppo_cc_377_etc.enabled = False
-    ppo_cc_381.enabled = False
-    cc_377_addendum.enabled = False
+    ppo_nondomestic_attachment.enabled = False
+    ppo_nondomestic_attachment_court.enabled = False
 ---
 code: |
   if ppo_type == "nondomestic" and county_choice != "Wayne":
@@ -3850,17 +3848,14 @@ code: |
 ---
 code: |
   if ppo_type == "nondomestic_sexual_assault":
+    ppo_nondomestic_sexual_assault_attachment.enabled = True
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = True
     ppo_cc_395.enabled = True
     ppo_cc_395_etc.enabled = True
     cc_395_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
   else:
-    ppo_cc_395.enabled = False
-    ppo_cc_395_etc.enabled = False
-    cc_395_addendum.enabled = False
+    ppo_nondomestic_sexual_assault_attachment.enabled = False
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = False
 ---
 code: |
   if ppo_type == "nondomestic_sexual_assault" and county_choice != "Wayne":
