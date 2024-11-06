@@ -4944,14 +4944,26 @@ attachments:
         ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
     - users1_email: ${ contact_email }
-    - users1_signature: ${ f"/s/ {users[0]}" if MLH_esign else "" }
+    - users1_signature: |
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
+        /s/ ${ next_friends[0] }
+        % elif MLH_esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
     - pursuant_to: |
-        % if MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
-    - signature_date: ${ signature_date if MLH_esign else "" }
+    - signature_date: |
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
+        ${ signature_date }
+        % else:
+        ${ '' }
+        % endif
     - wants_confidential_contact_details: ${ wants_confidential_contact_details }
 ---
 attachments:
