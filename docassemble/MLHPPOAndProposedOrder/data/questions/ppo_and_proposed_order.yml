@@ -477,6 +477,17 @@ code: |
   check_other_party_address_set_to_user_address = True
 ---
 code: |
+  if other_parties[0].address.address == "": 
+    other_parties[0].address.address = "_________________"
+  if other_parties[0].address.city == "":
+    other_parties[0].address.city = "_______________"
+  if other_parties[0].address.state == "":
+    other_parties[0].address.state = "___"
+  if other_parties[0].address.zip == "":
+    other_parties[0].address.zip = "______"
+  respondent_address_missing = True
+---
+code: |
   other_parties[0].height = str(other_parties[0].height_feet) + " ft, " + str(other_parties[0].height_inches) + " in"
 ---
 code: |
@@ -820,10 +831,12 @@ code: |
   if ppo_type == "domestic":
     if not petitioner_and_respondent_living_together:
       other_parties[i].address.address
+      respondent_address_missing
     else:
       check_other_party_address_set_to_user_address
   else:
     other_parties[i].address.address
+    respondent_address_missing
   if other_parties[i].no_phone_number:
     other_parties[i].phone_number = "Unknown phone"
   if county_choice == "Oakland":
@@ -1020,7 +1033,7 @@ question: |
   What is ${ other_parties[0].name }'s address?
 subquestion: |
   % if ppo_type != "domestic":
-  If unknown, leave blank.
+  ${ collapse_template(respondent_address_explainer) }
   % endif
 fields:
   - Street Address or P.O. Box: other_parties[0].address.address
@@ -1036,6 +1049,18 @@ fields:
     required: False
   - Country: other_parties[0].country
     required: False
+---
+template: respondent_address_explainer
+subject: |
+  What if I don't know the address?
+content: |
+  Fill in as much of ${ other_parties[0] }'s address as you are able to. If you aren't able to find out their home address, you can use the address of their job, if you know it. 
+  
+  In some counties, you may not be able to file your petition without an address and/or phone number for the respondent. If this is the situation in your county, the clerk will let you know.
+
+  You will need the respondent's address to have them served with the PPO if the judge grants the order without a hearing. A PPO is effective and enforceable anywhere in Michigan as soon as it is signed by a judge. However, the police may not arrest ${ other_parties[0] } for violating the PPO until ${ other_parties[0] } has been served with it. In most situations it is best to have ${ other_parties[0] } served with the PPO as soon as possible after the judge issues it.
+
+  If the judge denies your ex parte petition (this means a petition without a hearing), then you can request a hearing to provide more evidence about why you need a PPO. However, you must have an address for the respondent in order to request the hearing, so the respondent can be served with your petition and a notice of hearing.
 ---
 id: respondent name
 sets:
