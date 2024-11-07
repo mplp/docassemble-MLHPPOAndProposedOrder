@@ -3922,19 +3922,19 @@ code: |
     oakland_county_instructions_ex_parte.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)):
+  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)) or wants_other_request:
     cc_375_attachment.enabled = True
   else:
     cc_375_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes) or wants_other_request:
     cc_377_attachment.enabled = True
   else:
     cc_377_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_sexual_assault_protectees_list.complete_elements()) > 1)):
+  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_sexual_assault_protectees_list.complete_elements()) > 1)) or wants_other_request:
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
@@ -4391,7 +4391,6 @@ attachments:
     - intentional_mental_distress_includes_retaining_animal: ${ intentional_mental_distress_includes_retaining_animal }
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
     - wants_other_request: ${ wants_other_request }
-    - other_request_exp: ${ other_request_exp }
     - other_request_see_attached: |
         % if wants_other_request:
         Please see "Relief Requested" in Attachment.
@@ -4811,7 +4810,6 @@ attachments:
     - wants_no_work_education_interference: ${ wants_no_work_education_interference }
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
     - wants_other_request: ${ wants_other_request }
-    - other_request_exp: ${ other_request_exp }
     - other_request_see_attached: |
         % if wants_other_request:
         Please see "Relief Requested" in Attachment.
