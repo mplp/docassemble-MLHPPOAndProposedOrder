@@ -50,13 +50,18 @@ review:
       % endfor
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
+    show if: len(other_parties.complete_elements()) > 0
   - Edit: other_parties.revisit
     button: |-
       % for item in other_parties:
         **${ item }**
+        % if county_choice == "Oakland":
+        % if other_party_alias.there_are_any:
         % if len(other_party_alias.complete_elements()) > 0:
 
         Aliases: ${ comma_and_list(other_party_alias) }
+        % endif
+        % endif
         % endif
         
         % if knows_respondents_birthdate:
@@ -96,8 +101,16 @@ review:
 
         Other Identifying Info: ${ item.other_identifying_info }
         % endif
+        % if item.carries_gun_for_work == "unknown":
 
-        Carries gun for work?: ${ word("Yes") if item.carries_gun_for_work else word("No") }
+        Carries gun for work?: Unknown
+        % elif item.carries_gun_for_work == "no":
+
+        Carries gun for work?: No
+        % elif item.carries_gun_for_work == "yes":
+
+        Carries gun for work?: Yes
+        % endif
 
         ${ item.address.block() }
         
@@ -105,6 +118,7 @@ review:
       % endfor
   - raw html: |
       ${ next_accordion('<h2 class="h5">Children</h2>') }
+    show if: (len(children.complete_elements()) > 0) or (len(petitioner_other_children.complete_elements()) > 0) or (len(respondent_other_children.complete_elements()) > 0)
   - Edit: children.revisit
     button: |-
       % for item in children:
@@ -239,6 +253,7 @@ review:
       % endfor
   - raw html: |
       ${ next_accordion('<h2 class="h5">Court Where You Will File This Petition</h2>') }
+    show if: defined('county_choice')
   - Edit:
       - county_choice
       - recompute:
@@ -250,6 +265,7 @@ review:
       ${ county_choice } County
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
+    show if: defined('pending_actions.there_are_any')
   - Edit: pending_actions.there_are_any
     button: |
       **Are there any pending legal cases between you and ${ other_parties[0] }?**
@@ -281,6 +297,7 @@ review:
     show if: pending_actions.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Orders & Judgments</h2>') }
+    show if: defined('orders_judgments.there_are_any')
   - Edit: orders_judgments.there_are_any
     button: |
       **Are there any pending court orders or judgments regarding you and ${ other_parties[0] }?**
@@ -502,6 +519,63 @@ review:
 
       % endif
     show if: ppo_threat_protectees.there_are_any
+  - Edit: 
+      - wants_no_work_education_interference
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?**
+
+      ${ word(yesno(wants_no_work_education_interference)) }
+  - Edit: 
+      - wants_no_access_to_personal_info_records
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not have access to information in your child’s records that shows your (or your child’s) home address, phone number, or work address?**
+
+      ${ word(yesno(wants_no_access_to_personal_info_records)) }
+  - Edit: no_mental_distress_or_control_choices
+    button: |-
+      **I want the judge to order ${ other_parties[0] } to not intentionally cause me mental distress or try to control me through the following behaviors:**
+      % if no_mental_distress_or_control_choices.all_false():
+
+      *You have not added any protections yet*
+      % else:
+      % if no_mental_distress_or_control_choices['harming_animal']:
+
+      * Injuring, killing, torturing, or neglecting any animal that I own, or threatening to do any of those things
+      % endif
+      % if no_mental_distress_or_control_choices['removing_animal']:
+
+      * Removing any animal I own from my possession
+      % endif
+      % if no_mental_distress_or_control_choices['keeping_animal']:
+
+      * Keeping any animal I own from me, or taking possession of it
+      % endif
+      % endif
+  - Edit: 
+      - wants_no_firearm_purchase_or_possession
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not buy or have a gun?**
+
+      ${ word(yesno(wants_no_firearm_purchase_or_possession)) }
+  - Edit: 
+      - wants_other_request
+      - other_request_exp
+    button: |
+      **Is there anything else you want the judge to order in the PPO?**
+
+      ${ word(yesno(wants_other_request)) }
+
+      % if other_request_exp:
+      ${ other_request_exp }
+      % else:
+      You have not added anything to this section yet
+      % endif
+  - Edit: 
+      - wants_ex_parte_order
+    button: |
+      **Do you want to request an ex parte order?**
+
+      ${ word(yesno(wants_ex_parte_order)) }
   - raw html: |
       ${ end_accordion() }
   - note: |
