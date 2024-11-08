@@ -247,9 +247,7 @@ code: |
   if ppo_type == "nondomestic_sexual_assault":
     sexual_assault_intro
 
-    if respondent_sexual_assault_conviction:
-      orders_judgments_include_sa_conviction
-    else:
+    if not respondent_sexual_assault_conviction:
       if fears_future_sexual_assault:
         potential_sexual_assault_exp
       else:
@@ -2590,7 +2588,7 @@ content: |
 
   % for item in orders_judgments:
 
-  **Pending Order or Judgment \#${ loop.index+1 }**
+  **Order or Judgment \#${ loop.index+1 }**
 
   * Docket: ${ item.docket_number }
   * Court: ${ item.court_name }
@@ -2640,21 +2638,48 @@ subquestion: |
 
 continue button field: sexual_assault_intro
 ---
-id: respondent sexual assault conviction
+id: respondent sexual assault conviction, no orders listed yet
+if: orders_judgments_re_parties_yes == False
 question: |
   Sexual assault convictions
 fields:
   - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
     datatype: yesnoradio
+  - note: |
+      Tap **${ MLH_back_button_label }** twice to go back to the "Court orders and judgments" screen and add information about this conviction.
+    show if:
+      variable: respondent_sexual_assault_conviction
+      is: True
+validation code: |
+  if respondent_sexual_assault_conviction:
+    validation_error("Tap Undo twice to go back to the Court orders and judgments screen and add information about this conviction.")
 ---
-#NOTE: need to link this question to new entry in orders_judgments
-id: sexual assault conviction listed in orders and judgments
+id: respondent sexual assault conviction, yes orders listed
+if: orders_judgments_re_parties_yes == True
 question: |
-  Did you already tell us about this case? 
+  Sexual assault convictions 
 fields:
-  - Did you list this case when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
+  - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
+    datatype: yesnoradio
+  - Did you list the sexual assault conviction when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
     datatype: yesnoradio
     label above field: True
+    show if:
+      variable: respondent_sexual_assault_conviction
+      is: True
+  - note: |
+      ${ collapse_template(orders_judgments_list_template) }
+    show if:
+      variable: respondent_sexual_assault_conviction
+      is: True
+  - note: |
+      Tap **${ MLH_back_button_label }** twice to go back to the "Other court orders and judgments" screen and add information about this conviction. 
+    show if:
+      variable: orders_judgments_include_sa_conviction
+      is: False
+validation code: |
+  if respondent_sexual_assault_conviction and not orders_judgments_include_sa_conviction:
+    validation_error("Tap Undo twice to go back to the Other court orders and judgments screen and add information about this conviction.")
 ---
 id: fear of future sexual assault
 question: |
