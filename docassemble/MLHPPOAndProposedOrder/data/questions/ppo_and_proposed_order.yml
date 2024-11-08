@@ -623,16 +623,14 @@ code: |
   check_ppo_threat_protectees_list = True
 ---
 code: |
-  ppo_sexual_assault_protectees_list_temp = []
+  ppo_sexual_assault_threat_protectees_list = []
 
   if wants_no_sexual_assault_threats:
-    ppo_sexual_assault_protectees_list_temp.append(users[0])
+    ppo_sexual_assault_threat_protectees_list.append(users[0])
 
   if ppo_sexual_assault_threat_protectees.there_are_any:
     for person in ppo_sexual_assault_threat_protectees:
-      ppo_sexual_assault_protectees_list_temp.append(person)
-
-  ppo_sexual_assault_protectees_list = DAList(elements=ppo_sexual_assault_protectees_list_temp, auto_gather=False, gathered=True)
+      ppo_sexual_assault_threat_protectees_list.append(person)
 
   check_ppo_sexual_assault_threat_protectees_list = True
 ---
@@ -3922,19 +3920,19 @@ code: |
     oakland_county_instructions_ex_parte.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)) or wants_other_request:
+  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_harm_protectees_list.complete_elements()) > 1 or len(ppo_threat_protectees_list.complete_elements()) > 1 or wants_other_request):
     cc_375_attachment.enabled = True
   else:
     cc_375_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes) or wants_other_request:
+  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or wants_other_request):
     cc_377_attachment.enabled = True
   else:
     cc_377_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_sexual_assault_protectees_list.complete_elements()) > 1)) or wants_other_request:
+  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_sexual_assault_threat_protectees_list) > 1 or wants_other_request):
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
@@ -4784,9 +4782,9 @@ attachments:
         See attachment.
         % endif
     - ppo_sexual_assault_threat_protectees_list: |
-        % if len(ppo_sexual_assault_threat_protectees_list.complete_elements()) > 1:
+        % if len(ppo_sexual_assault_threat_protectees_list) > 1:
         See "Relief Requested" in Attachment.
-        % elif len(ppo_sexual_assault_threat_protectees_list.complete_elements()) == 1:
+        % elif len(ppo_sexual_assault_threat_protectees_list) == 1:
         ${ comma_and_list(ppo_sexual_assault_threat_protectees_list) }
         % else:
         ${ '' }
