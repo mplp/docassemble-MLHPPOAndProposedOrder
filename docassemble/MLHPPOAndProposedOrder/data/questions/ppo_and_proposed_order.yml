@@ -3860,7 +3860,6 @@ code: |
     ppo_nondomestic_sexual_assault_attachment_court.enabled = True
     ppo_cc_395.enabled = True
     ppo_cc_395_etc.enabled = True
-    cc_395_statement.enabled = True
     ppo_domestic_attachment_court.enabled = False
     ppo_domestic_attachment.enabled = False
     ppo_nondomestic_attachment.enabled = False
@@ -3961,6 +3960,12 @@ code: |
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
+---
+code: |
+  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or respondent_sexual_assault_conviction == False):
+    cc_395_statement.enabled = True
+  else:
+    cc_395_statement.enabled = False
 ---
 code: |
   if str(county_choice) == "Oakland":
