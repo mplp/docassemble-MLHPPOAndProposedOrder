@@ -460,7 +460,6 @@ code: |
 
   if parent_choice:
     if petitioner_respondent_relationship['parent']:
-      petitioner_respondent_parent_child = True
       petitioner_respondent_share_household = True
 
   set_petitioner_respondent_relationship = True
