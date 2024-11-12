@@ -157,6 +157,8 @@ code: |
   if ppo_type == "domestic":
     petitioner_respondent_relationship
     set_petitioner_respondent_relationship
+    if petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
+      petitioner_respondents_child_kickout
 
   set_ppo_type_full
 
@@ -438,7 +440,6 @@ code: |
 
   check_if_respondent_minor = True
 ---
-#NOTE: last item (petitioner_respondent_parent_child) not yet connected to anything in PDF templates
 code: |
   if married_choice:
     if petitioner_respondent_relationship['married']:
@@ -460,6 +461,7 @@ code: |
   if parent_choice:
     if petitioner_respondent_relationship['parent']:
       petitioner_respondent_parent_child = True
+      petitioner_respondent_share_household = True
 
   set_petitioner_respondent_relationship = True
 ---
@@ -2020,6 +2022,19 @@ subquestion: |
   We're sorry, but you cannot use this tool to prepare a *Petition for a Personal Protection Order*. Under Michigan law, you cannot get a personal protection order against your unemancipated minor child.
 
   To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/minors-and-personal-protection-orders).
+
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+---
+id: petitioner is unemancipated minor child of respondent kickout
+event: petitioner_respondents_child_kickout
+question: |
+  You cannot use this tool to request a PPO. Here are more options.
+subquestion: |
+  We're sorry, but you cannot use this tool to prepare a *Petition for a Personal Protection Order*. PPOs are not for problems between children and their parents. You can’t get a PPO against your parent unless you are an emancipated minor. However, you can be protected from a parent by a PPO the court gives your **other parent**. 
+
+  If you are a minor who is being abused by a parent, contact [Children's Protecive Services](https://www.michigan.gov/mdhhs/adult-child-serv/abuse-neglect) at **855-444-3911**, or call your local police.
+
+  **If you are in immediate danger, call 911.**
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
