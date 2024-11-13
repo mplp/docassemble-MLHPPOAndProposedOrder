@@ -157,6 +157,8 @@ code: |
   if ppo_type == "domestic":
     petitioner_respondent_relationship
     set_petitioner_respondent_relationship
+    if petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
+      petitioner_respondents_child_kickout
 
   set_ppo_type_full
 
@@ -247,9 +249,7 @@ code: |
   if ppo_type == "nondomestic_sexual_assault":
     sexual_assault_intro
 
-    if respondent_sexual_assault_conviction:
-      orders_judgments_include_sa_conviction
-    else:
+    if not respondent_sexual_assault_conviction:
       if fears_future_sexual_assault:
         potential_sexual_assault_exp
       else:
@@ -440,7 +440,6 @@ code: |
 
   check_if_respondent_minor = True
 ---
-#NOTE: last item (petitioner_respondent_parent_child) not yet connected to anything in PDF templates
 code: |
   if married_choice:
     if petitioner_respondent_relationship['married']:
@@ -461,7 +460,7 @@ code: |
 
   if parent_choice:
     if petitioner_respondent_relationship['parent']:
-      petitioner_respondent_parent_child = True
+      petitioner_respondent_share_household = True
 
   set_petitioner_respondent_relationship = True
 ---
@@ -623,16 +622,14 @@ code: |
   check_ppo_threat_protectees_list = True
 ---
 code: |
-  ppo_sexual_assault_protectees_list_temp = []
+  ppo_sexual_assault_threat_protectees_list = []
 
   if wants_no_sexual_assault_threats:
-    ppo_sexual_assault_protectees_list_temp.append(users[0])
+    ppo_sexual_assault_threat_protectees_list.append(users[0])
 
   if ppo_sexual_assault_threat_protectees.there_are_any:
     for person in ppo_sexual_assault_threat_protectees:
-      ppo_sexual_assault_protectees_list_temp.append(person)
-
-  ppo_sexual_assault_protectees_list = DAList(elements=ppo_sexual_assault_protectees_list_temp, auto_gather=False, gathered=True)
+      ppo_sexual_assault_threat_protectees_list.append(person)
 
   check_ppo_sexual_assault_threat_protectees_list = True
 ---
@@ -2027,6 +2024,19 @@ subquestion: |
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
+id: petitioner is unemancipated minor child of respondent kickout
+event: petitioner_respondents_child_kickout
+question: |
+  You cannot use this tool to request a PPO. Here are more options.
+subquestion: |
+  We're sorry, but you cannot use this tool to prepare a *Petition for a Personal Protection Order*. PPOs are not for problems between children and their parents. You can’t get a PPO against your parent unless you are an emancipated minor. However, you can be protected from a parent by a PPO the court gives your **other parent**. 
+
+  If you are a minor who is being abused by a parent, contact [Children's Protecive Services](https://www.michigan.gov/mdhhs/adult-child-serv/abuse-neglect) at **855-444-3911**, or call your local police.
+
+  **If you are in immediate danger, call 911.**
+
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+---
 id: safe_contact_info_notice
 question: |
   For the following, please enter a **SAFE** address and phone number where the court can contact you
@@ -2592,7 +2602,7 @@ content: |
 
   % for item in orders_judgments:
 
-  **Pending Order or Judgment \#${ loop.index+1 }**
+  **Order or Judgment \#${ loop.index+1 }**
 
   * Docket: ${ item.docket_number }
   * Court: ${ item.court_name }
@@ -2642,21 +2652,48 @@ subquestion: |
 
 continue button field: sexual_assault_intro
 ---
-id: respondent sexual assault conviction
+id: respondent sexual assault conviction, no orders listed yet
+if: orders_judgments_re_parties_yes == False
 question: |
   Sexual assault convictions
 fields:
   - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
     datatype: yesnoradio
+  - note: |
+      Tap **${ MLH_back_button_label }** twice to go back to the "Court orders and judgments" screen and add information about this conviction.
+    show if:
+      variable: respondent_sexual_assault_conviction
+      is: True
+validation code: |
+  if respondent_sexual_assault_conviction:
+    validation_error("Tap Undo twice to go back to the Court orders and judgments screen and add information about this conviction.")
 ---
-#NOTE: need to link this question to new entry in orders_judgments
-id: sexual assault conviction listed in orders and judgments
+id: respondent sexual assault conviction, yes orders listed
+if: orders_judgments_re_parties_yes == True
 question: |
-  Did you already tell us about this case? 
+  Sexual assault convictions 
 fields:
-  - Did you list this case when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
+  - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
+    datatype: yesnoradio
+  - Did you list the sexual assault conviction when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
     datatype: yesnoradio
     label above field: True
+    show if:
+      variable: respondent_sexual_assault_conviction
+      is: True
+  - note: |
+      ${ collapse_template(orders_judgments_list_template) }
+    show if:
+      variable: respondent_sexual_assault_conviction
+      is: True
+  - note: |
+      Tap **${ MLH_back_button_label }** twice to go back to the "Other court orders and judgments" screen and add information about this conviction. 
+    show if:
+      variable: orders_judgments_include_sa_conviction
+      is: False
+validation code: |
+  if respondent_sexual_assault_conviction and not orders_judgments_include_sa_conviction:
+    validation_error("Tap Undo twice to go back to the Other court orders and judgments screen and add information about this conviction.")
 ---
 id: fear of future sexual assault
 question: |
@@ -3756,8 +3793,8 @@ objects:
   - identifying_information: ALDocument.using(title="Identifying Information", filename="Identifying Information", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - cc_375_addendum: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - cc_377_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_375_statement: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_377_statement: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - cc_377_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - cc_395_attachment: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -3769,7 +3806,7 @@ objects:
   - ppo_cc_396m: ALDocument.using(title="Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M", filename="Personal Protection Order Against Minor (Non-Domestic Sexual Assault) - CC 396M", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_395: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_381: ALDocument.using(title="Notice of Hearing - CC 381", filename="Notice of Hearing - CC 381", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - cc_395_addendum: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - cc_395_statement: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -3787,12 +3824,12 @@ objects:
   - ppo_cc_395_etc: ALDocumentBundle.using(elements=[etc_cover_page, ppo_cc_395], title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
 ---
 objects:
-  - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
-  - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
-  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
-  - ppo_domestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375_etc, cc_375_addendum, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
-  - ppo_nondomestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_377_etc, cc_377_addendum, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
-  - ppo_nondomestic_sexual_assault_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_395_etc, cc_395_addendum, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
+  - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_statement, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
+  - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_statement, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
+  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_statement, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
+  - ppo_domestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375_etc, cc_375_statement, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
+  - ppo_nondomestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_377_etc, cc_377_statement, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
+  - ppo_nondomestic_sexual_assault_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_395_etc, cc_395_statement, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
   - ppo_mc_319: ALDocument.using(title="Request for Next Friend - MC 319", filename="Request for Next Friend - MC 319", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -3817,7 +3854,7 @@ code: |
     ppo_domestic_attachment_court.enabled = True
     ppo_cc_375.enabled = True
     ppo_cc_375_etc.enabled = True
-    cc_375_addendum.enabled = True
+    cc_375_statement.enabled = True
     ppo_nondomestic_sexual_assault_attachment.enabled = False
     ppo_nondomestic_sexual_assault_attachment_court.enabled = False
     ppo_nondomestic_attachment.enabled = False
@@ -3827,7 +3864,7 @@ code: |
     ppo_nondomestic_attachment_court.enabled = True
     ppo_cc_377.enabled = True
     ppo_cc_377_etc.enabled = True
-    cc_377_addendum.enabled = True
+    cc_377_statement.enabled = True
     ppo_domestic_attachment_court.enabled = False
     ppo_domestic_attachment.enabled = False
     ppo_nondomestic_sexual_assault_attachment.enabled = False
@@ -3837,7 +3874,6 @@ code: |
     ppo_nondomestic_sexual_assault_attachment_court.enabled = True
     ppo_cc_395.enabled = True
     ppo_cc_395_etc.enabled = True
-    cc_395_addendum.enabled = True
     ppo_domestic_attachment_court.enabled = False
     ppo_domestic_attachment.enabled = False
     ppo_nondomestic_attachment.enabled = False
@@ -3922,22 +3958,28 @@ code: |
     oakland_county_instructions_ex_parte.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)) or wants_other_request:
+  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_harm_protectees_list.complete_elements()) > 1 or len(ppo_threat_protectees_list.complete_elements()) > 1 or wants_other_request):
     cc_375_attachment.enabled = True
   else:
     cc_375_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes) or wants_other_request:
+  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or wants_other_request):
     cc_377_attachment.enabled = True
   else:
     cc_377_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_sexual_assault_protectees_list.complete_elements()) > 1)) or wants_other_request:
+  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_sexual_assault_threat_protectees_list) > 1 or wants_other_request):
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
+---
+code: |
+  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or respondent_sexual_assault_conviction == False):
+    cc_395_statement.enabled = True
+  else:
+    cc_395_statement.enabled = False
 ---
 code: |
   if str(county_choice) == "Oakland":
@@ -4402,7 +4444,7 @@ attachments:
   name: Petition for Personal Protection Order (Domestic Relationship) Statement of Facts
   filename: Petition for Personal Protection Order (Domestic Relationship) Statement of Facts
   docx template file: cc_375_statement_of_facts.docx
-  variable name: cc_375_addendum[i]
+  variable name: cc_375_statement[i]
   skip undefined: True
   valid formats:
     - pdf
@@ -4429,7 +4471,7 @@ attachments:
   name: Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts
   filename: Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts
   docx template file: cc_377_statement_of_facts.docx
-  variable name: cc_377_addendum[i]
+  variable name: cc_377_statement[i]
   skip undefined: True
   valid formats:
     - pdf
@@ -4447,7 +4489,7 @@ attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
   filename: Petition for Personal Protection Order (Non-Domestic Sexual Assault) Statement of Facts
   docx template file: cc_395_statement_of_facts.docx
-  variable name: cc_395_addendum[i]
+  variable name: cc_395_statement[i]
   skip undefined: True
   valid formats:
     - pdf
@@ -4784,9 +4826,9 @@ attachments:
         See attachment.
         % endif
     - ppo_sexual_assault_threat_protectees_list: |
-        % if len(ppo_sexual_assault_threat_protectees_list.complete_elements()) > 1:
+        % if len(ppo_sexual_assault_threat_protectees_list) > 1:
         See "Relief Requested" in Attachment.
-        % elif len(ppo_sexual_assault_threat_protectees_list.complete_elements()) == 1:
+        % elif len(ppo_sexual_assault_threat_protectees_list) == 1:
         ${ comma_and_list(ppo_sexual_assault_threat_protectees_list) }
         % else:
         ${ '' }
