@@ -328,6 +328,33 @@ review:
       % endif
     show if: orders_judgments.there_are_any
   - raw html: |
+      ${ next_accordion('<h2 class="h5">Sexual Assault History</h2>') }
+    show if: defined('respondent_sexual_assault_conviction')
+  - Edit: respondent_sexual_assault_conviction
+    button: |
+      **Was ${ other_parties[0] } convicted of sexual assault against you?**
+
+      ${ word(yesno(respondent_sexual_assault_conviction)) }
+  - Edit: orders_judgments_include_sa_conviction
+    button: |
+      **Did you list the case where ${ other_parties[0] } was convicted of sexual assault against you when asked about past orders or judgments?**
+
+      ${ word(yesno(orders_judgments_include_sa_conviction)) }
+    show if: respondent_sexual_assault_conviction
+  - Edit: fears_future_sexual_assault
+    button: |
+      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
+
+      ${ word(yesno(fears_future_sexual_assault)) }
+    show if: not respondent_sexual_assault_conviction
+  - Edit: potential_sexual_assault_exp
+    button: |
+      **Explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0] }:**
+
+      ${ potential_sexual_assault_exp }
+
+    show if: fears_future_sexual_assault
+  - raw html: |
       ${ next_accordion('<h2 class="h5">Past Indicents</h2>') }
     show if: len(incidents.complete_elements()) > 0
   - Edit:
@@ -492,6 +519,12 @@ review:
 
       ${ word(yesno(wants_no_threatening_petitioner)) }
   - Edit: 
+      - wants_no_sexual_assault_threats
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure you?**
+
+      ${ word(yesno(wants_no_sexual_assault_threats)) }
+  - Edit: 
       - ppo_threat_protectees.there_are_any
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure another person?**
@@ -513,6 +546,28 @@ review:
 
       % endif
     show if: ppo_threat_protectees.there_are_any
+  - Edit: 
+      - ppo_sexual_assault_threat_protectees.there_are_any
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure another person?**
+
+      ${ word(yesno(ppo_sexual_assault_threat_protectees.there_are_any)) }
+    show if: ppo_type == "nondomestic_sexual_assault" and defined('ppo_sexual_assault_threat_protectees.there_are_any')
+  - Edit: ppo_sexual_assault_threat_protectees.revisit
+    button: |
+      % if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
+      **I want the following people to be protected from threats of sexual assault, death, or physical injury:**
+      % for item in ppo_sexual_assault_threat_protectees:
+
+      * ${ item }
+
+      % endfor
+      % else:
+
+      *You have not listed anyone yet*
+
+      % endif
+    show if: ppo_sexual_assault_threat_protectees.there_are_any
   - Edit: 
       - wants_no_work_education_interference
     button: |
