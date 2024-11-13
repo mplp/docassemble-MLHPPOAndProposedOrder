@@ -38,7 +38,7 @@ code: |
   MLH_court_forms = True
   MLH_time_min = 40
   MLH_time_max = 60
-  MLH_case_type_language = 'Look for the two-letter case type code at the end of your case number. This could be PP or PH. Also look at the column labeled "Type of Filing." If this column only says "Subsequent Filings" for your court, then you cannot e-File the Petition. However, if the judge grants your Petition, you would be able to e-File any motions in your PPO case later on. If you are allowed to e-File your initial papers, this column will say "Case Initiation.'
+  MLH_case_type_language = 'The two-letter case type code will be PP, PH, or PJ.'
   MLH_esign_supported = True
   survey_link_url_only = "https://www.surveymonkey.com/r/3BXDW9M"
   MLH_form_type = "forms"
@@ -93,7 +93,6 @@ code: |
   nav.set_section("signpost_intro")
   MLH_intro_landing
   MLH_intro_roles
-  MLH_intro_time
   MLH_agree_terms
   MLH_intro_navigate_save
   if not MLH_intro_agree_no_pii:
@@ -116,9 +115,7 @@ code: |
   for user in users:
     user.birthdate
 
-  check_if_petitioner_under_fourteen
   check_if_petitioner_minor
-  check_if_petitioner_at_least_sixteen
   if petitioner_is_minor:
     if is_incapacitated_adult:
       inconsistent_age_kickout
@@ -175,6 +172,7 @@ code: |
     else:
       safe_contact_info_notice
     user.address.address
+    check_user_no_phone
     if county_choice == "Oakland":
       if user_alias.there_are_any:
         user_alias.gather()
@@ -202,7 +200,6 @@ code: |
   if ppo_type == "domestic" and county_choice == "Oakland":
     set_parties_same_gender
 
-  check_other_party_address_set_to_user_address
   respondent_carries_firearm_for_work_asked
 
   if county_choice == "Oakland":
@@ -339,37 +336,47 @@ code: |
     wants_other_request
     if wants_ex_parte_order:
       ex_parte_yes_screen
-  
-  if exhibit_attachment.exhibits.has_exhibits:
-    exhibit_attachment.exhibits.gather()
 
   nav.set_section("review_get_forms_info")
-  if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
+  if ETC_county_status == "optional":
+    ETC_optional_info
+  elif ETC_county_status == "required":
+    ETC_required_info
+    ETC_esign
 
-    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
+    if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+      if fourteen_plus_agrees_to_sign:
+        signature_date
+      elif next_friend_agrees_to_sign:
+        signature_date
+    elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
       if next_friend_agrees_to_sign:
         signature_date
-      else:
-        next_friend_signature_notice
     else:
       if MLH_esign:
         signature_date
+
+  if exhibit_attachment.exhibits.has_exhibits:
+    exhibit_attachment.exhibits.gather()
        
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
+    snapshot_download
     personal_protection_order_download
   else: 
-    if ETC_county_status == "optional":
-      ETC_optional_info
-    else:
-      ETC_required_info
+    snapshot_download
     ETC_review_docs_screen
+    ETC_review_exhibits
     clerk_email_prep
-    ETC_esign
-    email_status
+    if ETC_county_status == "optional":
+      ETC_esign
     if clerk_email_sent_ok:
+      snapshot_ETC
+      email_status_sent
       ETC_success
     else:
+      email_status_failed
       ETC_error
 
   interview_ppo_and_proposed_order = True
@@ -381,11 +388,12 @@ code: |
 generic object: ALIndividual
 code: |
   if x.no_phone_number:
-    x.phone_number = "Does not have phone"
+    x.phone_number = "Unknown phone"
 ---
 code: |
   if users[0].no_phone_number:
     users[0].phone_number = "Does not have phone"
+  check_user_no_phone = True
 ---
 code: |
   users.there_is_another = False
@@ -405,14 +413,16 @@ code: |
     petitioner_is_minor = True
   else:
     petitioner_is_minor = False
-  check_if_petitioner_minor = True
----
-code: |
   if users[0].age_in_years() < 14:
     petitioner_under_fourteen = True
   else:
     petitioner_under_fourteen = False
-  check_if_petitioner_under_fourteen = True
+  if users[0].age_in_years() >= 16:
+    petitioner_at_least_sixteen = True
+  else:
+    petitioner_at_least_sixteen = False
+    petitioner_is_emancipated_minor = False
+  check_if_petitioner_minor = True
 ---
 code: |
   if knows_respondents_birthdate:
@@ -465,6 +475,17 @@ code: |
     other_parties[0].address.country = users[0].address.country
     
   check_other_party_address_set_to_user_address = True
+---
+code: |
+  if other_parties[0].address.address == "": 
+    other_parties[0].address.address = "_________________"
+  if other_parties[0].address.city == "":
+    other_parties[0].address.city = "_______________"
+  if other_parties[0].address.state == "":
+    other_parties[0].address.state = "___"
+  if other_parties[0].address.zip == "":
+    other_parties[0].address.zip = "______"
+  respondent_address_missing = True
 ---
 code: |
   other_parties[0].height = str(other_parties[0].height_feet) + " ft, " + str(other_parties[0].height_inches) + " in"
@@ -719,20 +740,6 @@ code: |
 
 #   check_oakland_respondent_contact_info = True
 ---
-code: |
-  if users[0].age_in_years() >= 16:
-    petitioner_at_least_sixteen = True
-  else:
-    petitioner_at_least_sixteen = False
-    petitioner_is_emancipated_minor = False
-
-  check_if_petitioner_at_least_sixteen = True
----
-code: |
-  if not petitioner_knows_respondent_other_children_names:
-    respondent_other_children.clear()
-  set_respondent_has_other_children = True
----
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -824,10 +831,14 @@ code: |
   if ppo_type == "domestic":
     if not petitioner_and_respondent_living_together:
       other_parties[i].address.address
+      respondent_address_missing
+    else:
+      check_other_party_address_set_to_user_address
   else:
     other_parties[i].address.address
+    respondent_address_missing
   if other_parties[i].no_phone_number:
-    other_parties[i].phone_number = "Does not have phone"
+    other_parties[i].phone_number = "Unknown phone"
   if county_choice == "Oakland":
     if ((other_parties[0].address.address == "") or (other_parties[0].address.city == "") or (other_parties[0].address.state == "")) and (other_parties[0].no_phone_number):
       respondent_contact_info_kickout
@@ -859,7 +870,7 @@ code: |
     else:
       other_parties_parents[i].address.address
   if other_parties_parents[i].no_phone_number:
-    other_parties_parents[i].phone_number = "Does not have phone"
+    other_parties_parents[i].phone_number = "Unknown phone"
   other_parties_parents[i].complete = True
 ---
 code: |
@@ -1020,20 +1031,36 @@ sets:
   - other_parties[0].address.state
 question: |
   What is ${ other_parties[0].name }'s address?
+subquestion: |
+  % if ppo_type != "domestic":
+  ${ collapse_template(respondent_address_explainer) }
+  % endif
 fields:
   - Street Address or P.O. Box: other_parties[0].address.address
-    required: False
+    required: True if ppo_type == "domestic" else False
     address autocomplete: True
   - Apartment, suite, etc.: other_parties[0].address.unit
     required: False
   - City: other_parties[0].address.city
-    required: False
-  - State: other_parties[0].address.state
-    required: False
+    required: True if ppo_type == "domestic" else False
+  - State or Province: other_parties[0].address.state
+    required: True if ppo_type == "domestic" else False
   - Zip or Postal Code: other_parties[0].address.zip
     required: False
   - Country: other_parties[0].country
     required: False
+---
+template: respondent_address_explainer
+subject: |
+  What if I don't know the address?
+content: |
+  Fill in as much of ${ other_parties[0] }'s address as you are able to. If you aren't able to find out their home address, you can use the address of their job, if you know it. 
+  
+  In some counties, you may not be able to file your petition without an address and/or phone number for the respondent. If this is the situation in your county, the clerk will let you know.
+
+  You will need the respondent's address to have them served with the PPO if the judge grants the order without a hearing. A PPO is effective and enforceable anywhere in Michigan as soon as it is signed by a judge. However, the police may not arrest ${ other_parties[0] } for violating the PPO until ${ other_parties[0] } has been served with it. In most situations it is best to have ${ other_parties[0] } served with the PPO as soon as possible after the judge issues it.
+
+  If the judge denies your ex parte petition (this means a petition without a hearing), then you can request a hearing to provide more evidence about why you need a PPO. However, you must have an address for the respondent in order to request the hearing, so the respondent can be served with your petition and a notice of hearing.
 ---
 id: respondent name
 sets:
@@ -1105,9 +1132,9 @@ validation code: |
 ---
 id: other_parties_parents there_is_another
 question: |
-  Does ${ other_parties[0].name } have another parent, guardian, or custodian?
+  Other parent, guardian, or custodian
 fields:
-  - no label: other_parties_parents.there_is_another
+  - Does ${ other_parties[0].name } have another parent, guardian, or custodian?: other_parties_parents.there_is_another
     datatype: yesnoradio
 ---
 id: does respondent parent share address with respondent
@@ -1167,23 +1194,6 @@ fields:
   - code: |
       petitioner_other_children[i].name_fields()
 ---
-id: petitioner_other_children birthdate
-question: |
-  ${ petitioner_other_children[i] }'s date of birth
-fields:
-  - Do you know the ${ petitioner_other_children[i].familiar() }'s exact date of birth?: petitioner_other_children[i].birthdate_known
-    datatype: yesnoradio
-  - Enter the ${ petitioner_other_children[i].familiar() }'s date of birth: petitioner_other_children[i].birthdate
-    datatype: date
-    show if:
-      variable: petitioner_other_children[i].birthdate_known
-      is: True
-  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: petitioner_other_children[i].estimated_age
-    datatype: integer
-    show if:
-      variable: petitioner_other_children[i].birthdate_known
-      is: False
----
 id: respondent_other_children info
 sets:
   - respondent_other_children[i].name.first
@@ -1213,10 +1223,11 @@ fields:
 ---
 id: married when child born
 question: |
-  Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?
+  Relationship to ${ other_parties[0] }
 fields:
-  - no label: children[i].parties_married_when_born
+  - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?: children[i].parties_married_when_born
     datatype: yesnoradio
+    label above field: True
 ---
 id: custody or parenting time order
 question: |
@@ -1226,6 +1237,7 @@ subquestion: |
 fields:
   - Is there a custody or parenting time order in effect for ${ children[i].familiar() }?: children[i].has_order_in_effect
     datatype: yesnoradio
+    label above field: True
 ---
 template: custody_parenting_time_order_explained
 subject: |
@@ -1295,16 +1307,21 @@ fields:
 ---
 id: describe relationship to respondent
 question: |
-  Describe your relationship with ${ other_parties[0] }
+  Your relationship with ${ other_parties[0] }
 subquestion: |
   For example:
 
+    % if ppo_type == "domestic":
+    * "The respondent and I are siblings."
+    * "The respondent and I used to be roomates. We are not related to each other."
+    % else:
     * "The respondent is my neighbor."
     * "The respondent used to be my co-worker."
+    % endif
   
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
-  - no label: relationship_to_respondent_exp
+  - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
     datatype: area
 ---
 id: petitioner alias there_are_any
@@ -1347,9 +1364,8 @@ fields:
 ---
 id: respondent alias there_is_another
 question: |
-  ${ other_parties[0] }'s aliasess
+  ${ other_parties[0] }'s aliases
 subquestion: |
-  subquestion: |
   ${ collapse_template(other_party_alias_list_template) }
 fields:
   - Has ${ other_parties[0] } ever been known by any other name?: other_party_alias.there_is_another
@@ -1374,7 +1390,7 @@ id: petitioner gender
 question: |
   What is your gender?
 fields:
-  - no label: users[i].gender
+  - Choose one: users[i].gender
     datatype: radio
     choices:
       - Male: M
@@ -1388,6 +1404,7 @@ subquestion: |
 fields:
   - Was legal parentage for ${ children[i] } established through a second parent adoption or other type of adoption: children[i].was_adopted
     datatype: yesnoradio
+    label above field: True
 ---
 template: adoption_explained
 subject: |
@@ -1448,11 +1465,13 @@ question: |
 fields:
   - Will you be filing this PPO petition on behalf of a legally incapacitated adult?: is_incapacitated_adult
     datatype: yesnoradio
+    label above field: True
   - Have you been named the guardian of this person by court order **OR** do you have a power of attorney that allows you to file for them?: next_friends.there_are_any
     datatype: yesnoradio
     show if:
       variable: is_incapacitated_adult
       is: True
+    label above field: True
 ---
 id: unauthorized to file for legally incapacitated adult kickout
 event: unauthorized_to_file_for_lii_kickout
@@ -1470,7 +1489,7 @@ event: inconsistent_age_kickout
 question: |
   You cannot continue using this tool
 subquestion: |
-  You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0].possessive('birthday') } makes them a **minor**.
+  You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0] }'s birthday makes them a **minor**.
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answers.
 ---
@@ -1498,19 +1517,19 @@ content: |
 ---
 id: user birthdate
 question: |
-  Enter your date of birth
+  Date of birth
 fields:
-  - no label: users[0].birthdate
+  - Enter your date of birth: users[0].birthdate
     datatype: date
     required: True
 ---
 id: emancipated minor
 question: |
-  Are you an emancipated minor?
+  Emancipated minor status
 subquestion: |
   ${ collapse_template(emancipated_minor_explained) }
 fields:
-  - no label: petitioner_is_emancipated_minor
+  - Are you an emancipated minor?: petitioner_is_emancipated_minor
     datatype: yesnoradio
 ---
 template: emancipated_minor_explained
@@ -1558,15 +1577,17 @@ subquestion: |
 ---
 id: next friend agrees to role
 question: |
-  ${ next_friends[0] } must agree to be ${ users[0].possessive('next friend') }
+  ${ next_friends[0] } must agree to be ${ users[0] }'s next friend 
 subquestion: |
-  Before your *Petition for Personal Protection Order* can be filed, ${ next_friends[0] } must sign it. This tool can place ${ next_friends[0].possessive('e-signature') } on the petition if they agree to it.
+  Before your *Petition for Personal Protection Order* can be filed, ${ next_friends[0] } must sign it. This tool can place ${ next_friends[0] }'s e-signature on the petition if they agree to it.
 
-  If ${ next_friends[0] } is with you (or if you have a way of contacting them right now), have them read (or read to them) the information on the next pages and answer that they consent to act as your next friend and have their e-signature placed on your forms.
+  ${ collapse_template(next_friend_explained) }
 
-  **If ${ next_friends[0] } is not available** to give their consent right now, exit the interview and start over when they are available.
+  Have ${ next_friends[0] } read (or read to them) the information above. Ask them if they agree to act as your next friend.
+
+  **If ${ next_friends[0] } is not available** to ask right now, exit this tool and start over when they are available.
 fields:
-  - Do YOU, ${ next_friends[0] }, agree to act as ${ users[0].possessive(' next friend') }?: next_friend_agrees_to_role
+  - Do YOU, ${ next_friends[0] }, agree to act as ${ users[0] }'s next friend?: next_friend_agrees_to_role
     datatype: yesnoradio
 ---
 id: next friend role kickout
@@ -1574,7 +1595,7 @@ event: next_friend_role_kickout
 question: |
   You cannot continue using this tool
 subquestion: |
-  Since you do not agree to act as ${ users[0].possessive(' next friend') }, this tool can’t be used to prepare a PPO.
+  Since ${ next_friends[0] } does not agree to act as ${ users[0] }'s next friend, this tool can’t be used to prepare a PPO.
 
   If ${ users[0] } wants to continue preparing a PPO, they will need to find another adult who is willing to act as their next friend.
 
@@ -1582,33 +1603,164 @@ subquestion: |
 ---
 id: next friend agrees to sign
 question: |
-  Your signature
+  Next friend's signature
 subquestion: |
-  This tool can put "**/s/ ${ next_friends[0] }**" where you would sign your name so you do not have to sign the forms by hand. The court will accept this as your signature.
+  This tool can add "**/s/ ${ next_friends[0] }**" to the forms as an electronic signature. The court will accept this as ${ next_friends[0] }'s signature.
 fields:
-  - Do YOU, ${ next_friends[0] }, agree to have this tool place your e-signature on the forms?: next_friend_agrees_to_sign
+  - Does ${ next_friends[0] } agree to add their electronic signature to the forms now?: next_friend_agrees_to_sign
     datatype: yesnoradio
+    label above field: True
+under: |
+  ${ collapse_template(signature_info_template) }
 ---
-id: next friend signature notice
-event: next_friend_signature_notice
+only sets: fourteen_plus_agrees_to_sign
+id: minor 14 and up e-sign
 question: |
-  You will still need to sign the forms later
+  E-signatures
 subquestion: |
-  If you do not want to have your e-signature added to the forms automatically, you will need to download them, print them, sign them, and scan them before they can be filed.
-continue button field: next_friend_signature_notice
+  Because ${ users[0] } is over 14, they must sign the *Request for Next Friend*. The next friend, ${ next_friends[0] }, must sign the other forms.
+  
+  This tool can put "**/s/ ${ users[0] }**" and "**/s/ ${ next_friends[0] }**" where you would sign your names so you do not have to sign the forms by hand. The court will accept these electronic signatures.
+fields:
+  - Does ${ users[0] }, agree to add their electronic signature to the *Request for Next Friend* now?: fourteen_plus_agrees_to_sign
+    datatype: yesnoradio
+  - Does the next friend, ${ next_friends[0] }, agree to add their electronic signature to the other forms now?: next_friend_agrees_to_sign
+    datatype: yesnoradio
+under: |
+  ${ collapse_template(signature_info_template) }
+---
+template: signature_info_template
+subject: |
+  Are e-signatures required?
+content: |
+  % if ETC_county_status == "optional":
+  E-signatures are required to use the direct e-mail filing option. Choose **Yes** to e-sign now. There will be another chance to e-sign later.
+  
+  % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+  If you're not going to use direct e-mail filing, ${ next_friends[0] } and ${ users[0] } can e-sign now or sign the forms after you download and print them.
+  % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  If you're not going to use direct e-mail filing, ${ next_friends[0] } can e-sign now or sign the forms after you download and print them.
+  % else:
+  If you're not going to use direct e-mail filing, you can e-sign now or sign the forms yourself after you download and print them.
+  % endif
+  % elif ETC_county_status == "not_allowed":    
+  The court will accept e-signatures or written signatures.
+  
+  If you **plan to e-file**, e-signing simplifies the process. Otherwise, you will need to print your forms and then scan signed copies before you can e-file.
+  
+  To find out **if you can e-file**, read [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) The article tells you how to find out which courts have e-filing for which case types. 
+  
+  ${ MLH_case_type_language }
+  % else:
+  Yes. Because these forms will be e-mailed directly to the court, e-signatures are required. 
+  % endif
+---
+# overriding version from ql_baseline
+generic object: ALExhibitList
+id: any exhibits
+question: |
+  % if ETC_county_status == "required":
+  Attach any documents or photos you want the judge to see.
+  % else:    
+  Do you want to attach any documents or photos to show the judge?
+  % endif
+subquestion: |
+  % if ETC_county_status == "required":
+  If you have any documents you want to show the judge, attach them now. This could include things like:
+  
+  * Police reports
+  * Medical records
+  * Photos
+  * Copies of e-mails or text messages
+  * Letters
+
+  % elif ETC_county_status == "optional":
+  If you have any documents you want to show the judge, you can attach them now. This could include things like:
+  
+  * Police reports
+  * Medical records
+  * Photos
+  * Copies of e-mails or text messages
+  * Letters
+
+  If you plan to file by direct e-mail from this tool, attach any documents now. If you plan to file in a different way, you can choose to:
+  
+  * upload documents using this tool, or
+  * attach documents yourself outside of this tool.
+  % else:
+  If you have any documents you want to show the judge, you can attach them now. This could include things like:
+  
+  * Police reports
+  * Medical records
+  * Photos
+  * Copies of e-mails or text messages
+  * Letters
+  
+  You can choose to:
+  
+  * upload documents using this tool, or
+  * attach documents yourself after you get your forms.
+  % endif
+
+  ${ collapse_template(no_documents) }
+  ${ collapse_template(audiovisual_evidence) }
+fields:
+  - Do you have any documents you want to upload?: x.has_exhibits
+    datatype: yesnoradio
+  - note: |
+      **Okay**. You will have a chance to upload multiple documents. 
+      You can also add additional pages to this document.
+    show if: x.has_exhibits
+  - First document title: x[0].title
+    maxlength: 60 # longer might break TOC
+    show if: x.has_exhibits
+  - Upload the first document: x[0].pages
+    show if: x.has_exhibits
+    datatype: files
+    maximum image size: 1024
+    image upload type: jpeg
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  if x.has_exhibits:
+    full_size = sum(a_page.size_in_bytes() for a_page in x[0].pages)
+    if full_size > (15 * 1024 * 1024):
+      validation_error("Upload a file smaller than 15 MB.")
+    if hasattr(x, 'maximum_size'):
+      if full_size > x.maximum_size:
+        validation_error(f"Upload a file smaller than {humanize.naturalsize(x.maximum_size)}")
+    try:
+      pdf_concatenate(x[0].pages)
+    except:
+      validation_error("Unable to convert this file. Please upload a new one.")
+    x[0].pages.complete_attribute = 'ok'
+    x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
+---
+template: audiovisual_evidence
+subject: |
+  What if I have audio or video evidence?
+content: |
+  Save any audio or video evidence you have. If there will be a hearing for your case, you can submit the audio or video evidence to the court directly.
+---
+template: no_documents
+subject: |
+  What if don't have any documents to attach?
+content: |
+  Even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
 id: respondent living in michigan
 question: |
-  ${ users[0] }, does the Respondent (the person you want to be protected from) live in Michigan?
+  Respondent's residence
 fields:
-  - no label: respondent_lives_in_michigan
+  - ${ users[0] }, does the Respondent (the person you want to be protected from) live in Michigan?: respondent_lives_in_michigan
     datatype: yesnoradio
+    label above field: True
 ---
 id: petitioner living in michigan
 question: |
-  Do you live in Michigan?
+  Your residence
 fields:
-  - no label: petitioner_lives_in_michigan
+  - Do you live in Michigan?: petitioner_lives_in_michigan
     datatype: yesnoradio
 ---
 id: respondent birthdate
@@ -1620,47 +1772,60 @@ terms:
 fields:
   - Do you know the {Respondent}'s exact date of birth?: knows_respondents_birthdate
     datatype: yesnoradio
+    label above field: True
   - Enter the Respondent's date of birth: other_parties[0].birthdate
     datatype: date
     show if:
       variable: knows_respondents_birthdate
       is: True
+    label above field: True
   - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].estimated_age
     datatype: integer
     show if:
       variable: knows_respondents_birthdate
       is: False
+    label above field: True
 ---
 id: petitioner other child birthdate
 question: |
   ${ petitioner_other_children[i] }'s date of birth
 fields:
-  - Do you know ${ petitioner_other_children[i].familiar() }'s exact date of birth?: petitioner_other_children[i].knows_other_child_birthdate
+  - Do you know ${ petitioner_other_children[i].familiar() }'s date of birth?: petitioner_other_children[i].knows_other_child_birthdate
     datatype: yesnoradio
-  - Enter ${ petitioner_other_children[i].familiar() }'s date of birth: petitioner_other_children[i].birthdate
+    label above field: True
+  - What is ${ petitioner_other_children[i].familiar() }'s date of birth?: petitioner_other_children[i].birthdate
     datatype: date
     show if:
       variable: petitioner_other_children[i].knows_other_child_birthdate
       is: True
-  - Even if you do not know ${ petitioner_other_children[i].familiar() }'s exact date of birth, you must provide your best guess of their age: petitioner_other_children[i].estimated_age
-    datatype: integer
+    label above field: True
+  - What is ${ petitioner_other_children[i].familiar() }'s approximate age?: petitioner_other_children[i].estimated_age
     show if:
       variable: petitioner_other_children[i].knows_other_child_birthdate
       is: False
+    label above field: True
 ---
 id: respondent other child birthdate
 question: |
   ${ respondent_other_children[i] }'s date of birth
 fields:
-  - Do you know ${ respondent_other_children[i].familiar() }'s exact date of birth?: respondent_other_children[i].knows_other_child_birthdate
+  - Do you know ${ respondent_other_children[i].familiar() }'s date of birth?: respondent_other_children[i].knows_other_child_birthdate
     datatype: yesnoradio
-  - Enter ${ respondent_other_children[i].familiar() }'s date of birth: respondent_other_children[i].birthdate
+    label above field: True
+  - What is ${ respondent_other_children[i].familiar() }'s date of birth?: respondent_other_children[i].birthdate
     datatype: date
     show if:
       variable: respondent_other_children[i].knows_other_child_birthdate
       is: True
-  - Even if you do not know ${ respondent_other_children[i].familiar() }'s exact date of birth, you must provide your best guess of their age: respondent_other_children[i].estimated_age
-    datatype: integer
+    label above field: True
+  - What is ${ respondent_other_children[i].familiar() }'s approximate age?: respondent_other_children[i].estimated_age
+    required: False
+    show if:
+      variable: respondent_other_children[i].knows_other_child_birthdate
+      is: False
+    label above field: True
+  - note: |
+      *If you don't know, you can leave this blank.*
     show if:
       variable: respondent_other_children[i].knows_other_child_birthdate
       is: False
@@ -1692,7 +1857,7 @@ question: |
 subquestion: |
   ${ collapse_template(ppo_types_explained) }
 fields:
-  - no label: ppo_type
+  - Choose one: ppo_type
     datatype: radio
     choices:
       - 1. Personal Protection Order - Domestic Relationship: domestic
@@ -1737,12 +1902,13 @@ continue button field: ppo_nondomestic_intro
 ---
 id: two or more noncontinuous incidents
 question: |
-  Were there two or more **separate**, **noncontinuous** incidents where the respondent stalked or harassed you?
+  Number of incidents
 subquestion: |
   ${ collapse_template(separate_noncontinuous_incidents_explained) }
 fields:
-  - no label: has_two_separate_noncontinuous_incidents
+  - Were there two or more **separate**, **noncontinuous** incidents where the respondent stalked or harassed you?: has_two_separate_noncontinuous_incidents
     datatype: yesnoradio
+    label above field: True
 ---
 template: separate_noncontinuous_incidents_explained
 subject: |
@@ -1880,16 +2046,16 @@ continue button field: respondent_intro_screen
 ---
 id: petitioner and respondent living together
 question: |
-  Do you and ${ other_parties[0].name.first } live together?
+  Shared home
 fields:
-  - no label: petitioner_and_respondent_living_together
+  - Do you and ${ other_parties[0].name.first } live together?: petitioner_and_respondent_living_together
     datatype: yesnoradio
 ---
 id: respondent race
 question: |
   Enter ${ other_parties[0].name }'s race
 fields:
-  - no label: other_parties[0].race
+  - Choose one: other_parties[0].race
     choices:
       - White, not Hispanic or Latino: White
       - Hispanic or Latino: Hispanic/Latino
@@ -1903,7 +2069,7 @@ id: respondent gender
 question: |
   Enter ${ other_parties[0].name }'s gender
 fields:
-  - no label: other_parties[0].gender
+  - Choose one: other_parties[0].gender
     datatype: radio
     choices:
       - Male: M
@@ -1950,7 +2116,7 @@ question: |
 subquestion: |
   If unknown, select "Unknown."
 fields:
-  - no label: other_parties[0].hair_color
+  - Choose one: other_parties[0].hair_color
     choices:
       - Bald: Bald
       - Black: Black
@@ -1968,7 +2134,7 @@ question: |
 subquestion: |
   If unknown, select "Unknown."
 fields:
-  - no label: other_parties[0].eye_color
+  - Choose one: other_parties[0].eye_color
     choices:
       - Black: Black
       - Blue: Blue
@@ -1980,26 +2146,23 @@ fields:
 ---
 id: respondent license number
 question: |
-  Enter ${ other_parties[0].name }'s driver's license number
+  ${ other_parties[0].name }'s driver's license number
 subquestion: |
   If none or unknown, leave blank.
 fields:
-  - no label: other_parties[0].license_number
+  - Enter ${ other_parties[0].name }'s driver's license number: other_parties[0].license_number
     required: False
 ---
 mandatory: True
 id: respondent other identifying info
 question: |
   Other identifying information
-subquestion: |
-  In 50 characters or less, describe any other identifying information about ${ other_parties[0].name }, such as scars or tattoos, if any.
-
-  If none, leave blank.
 fields:
   - note: |
       <div id="show_maxlength"> </div>
-  - no label: other_parties[0].other_identifying_info
+  - In 50 characters or less, describe any other identifying information about ${ other_parties[0].name }, such as scars or tattoos, if any.: other_parties[0].other_identifying_info
     required: False
+    label above field: True
     maxlength: 50
 script: |
   <script>
@@ -2025,12 +2188,14 @@ script: |
     return count == 1 ? singularWord : pluralWord;
   }
   </script>
+under: |
+  If none, leave blank.
 ---
 id: respondent required to carry gun for work
 question: |
-  Is ${ other_parties[0].name } required to carry a gun for work?
+  Gun possession
 fields:
-  - no label: other_parties[0].carries_gun_for_work
+  - Is ${ other_parties[0].name } required to carry a gun for work?: other_parties[0].carries_gun_for_work
     datatype: radio
     choices:
       - Yes: yes
@@ -2061,6 +2226,7 @@ subquestion: |
 fields:
   - Do you and ${ other_parties[0] } have any minor children in common?: has_minor_children_in_common
     datatype: yesnoradio
+    label above field: True
 ---
 id: petitioner's other children
 question: |
@@ -2070,6 +2236,7 @@ fields:
     help: |
       For example: stepchildren or adopted children.
     datatype: yesnoradio
+    label above field: True
 ---
 id: respondent's other children
 question: |
@@ -2079,6 +2246,7 @@ fields:
     help: |
       For example: stepchildren or adopted children.
     datatype: yesnomaybe
+    label above field: True
 ---
 id: children in common with respondent kickout
 event: common_children_kickout
@@ -2105,6 +2273,7 @@ fields:
   - How many **minor** children do you and ${ other_parties[0] } have in common?: children.target_number
     datatype: integer
     min: 1
+    label above field: True
 ---
 id: petitioner's other children target_number
 question: |
@@ -2113,6 +2282,7 @@ fields:
   - How many other children are living in your home who are not the children of the respondent?: petitioner_other_children.target_number
     datatype: integer
     min: 1
+    label above field: True
 ---
 id: petitioner knows names of respondent's other children
 question: |
@@ -2120,6 +2290,7 @@ question: |
 fields:
   - Do you know the names of ${ other_parties[0] }'s other children?: petitioner_knows_respondent_other_children_names
     datatype: yesnoradio
+    label above field: True
 ---
 id: respondent's other children target_number
 question: |
@@ -2128,6 +2299,7 @@ fields:
   - How many other children are living in your home who are not the children of the respondent?: respondent_other_children.target_number
     datatype: integer
     min: 1
+    label above field: True
 ---
 id: custody and parenting time order
 question: |
@@ -2137,7 +2309,9 @@ subquestion: |
   Please answer the following questions to help the court decide what arrangements should be made.
 fields:
   - Enter the case number on your custody and parenting time order (if you were divorced, this will be your divorce case number.): children[i].custody_case_number
+    label above field: True
   - Enter the name of the court where the case was filed: children[i].custody_case_court
+    label above field: True
 ---
 id: who has physical custody
 question: |
@@ -2168,6 +2342,7 @@ question: |
 fields:
   - Are custody and parenting time provisions the same for all your children?: custody_parenting_time_provisions_same
     datatype: yesnoradio
+    label above field: True
 ---
 id: parenting time exchange location for individual child
 question: |
@@ -2178,14 +2353,17 @@ fields:
     choices:
       - Police Department: police
       - Other: other
+    label above field: True
   - Enter the name of the police department where you would like to have parenting time exchanges: children[i].exchange_police_department_location
     show if:
       variable: children[i].exchange_location
       is: "police"
+    label above field: True
   - Enter the location where you would like parenting time exchanges to take place: children[i].exchange_other_location
     show if:
       variable: children[i].exchange_location
       is: "other"
+    label above field: True
 ---
 id: parenting time exchange location for all children
 question: |
@@ -2196,14 +2374,17 @@ fields:
     choices:
       - Police Department: police
       - Other: other
+    label above field: True
   - Enter the name of the police department where you would like to have parenting time exchanges: exchange_police_department_location
     show if:
       variable: exchange_location
       is: "police"
+    label above field: True
   - Enter the location where you would like parenting time exchanges to take place: exchange_other_location
     show if:
       variable: exchange_location
       is: "other"
+    label above field: True
 ---
 id: who has supervised parenting time
 question: |
@@ -2232,6 +2413,7 @@ question: |
 fields:
   - Select the answer that applies to ${ children[i].familiar() }. If the father's paternity has not been established, select **None of the above**: children[i].paternity
     datatype: radio
+    label above field: True
     choices:
       - Paternity was established by court order (also called an *Order of Filiation*): by_court_order
       - Paternity has been established by an *Acknowledgment of Parentage*: by_acknowledgment_of_parentage
@@ -2252,6 +2434,7 @@ question: |
 fields:
   - Select the option below that best describes what you want to happen with parenting time: children[i].desired_parenting_time_changes
     datatype: radio
+    label above field: True
     choices:
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[i] } should take place at a neutral place.: no_change_except_exchange
@@ -2263,6 +2446,7 @@ question: |
 fields:
   - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
     datatype: radio
+    label above field: True
     choices:
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of the children should take place at a neutral place.: no_change_except_exchange
@@ -2270,24 +2454,25 @@ fields:
 ---
 id: pending_actions there_are_any
 question: |
-  Are there any pending legal cases between you and ${ other_parties[0].name }?
+  Pending legal cases
 subquestion: |
   % if ppo_type == "domestic":
   This includes any court cases, such as divorce, custody, PPO, a criminal case, or others.
   % endif
 fields:
-  - no label: pending_actions.there_are_any
+  - Are there any pending legal cases between you and ${ other_parties[0].name }?: pending_actions.there_are_any
     datatype: yesnoradio
+    label above field: True
 ---
 id: pending_actions docket number
 sets:
   - pending_actions[i].docket_number
 question: |
-  Enter the case number
+  Pending action case number
 subquestion: |
   Leave blank if unknown.
 fields:
-  - no label: pending_actions[i].docket_number
+  - Enter the case number: pending_actions[i].docket_number
     required: False
 ---
 id: pending_actions court and county
@@ -2312,14 +2497,15 @@ fields:
 ---
 id: pending_actions there_is_another
 question: |
-  Are there any more pending legal cases between you and ${ other_parties[0].name }?
+  Pending legal cases
 subquestion: |
   % if len(pending_actions.complete_elements()) > 0:
   ${ collapse_template(pending_actions_list_template) }
   % endif
 fields:
-  - no label: pending_actions.there_is_another
+  - Are there any more pending legal cases between you and ${ other_parties[0].name }?: pending_actions.there_is_another
     datatype: yesnoradio
+    label above field: True
 ---
 template: pending_actions_list_template
 subject: What have I listed so far?
@@ -2345,24 +2531,25 @@ content: |
 ---
 id: orders_judgments there_are_any
 question: |
-  Are there any court orders or judgments entered in any court regarding you and ${ other_parties[0].name }?
+  Court orders and judgments
 subquestion: |
   % if ppo_type == "domestic":
   Includes divorce, custody, previous protection orders, criminal convictions, or others.
   % endif
 fields:
-  - no label: orders_judgments.there_are_any
+  - Are there any court orders or judgments entered in any court regarding you and ${ other_parties[0].name }?: orders_judgments.there_are_any
     datatype: yesnoradio
+    label above field: True
 ---
 id: orders_judgments docket number
 sets:
   - orders_judgments[i].docket_number
 question: |
-  Enter the case number
+  Court order or judgment's case number
 subquestion: |
   Leave blank if unknown.
 fields:
-  - no label: orders_judgments[i].docket_number
+  - Enter the case number: orders_judgments[i].docket_number
     required: False
 ---
 id: orders_judgments court and county
@@ -2387,14 +2574,15 @@ fields:
 ---
 id: orders_judgments there_is_another
 question: |
-  Are there any more court orders or judgments entered between you and ${ other_parties[0].name }?
+  Other court orders or judgments
 subquestion: |
   % if len(orders_judgments.complete_elements()) > 0:
   ${ collapse_template(orders_judgments_list_template) }
   % endif
 fields:
-  - no label: orders_judgments.there_is_another
+  - Are there any more court orders or judgments entered between you and ${ other_parties[0].name }?: orders_judgments.there_is_another
     datatype: yesnoradio
+    label above field: True
 ---
 template: orders_judgments_list_template
 subject: What have I listed so far?
@@ -2456,34 +2644,37 @@ continue button field: sexual_assault_intro
 ---
 id: respondent sexual assault conviction
 question: |
-  Was ${ other_parties[0].name } convicted of sexual assault against you?
+  Sexual assault convictions
 fields:
-  - no label: respondent_sexual_assault_conviction
+  - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
     datatype: yesnoradio
 ---
 #NOTE: need to link this question to new entry in orders_judgments
 id: sexual assault conviction listed in orders and judgments
 question: |
-  Did you list this case when asked about orders or judgments between you and ${ other_parties[0].name }?
+  Did you already tell us about this case? 
 fields:
-  - no label: orders_judgments_include_sa_conviction
+  - Did you list this case when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
     datatype: yesnoradio
+    label above field: True
 ---
 id: fear of future sexual assault
 question: |
-  Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?
+  Fear of future sexual assault
 fields:
-  - no label: fears_future_sexual_assault
+  - Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?: fears_future_sexual_assault
     datatype: yesnoradio
+    label above field: True
 ---
 id: potential sexual assault explained
 question: |
-  Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }
+  Fear of future sexual assault explanation
 subquestion: |
   ${ collapse_template(fears_future_sexual_assault_explained) }
 fields:
-  - no label: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
     input type: area
+    label above field: True
 ---
 template: fears_future_sexual_assault_explained
 subject: |
@@ -2506,19 +2697,20 @@ subquestion: |
 ---
 id: petitioner property interest
 question: |
-  Do you have a property interest in this home?
+  Property interest
 subquestion: |
   ${ collapse_template(property_interest_explained) }
 fields:
-  - no label: has_property_interest_in_home
+  - Do you have a property interest in this home?: has_property_interest_in_home
     datatype: yesnoradio
 ---
 id: respondent property interest
 question: |
-  Does ${ other_parties[0].name } have a property interest in this home?
+  Property interest
 fields:
-  - no label: respondent_has_property_interest_in_home
+  - Does ${ other_parties[0].name } have a property interest in this home?: respondent_has_property_interest_in_home
     datatype: yesnoradio
+    label above field: True
 ---
 template: property_interest_explained
 subject: |
@@ -2605,17 +2797,14 @@ id: incidents date
 sets:
   - incidents[i].date
 question: |
-  % if len(incidents.complete_elements()) > 0:
-  Complete this sentence: "Another incident occurred on or about..."
-  % else:
-  Complete this sentence: "One incident occurred on or about..."
-  % endif
+  When did this incident happen?
 subquestion: |
   For example: "March 15, ${ today().year - 1 }" or "last summer"
 
   ${ collapse_template(incident_date_explained) }
 fields:
-  - no label: incidents[i].date
+  - Complete the sentence "This incident occured on or about...": incidents[i].date
+    label above field: True
 ---
 template: incident_date_explained
 subject: |
@@ -2625,11 +2814,7 @@ content: |
 ---
 id: incidents location
 question: |
-  % if county_choice == "Oakland" and wants_confidential_contact_details:
   Incident location
-  % else:
-  Complete this sentence
-  % endif
 subquestion: |
   % if county_choice == "Oakland" and wants_confidential_contact_details:
   *If you answered that you want to keep your home address confidential and this incident happened at your home, DO NOT type your address. Instead, type 'my home.'*
@@ -2650,7 +2835,7 @@ content: |
 ---
 id: incidents other party actions
 question: |
-  Please describe what happened during the incident
+  Incident details
 subquestion: |
   Be sure to use complete sentences and be as descriptive as you can. List as many details as you can remember.
 
@@ -2660,7 +2845,8 @@ subquestion: |
   ${ collapse_template(incident_other_party_actions_explained) }
   % endif
 fields:
-  - no label: incidents[i].other_party_actions
+  - Please describe what happened during the incident.: incidents[i].other_party_actions
+    label above field: True
     input type: area
 ---
 template: incident_other_party_actions_explained
@@ -2698,6 +2884,7 @@ subquestion: |
   Finish this sentence:
 fields:
   - Because of this incident I felt...: incidents[i].emotional_effect
+    label above field: True
     input type: area
 ---
 id: incidents reason other party responsible
@@ -2709,6 +2896,7 @@ subquestion: |
   ${ collapse_template(other_party_responsible_explained) }
 fields:
   - I know ${ other_parties[0].name } is responsible because...: incidents[i].reason_other_party_responsible
+    label above field: True
     input type: area
 ---
 template: other_party_responsible_explained
@@ -2729,13 +2917,13 @@ content: |
 ---
 id: incidents physical injury
 question: |
-  Were you physically injured?
+  Physical injuries
 subquestion: |
   Being physically injured includes being sore or bruised, having other injuries you took care of yourself, or having injuries that were seen by a doctor.
 
   ${ collapse_template(incident_injury_explained) }
 fields:
-  - no label: incidents[i].petitioner_injured
+  - Were you physically injured?: incidents[i].petitioner_injured
     datatype: yesnoradio
   - Describe your injuries: incidents[i].physical_injury
     input type: area
@@ -2751,13 +2939,13 @@ content: |
 ---
 id: incidents witnesses
 question: |
-  Were there any witnesses to the incident?
+  Witnesses
 subquestion: |
   You don't have to list the names of witnesses here, but if there are witnesses, it is possible the judge will want to hear from them if there is a court hearing.
 
   ${ collapse_template(incident_witnesses_explained) }
 fields:
-  - no label: incidents[i].had_witnesses
+  - Were there any witnesses to the incident?: incidents[i].had_witnesses
     datatype: yesnoradio
 ---
 template: incident_witnesses_explained
@@ -2768,11 +2956,11 @@ content: |
 ---
 id: incidents police
 question: |
-  Were the police called?
+  Police involvement
 subquestion: |
   ${ collapse_template(incident_police_explained) }
 fields:
-  - no label: incidents[i].had_police
+  - Were the police called?: incidents[i].had_police
     datatype: yesnoradio
   - What did the police do?: incidents[i].police_actions
     input type: area
@@ -2799,12 +2987,12 @@ continue button field: incidents_outro
 id: incidents there_is_another
 question: |
   % if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
-  Is there another incident of stalking, harassing, or threatening behavior?
+  Other incidents of stalking, harassing, or threatening behavior
   % elif ppo_type == "domestic":
-  Is there another incident of violence, threat of violence, or other abuse?
+  Other incidents of violence, threat of violence, or other abuse
   % endif
 fields:
-  - no label: incidents.there_is_another
+  - Is there another incident?: incidents.there_is_another
     datatype: yesnoradio
 ---
 id: nondomestic_subsequent_incident_intro
@@ -2815,7 +3003,7 @@ continue button field: nondomestic_subsequent_incident_intro
 ---
 id: other details
 question: |
-  Include anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }
+  Other details
 subquestion: |
   You can use this space to tell the judge other things about ${ other_parties[0].name } that make you feel threatened, abused, or afraid.
 
@@ -2825,9 +3013,10 @@ subquestion: |
   ${ collapse_template(incident_other_details_explained) }
   % endif
 fields:
-  - no label: other_details
+  - Is there anything else you would like the judge to know about why you need a personal protection order against ${ other_parties[0].name }?: other_details
     input type: area
     required: False
+    label above field: True
 ---
 template: incident_other_details_explained
 subject: |
@@ -2867,19 +3056,21 @@ continue button field: relief_requested_intro
 ---
 id: wants_no_entering_residential_property
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to enter the property where you live?
+  Access to your home
 fields:
-  - no label: wants_no_entering_residential_property
+  - Do you want the judge to order ${ other_parties[0].name } not to enter the property where you live?: wants_no_entering_residential_property
     datatype: yesnoradio
+    label above field: True
 ---
 id: wants no entering other property
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to enter other property (not your residence)?
+  Access to other property
 subquestion: |
   ${ collapse_template(wants_no_entering_other_property_explained) }
 fields:
-  - no label: other_properties.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to enter other property (not your residence)?: other_properties.there_are_any
     datatype: yesnoradio
+    label above field: True
 ---
 template: wants_no_entering_other_property_explained
 subject: |
@@ -2889,33 +3080,37 @@ content: |
 ---
 id: wants no sexual assault threats
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** you?
+  Threats to you
 fields:
-  - no label: wants_no_sexual_assault_threats
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** you?: wants_no_sexual_assault_threats
     datatype: yesnoradio
+    label above field: True
 ---
 id: wants no harming petitioner
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** you?
+  Harm to you
 fields:
-  - no label: wants_no_harming_petitioner
+  - Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** you?: wants_no_harming_petitioner
     datatype: yesnoradio
+    label above field: True
 ---
 id: wants no harming others
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** another person?
+  Harm to another person
 fields:
-  - no label: ppo_harm_protectees.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** another person?: ppo_harm_protectees.there_are_any
     datatype: yesnoradio
+    label above field: True
 ---
 id: ppo_harm_protectees there_is_another
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** another person not yet listed?
+  Anyone else to add?
 subquestion: |
   ${ collapse_template(harm_protectees_listed_so_far) }
 fields:
-  - Do you want to add another person?: ppo_harm_protectees.there_is_another
+  - Do you want the judge to order ${ other_parties[0].name } not to **assault**, **attack**, **beat**, **molest**, or **wound** another person not yet listed?: ppo_harm_protectees.there_is_another
     datatype: yesnoradio
+    label above field: True
 ---
 template: harm_protectees_listed_so_far
 subject: Who have I listed so far?
@@ -2935,12 +3130,13 @@ content: |
 ---
 id: wants_no_removing_minor
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to remove your minor child(ren) from your custody?
+  Removing your minor children
 subquestion: |
   This protection **will not** prohibit ${ other_parties[0].name } from removing your minor children if ${ other_parties[0].name } is allowed to have the children based on a custody or parenting time order and if the visitation or transfer of the children does not violate other conditions of the personal protection order.
 fields:
-  - no label: wants_no_removing_minor
+  - Do you want the judge to order ${ other_parties[0].name } not to remove your minor child(ren) from your custody?: wants_no_removing_minor
     datatype: yesnoradio
+    label above field: True
 ---
 id: no_stalking_choices
 question: |
@@ -2952,6 +3148,7 @@ subquestion: |
 fields:
   - Which behaviors do you want the judge to order ${ other_parties[0].name } **not** to do? Check all that apply.: no_stalking_choices
     datatype: checkboxes
+    label above field: True
     choices:
       - Following you or appearing within your sight: following
       - Sending mail or other communications to you: communications
@@ -2967,12 +3164,13 @@ fields:
 ---
 id: wants_no_children_property_removal_interference
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to interfere with your efforts to remove your children or personal property from a place that ${ other_parties[0].name } owns or leases?
+  Protecting your ability to remove your children or property
 subquestion: |
   ${ collapse_template(wants_no_children_property_removal_interference_explained) }
 fields:
-  - no label: wants_no_children_property_removal_interference
+  - Do you want the judge to order ${ other_parties[0].name } not to interfere with your efforts to remove your children or personal property from a place that ${ other_parties[0].name } owns or leases?: wants_no_children_property_removal_interference
     datatype: yesnoradio
+    label above field: True
 ---
 template: wants_no_children_property_removal_interference_explained
 subject: |
@@ -2982,19 +3180,21 @@ content: |
 ---
 id: wants no threatening petitioner
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure you?
+  Threats to you
 fields:
-  - no label: wants_no_threatening_petitioner
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure you?: wants_no_threatening_petitioner
     datatype: yesnoradio
+    label above field: True
 ---
 id: wants no threatening others
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person?
+  Threats to another person
 subquestion: |
   ${ collapse_template(wants_no_threatening_others_explained) }
 fields:
-  - no label: ppo_threat_protectees.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person?: ppo_threat_protectees.there_are_any
     datatype: yesnoradio
+    label above field: True
 ---
 template: wants_no_threatening_others_explained
 subject: |
@@ -3004,12 +3204,13 @@ content: |
 ---
 id: ppo_threat_protectees there_is_another
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person not yet listed?
+  Anyone else to add?
 subquestion: |
   ${ collapse_template(threat_protectees_listed_so_far) }
 fields:
-  - no label: ppo_threat_protectees.there_is_another
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten** to kill or physically injure another person not yet listed?: ppo_threat_protectees.there_is_another
     datatype: yesnoradio
+    label above field: True
 ---
 template: threat_protectees_listed_so_far
 subject: Who have I listed so far?
@@ -3029,19 +3230,21 @@ content: |
 ---
 id: wants_no_work_education_interference
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?
+  Your school or workplace
 fields:
-  - no label: wants_no_work_education_interference
+  - Do you want the judge to order ${ other_parties[0].name } not to interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?: wants_no_work_education_interference
     datatype: yesnoradio
+    label above field: True
 ---
 id: wants no sexual assault threats to others
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** another person?
+  Threats to another person
 subquestion: |
   ${ collapse_template(wants_no_sexual_assault_threats_to_others_explained) }
 fields:
-  - no label: ppo_sexual_assault_threat_protectees.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill, or physically injure** another person?: ppo_sexual_assault_threat_protectees.there_are_any
     datatype: yesnoradio
+    label above field: True
 ---
 template: wants_no_sexual_assault_threats_to_others_explained
 subject: |
@@ -3051,12 +3254,13 @@ content: |
 ---
 id: ppo_sexual_assault_threat_protectees there_is_another
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill or physically injure** another person not yet listed?
+  Anyone else to add?
 subquestion: |
   ${ collapse_template(ppo_sexual_assault_threat_protectees_listed_so_far) }
 fields:
-  - no label: ppo_sexual_assault_threat_protectees.there_is_another
+  - Do you want the judge to order ${ other_parties[0].name } not to **threaten to sexually assault, kill or physically injure** another person not yet listed?: ppo_sexual_assault_threat_protectees.there_is_another
     datatype: yesnoradio
+    label above field: True
 ---
 template: ppo_sexual_assault_threat_protectees_listed_so_far
 subject: Who have I listed so far?
@@ -3076,12 +3280,13 @@ content: |
 ---
 id: wants_no_access_to_personal_info_records
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to have access to information in your child's records that shows your (or your child's) home address, phone number, or work address?
+  Access to child's information
 subquestion: |
   ${ collapse_template(wants_no_access_to_personal_info_records_explained) }
 fields:
-  - no label: wants_no_access_to_personal_info_records
+  - Do you want the judge to order ${ other_parties[0].name } not to have access to information in your child's records that shows your (or your child's) home address, phone number, or work address?: wants_no_access_to_personal_info_records
     datatype: yesnoradio
+    label above field: True
 ---
 template: wants_no_access_to_personal_info_records_explained
 subject: |
@@ -3095,6 +3300,7 @@ question: |
 fields:
   - Which behaviors do you want the judge to order ${ other_parties[0].name } **not** to do? Check all that apply.: no_mental_distress_or_control_choices
     datatype: checkboxes
+    label above field: True
     choices:
       - Injuring, killing, torturing, or neglecting any animal that you own, or threatening to do any of those things: harming_animal
       - Removing any animal you own from your possession: removing_animal
@@ -3102,10 +3308,11 @@ fields:
 ---
 id: wants_no_firearm_purchase_or_possession
 question: |
-  Do you want the judge to order ${ other_parties[0].name } not to buy or have a gun?
+  Prohibiting gun possession
 fields:
-  - no label: wants_no_firearm_purchase_or_possession
+  - Do you want the judge to order ${ other_parties[0].name } not to buy or have a gun?: wants_no_firearm_purchase_or_possession
     datatype: yesnoradio
+    label above field: True
 ---
 id: wants_no_message_posting
 question: |
@@ -3123,19 +3330,21 @@ subquestion: |
   ${ other_parties[0].name } would be prohibited from using social media, such as Facebook or Twitter, or falsely using your name to send messages to other people in order to harass you.
   % endif
 fields:
-  - no label: wants_no_message_posting
+  - Do you want protection from harassing messages?: wants_no_message_posting
     datatype: yesnoradio
 ---
 id: wants_other_request
 question: |
-  Is there anything else you want the judge to order in the PPO?
+  Other requests
 subquestion: |
   ${ collapse_template(wants_other_request_explained) }
 fields:
-  - no label: wants_other_request
+  - Is there anything else you want the judge to order in the PPO?: wants_other_request
     datatype: yesnoradio
+    label above field: True
   - List the other things you want the judge to order ${ other_parties[0].name } not to do.: other_request_exp
     input type: area
+    label above field: True
     show if:
       variable: wants_other_request
       is: True
@@ -3209,26 +3418,33 @@ code: |
 ---
 code: |
   if ETC_county_status == "optional" or ETC_county_status == "not_allowed":
-    if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-      if next_friend_agrees_to_sign == True:
-        someone_signed = True
+    if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+      if fourteen_plus_agrees_to_sign == True and next_friend_agrees_to_sign == True:
+        signatures_complete = True
       else:
-        someone_signed = False
+        signatures_complete = False
+    elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      if next_friend_agrees_to_sign == True:
+        signatures_complete = True
+      else:
+        signatures_complete = False
     else:
       if MLH_esign == True:
-        someone_signed = True
+        signatures_complete = True
       else:
-        someone_signed = False
-  else: 
-    someone_signed = False
+        signatures_complete = False
 ---
 only sets: ETC_esign
 code: |
-  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+    next_friend_agrees_to_sign = True
+    fourteen_plus_agrees_to_sign = True
+  elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
     next_friend_agrees_to_sign = True
   else:
     MLH_esign = True
   signature_date
+  signatures_complete = True
   ETC_esign = True
 ---
 code: |
@@ -3236,37 +3452,45 @@ code: |
 ---
 code: |
   if len(next_friends.complete_elements()) > 0:
-    etc_cover_contact_info = f"Petitioner: { next_friends[0] }, next friend for ${ users[0] }; "
+    etc_cover_contact_info = f"Petitioner: { next_friends[0] }, next friend for { users[0] }; "
   else:
     etc_cover_contact_info = f"Petitioner: { users[0] }; "
-  if ETC_safe_email_NONE:
-    etc_cover_contact_info += f"Phone: { ETC_safe_phone }"
-  else:
-    etc_cover_contact_info += f"Email: { ETC_safe_email }"
+  etc_cover_contact_info += f"Email: { contact_email }"
 ---
 id: ETC optional info
 continue button field: ETC_optional_info
 question: |
   ${ county_choice } County Circuit Court Accepts Direct E-mail Filing from MLH-Forms
 subquestion: |
-  On the next screen you can review your forms. Then you have a choice to: 
+  You can choose whether to: 
   
-  * file now with a direct email from this tool, 
+  * file your forms right away with a direct email from this tool, 
   * wait and file later, or 
   * download and file your forms in another way.
+
+  On the next few screens you can choose whether to e-sign and attach any documents you want the judge to see. Then you can review your forms and, if you want, file by direct e-mail from this tool.
 ---
 id: ETC required info
 continue button field: ETC_required_info
+continue button label: "E-sign and continue"
 question: |
   ${ county_choice } County Circuit Court Requires Direct E-mail Filing from MLH-Forms
 subquestion: |
-  When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool. 
+  When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool.
   
-  On the next screen you can review your forms. Then follow the on-screen directions to file by e-mail.
+  % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+  This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
+  % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  This tool will add "**/s/ ${ next_friends[0] }**" as the next friend's e-signature on the forms. Continue only if ${ next_friends[0] } agrees to e-sign.
+  % else:
+  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
+  % endif
+under: |
+  ${ collapse_template(signature_info_template) }
 ---
-id: ETC review and download docs screen
+id: ETC review and download docs DownloadScreen
 continue button field: ETC_review_docs_screen
-continue button label: ":file-export: E-mail your forms to the court"
+continue button label: "E-mail your forms to the court"
 question: |
   Review your forms
 subquestion: |
@@ -3284,7 +3508,11 @@ subquestion: |
   % if ETC_county_status == "required":
   Tap the button below when you're ready to e-mail your forms to the court. 
   % else:
+  % if not signatures_complete:
+  Tap the button below if you want to finish e-signing and file now by e-mail. 
+  % else:
   Tap the button below if you want to file now by e-mail. 
+  % endif  
   
   If you prefer to file in a different way, read the **Instructions** to learn about your options.
   % endif
@@ -3298,6 +3526,40 @@ content: |
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
   
   This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **E-mail your forms to the court** button below.
+---
+continue button field: ETC_review_exhibits
+id: exhibit review for ETC optional counties
+question: |
+  Have you attached all the documents you want the judge to see?
+review:
+  - note: |
+      Review your answers below and add any documents you want the court to see. When you're finished, tap **${MLH_continue_button_label}**.
+  - Edit:
+    - exhibit_attachment.exhibits.has_exhibits
+    button: |
+      **Do you have documents you want the judge to see?**:
+
+      % if exhibit_attachment.exhibits.has_exhibits:
+      Yes
+      % elif not exhibit_attachment.exhibits.has_exhibits:
+      No
+      % endif
+  - note: |
+      **Uploaded Documents**
+
+      ${ exhibit_attachment.exhibits.add_action() }
+
+      % if exhibit_attachment.exhibits.there_are_any:
+      ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
+      % else:
+      You have not uploaded any documents yet.
+      % endif
+
+    css class: bg-secondary-subtle
+    show if: exhibit_attachment.exhibits.has_exhibits
+  - note: |
+      ${ collapse_template(no_documents) }
+      ${ collapse_template(audiovisual_evidence) }
 ---
 template: wait_to_file_help
 subject: |
@@ -3325,57 +3587,53 @@ content: |
 id: get email to clerk details
 continue button field: clerk_email_prep
 continue button label: |
-  % if someone_signed:
-  Submit
+  % if signatures_complete:
+  :file-export: Submit
   % else:
-  E-sign and Submit
+  :file-export: E-sign and Submit
   % endif
 question: |
   Submit your forms to the court
 subquestion: |
-  % if not someone_signed:
-  Because these forms will be e-mailed directly to the court, **you must e-sign** them. 
   % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-  This tool will add "**/s/ ${ next_friends[0] }**" as your e-signature on the forms.
+  Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
+  
+  When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail ${ next_friends[0] } at this address.
   % else:
-  This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms.
+  Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
   % endif
-  % endif
-  
-  You **must** provide an e-mail address if at all posssible so that the court can contact you and send you a copy of your filed documents. If you don't have a safe e-mail to use, you must include a phone number.
-  
-  The e-mail address or phone number you enter on this screen **will not** appear on your court forms, and will be kept confidential.
   
 fields:
-  - E-mail address: ETC_safe_email
+  - Contact e-mail address: contact_email
     datatype: email
-    show if:
-      variable: ETC_safe_email_NONE
-      is: False
-  - There's NO safe e-mail for the court to contact me at.: ETC_safe_email_NONE
-    required: False
-    datatype: yesno
-  - Safe phone number: ETC_safe_phone
-    datatype: al_international_phone
-    show if: ETC_safe_email_NONE
   - Notes for the court clerk (optional): notes_to_clerk
     input type: area
     rows: 3
     maxlength: 200
     required: False
+  - note: |
+      % if not signatures_complete:
+      Because these forms will be e-mailed directly to the court, **e-signatures are required**. 
+      % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+      This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
+      % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+      This tool will add "**/s/ ${ next_friends[0] }**" as the next friend's e-signature on the forms. Continue only if ${ next_friends[0] } agrees to e-sign.
+      % else:
+      This tool will add "**/s/ ${ users[0] }**" as your e-signature on the forms. Continue only if you agree to e-sign.
+      % endif
+      % endif
 under: |
-  % if someone_signed:
+  % if signatures_complete:
   Tap **Submit** to send your forms to the court now. 
   % else:
-  Tap **E-sign and Submit** to send your forms to the court now. 
+  Tap **E-sign and Submit** to e-sign and send your forms to the court now. 
   % endif
 ---
 code: |
   recipient = get_config(f'{ county_choice } ETC address')
-  if ETC_safe_email_NONE:
-    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, template=clerk_email) 
-  else:
-    clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=ETC_safe_email, template=clerk_email) 
+  clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=contact_email, template=clerk_email) 
+  if clerk_email_sent_ok:
+    prevent_going_back()
 ---
 template: clerk_email
 subject: |
@@ -3391,28 +3649,18 @@ content: |
   ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
   
-  Petitioner contact information (confidential if different from contact info listed on forms): 
-  % if ETC_safe_email_NONE:
-  ${ ETC_safe_phone }
-  % else:
-  ${ ETC_safe_email }
-  % endif
+  Petitioner contact information: ${ contact_email }
   
-  **Optional** note from sender: ${ notes_to_clerk }
+  **Optional note from sender:** ${ notes_to_clerk }
 ---
-id: email confirmation page
-continue button field: email_status
+id: email confirmation ETCSent
+continue button field: email_status_sent
 question: |
-  % if clerk_email_sent_ok:
   You forms were e-mailed to the court!
-  % else:
-  Email Error
-  % endif
 subquestion: |
-  % if clerk_email_sent_ok:
-  **Your forms were sent to the ${ county_choice } County Circuit Court.** 
+  Your forms **were e-mailed** to the ${ county_choice } County Circuit Court. 
   % if county_choice in ETC_court_phones:
-  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
   % endif
   
   **Important:** Read the **Instructions** document for what to do next. 
@@ -3420,16 +3668,20 @@ subquestion: |
   If you did not download your forms or instructions yet, tap **Continue**. It may take a minute to get to the next screen. You do not need to refresh.
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
-  
-  % else:
+---
+id: email not sent ETCFailed
+continue button field: email_status_failed
+question: |
+  Email Error
+subquestion: |
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
   Tap **Undo** to return to the Submit page and try again. 
   
   Or tap "Continue" to download your forms. It may take a minute to get to the next screen. You do not need to refresh.
-  % endif
 ---
 id: email to court success screen
+prevent going back: True
 event: ETC_success
 question: |
   Your forms were e-mailed to the court!
@@ -3445,9 +3697,6 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-buttons:
-  - Exit: exit
-  - Restart: restart
 ---
 id: email to court error screen
 event: ETC_error
@@ -3466,9 +3715,11 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-buttons:
-  - Exit: exit
-  - Restart: restart
+---
+code: |
+  stuff_to_snapshot['ETC_sent'] = showifdef('clerk_email_sent_ok')
+  reconsider('snapshot_interview_state')
+  snapshot_ETC = True
 ---
 # if no ETC
 id: download screen
@@ -3522,10 +3773,10 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet, exhibit_attachment], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
-  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, ppo_order_bundle, ppo_cc_381, ppo_mc_319, identifying_information, ppo_contact_information_sheet, exhibit_attachment], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
+  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
 ---
 objects:
   - ppo_order_bundle: ALDocumentBundle.using(elements=[ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, proof_of_service_domestic, proof_of_service_domestic_minor, proof_of_service_nondomestic, proof_of_service_nondomestic_minor, proof_of_service_nondomestic_sa, proof_of_service_nondomestic_sa_minor], filename="Proposed Order.pdf", title="Proposed Order", enabled=True)
@@ -3536,12 +3787,12 @@ objects:
   - ppo_cc_395_etc: ALDocumentBundle.using(elements=[etc_cover_page, ppo_cc_395], title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
 ---
 objects:
-  - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
-  - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", enabled=True)
-  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
-  - ppo_domestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375_etc, cc_375_addendum, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", enabled=True)
-  - ppo_nondomestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_377_etc, cc_377_addendum, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", enabled=True)
-  - ppo_nondomestic_sexual_assault_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_395_etc, cc_395_addendum, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395", enabled=True)
+  - ppo_domestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_375, cc_375_addendum, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
+  - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_addendum, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
+  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_addendum, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
+  - ppo_domestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375_etc, cc_375_addendum, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
+  - ppo_nondomestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_377_etc, cc_377_addendum, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
+  - ppo_nondomestic_sexual_assault_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_395_etc, cc_395_addendum, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
   - ppo_mc_319: ALDocument.using(title="Request for Next Friend - MC 319", filename="Request for Next Friend - MC 319", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
@@ -3562,17 +3813,35 @@ code: |
 ---
 code: |
   if ppo_type == "domestic":
+    ppo_domestic_attachment.enabled = True
+    ppo_domestic_attachment_court.enabled = True
     ppo_cc_375.enabled = True
     ppo_cc_375_etc.enabled = True
     cc_375_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
+    ppo_nondomestic_sexual_assault_attachment.enabled = False
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = False
+    ppo_nondomestic_attachment.enabled = False
+    ppo_nondomestic_attachment_court.enabled = False
+  elif ppo_type == "nondomestic":
+    ppo_nondomestic_attachment.enabled = True
+    ppo_nondomestic_attachment_court.enabled = True
+    ppo_cc_377.enabled = True
+    ppo_cc_377_etc.enabled = True
+    cc_377_addendum.enabled = True
+    ppo_domestic_attachment_court.enabled = False
+    ppo_domestic_attachment.enabled = False
+    ppo_nondomestic_sexual_assault_attachment.enabled = False
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = False
   else:
-    ppo_cc_375.enabled = False
-    ppo_cc_375_etc.enabled = False
-    cc_375_addendum.enabled = False
+    ppo_nondomestic_sexual_assault_attachment.enabled = True
+    ppo_nondomestic_sexual_assault_attachment_court.enabled = True
+    ppo_cc_395.enabled = True
+    ppo_cc_395_etc.enabled = True
+    cc_395_addendum.enabled = True
+    ppo_domestic_attachment_court.enabled = False
+    ppo_domestic_attachment.enabled = False
+    ppo_nondomestic_attachment.enabled = False
+    ppo_nondomestic_attachment_court.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and county_choice != "Wayne":
@@ -3591,22 +3860,6 @@ code: |
     ppo_cc_376m.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic":
-    ppo_cc_381.enabled = True
-    ppo_cc_377.enabled = True
-    ppo_cc_377_etc.enabled = True
-    cc_377_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
-  else:
-    ppo_cc_377.enabled = False
-    ppo_cc_377_etc.enabled = False
-    ppo_cc_381.enabled = False
-    cc_377_addendum.enabled = False
----
-code: |
   if ppo_type == "nondomestic" and county_choice != "Wayne":
     if respondent_is_minor:
       if not respondent_is_emancipated_minor:
@@ -3623,20 +3876,6 @@ code: |
     ppo_cc_380m.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault":
-    ppo_cc_395.enabled = True
-    ppo_cc_395_etc.enabled = True
-    cc_395_addendum.enabled = True
-    if county_choice != "Oakland":
-      etc_cover_page.enabled = True
-    else:
-      etc_cover_page.enabled = False
-  else:
-    ppo_cc_395.enabled = False
-    ppo_cc_395_etc.enabled = False
-    cc_395_addendum.enabled = False
----
-code: |
   if ppo_type == "nondomestic_sexual_assault" and county_choice != "Wayne":
     if respondent_is_minor:
       if not respondent_is_emancipated_minor:
@@ -3651,6 +3890,12 @@ code: |
   else:
     ppo_cc_396.enabled = False
     ppo_cc_396m.enabled = False
+---
+code: |
+  if wants_ex_parte_order:
+    ppo_cc_381.enabled = False
+  else:
+    ppo_cc_381.enabled = True
 ---
 code: |
   if (not wants_ex_parte_order) and (county_choice != "Oakland"):
@@ -3677,19 +3922,19 @@ code: |
     oakland_county_instructions_ex_parte.enabled = False
 ---
 code: |
-  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)):
+  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_harm_protectees_list.complete_elements()) > 1) or (len(ppo_threat_protectees_list.complete_elements()) > 1)) or wants_other_request:
     cc_375_attachment.enabled = True
   else:
     cc_375_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes):
+  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes) or wants_other_request:
     cc_377_attachment.enabled = True
   else:
     cc_377_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_sexual_assault_protectees_list.complete_elements()) > 1)):
+  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or (len(ppo_sexual_assault_protectees_list.complete_elements()) > 1)) or wants_other_request:
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
@@ -3697,11 +3942,13 @@ code: |
 code: |
   if str(county_choice) == "Oakland":
     ppo_contact_information_sheet.enabled = True
+    etc_cover_page.enabled = False
   else:
     ppo_contact_information_sheet.enabled = False
+    etc_cover_page.enabled = True
 ---
 code: |
-  if is_incapacitated_adult or petitioner_is_minor:
+  if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
     if has_next_friend_petitioning:
       ppo_mc_319.enabled = True
     else:
@@ -3808,7 +4055,7 @@ attachments:
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
     - users1_address_block: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -3823,12 +4070,26 @@ attachments:
         ${ other_parties[0].address_block() }
         ${ other_parties[0].phone_number }
     - pursuant_to: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
     - next_friend1_name: ${ next_friends[0] }
+    - requestor_signature: |
+        % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
+        % if fourteen_plus_agrees_to_sign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
+        % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+        % if next_friend_agrees_to_sign:
+        /s/ ${ next_friends[0] }
+        % else:
+        ${ '' }
+        % endif
+        % endif
     - next_friend1_signature: |
         % if next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
@@ -3836,6 +4097,14 @@ attachments:
         ${ '' }
         % endif
     - signature_date: ${ signature_date if next_friend_agrees_to_sign else "" }
+    - signature_date_requestor: |
+        % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
+        ${ signature_date }
+        % elif is_incapacitated_adult or (petitioner_is_minor and petitioner_under_fourteen) and next_friend_agrees_to_sign:
+        ${ signature_date }
+        % else:
+        ${ '' }
+        % endif
     - users1_name: ${ users[0] }
     - is_minor: ${ petitioner_is_minor }
     - is_incapacitated_adult: ${ is_incapacitated_adult }
@@ -3915,7 +4184,7 @@ attachments:
   pdf template file: identifying_information.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -3934,7 +4203,7 @@ attachments:
     - other_parties1_weight: ${ other_parties[0].weight }
     - other_parties1_race: ${ other_parties[0].race }
     - other_parties1_gender: ${ other_parties[0].gender }
-    - other_parties1_age: |
+    - other_parties1_birthdate: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
         % else:
@@ -3957,13 +4226,13 @@ attachments:
   pdf template file: cc_375_petition_for_personal_protection_order_domestic.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -3977,7 +4246,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -3985,13 +4254,13 @@ attachments:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
     - signature_date: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ signature_date }
         % else:
         ${ '' }
@@ -4122,7 +4391,6 @@ attachments:
     - intentional_mental_distress_includes_retaining_animal: ${ intentional_mental_distress_includes_retaining_animal }
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
     - wants_other_request: ${ wants_other_request }
-    - other_request_exp: ${ other_request_exp }
     - other_request_see_attached: |
         % if wants_other_request:
         Please see "Relief Requested" in Attachment.
@@ -4236,7 +4504,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4287,7 +4555,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4347,7 +4615,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4395,7 +4663,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4451,13 +4719,13 @@ attachments:
   pdf template file: cc_395_petition_for_personal_protection_order_nondomestic_sexual_assault.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -4471,7 +4739,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -4479,13 +4747,13 @@ attachments:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
     - signature_date: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ signature_date }
         % else:
         ${ '' }
@@ -4542,7 +4810,6 @@ attachments:
     - wants_no_work_education_interference: ${ wants_no_work_education_interference }
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
     - wants_other_request: ${ wants_other_request }
-    - other_request_exp: ${ other_request_exp }
     - other_request_see_attached: |
         % if wants_other_request:
         Please see "Relief Requested" in Attachment.
@@ -4567,7 +4834,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4613,7 +4880,7 @@ attachments:
   fields:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4667,7 +4934,7 @@ attachments:
   pdf template file: cc_381_notice_of_hearing.pdf
   fields:
     - users1_name: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
@@ -4695,15 +4962,27 @@ attachments:
     - users1_city_state_zip: |
         ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
-    - users1_email: ${ users[0].email }
-    - users1_signature: ${ f"/s/ {users[0]}" if MLH_esign else "" }
+    - users1_email: ${ contact_email }
+    - users1_signature: |
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
+        /s/ ${ next_friends[0] }
+        % elif MLH_esign:
+        /s/ ${ users[0] }
+        % else:
+        ${ '' }
+        % endif
     - pursuant_to: |
-        % if MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
-    - signature_date: ${ signature_date if MLH_esign else "" }
+    - signature_date: |
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
+        ${ signature_date }
+        % else:
+        ${ '' }
+        % endif
     - wants_confidential_contact_details: ${ wants_confidential_contact_details }
 ---
 attachments:
@@ -4715,13 +4994,13 @@ attachments:
   pdf template file: cc_377_petition_for_personal_protection_order_nondomestic.pdf
   fields:
     - users1_name__1: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] } NFF ${ users[0] }
         % else:
         ${ users[0] }
         % endif
     - users1_name__2: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0:
+        % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
         ${ next_friends[0] }
         % else:
         ${ users[0] }
@@ -4735,7 +5014,7 @@ attachments:
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
-        % if (is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign:
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         /s/ ${ next_friends[0] }
         % elif MLH_esign:
         /s/ ${ users[0] }
@@ -4743,13 +5022,13 @@ attachments:
         ${ '' }
         % endif
     - pursuant_to: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ MLH_esign_tag }
         % else:
         ${ '' }
         % endif
     - signature_date: |
-        % if ((is_incapacitated_adult or petitioner_is_minor) and len(next_friends) > 0 and next_friend_agrees_to_sign) or MLH_esign:
+        % if ((is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign) or MLH_esign:
         ${ signature_date }
         % else:
         ${ '' }
