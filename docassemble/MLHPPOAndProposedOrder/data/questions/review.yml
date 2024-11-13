@@ -329,6 +329,7 @@ review:
     show if: orders_judgments.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Past Indicents</h2>') }
+    show if: len(incidents.complete_elements()) > 0
   - Edit:
       - incidents.revisit
     button: |
@@ -340,10 +341,15 @@ review:
       * When: ${ item.date }
       * Location: ${ item.location }
       * Description: ${ item.other_party_actions }
+      % if ppo_type == "nondomestic":
+      * ${ item.reason_other_party_responsible }
+      % endif
       * Because of this incident, I felt...: ${ item.emotional_effect }
+      % if ppo_type == "domestic":
       * Were you physically injured?: ${ word("Yes") if item.petitioner_injured else word("No") } 
       % if item.petitioner_injured: 
       * Injuries: ${ item.physical_injury }
+      % endif
       % endif
       * Were there witnesses?: ${ word("Yes") if item.had_witnesses else word("No") }
       * Were the police called?: ${ word("Yes") if item.had_police else word("No") }
@@ -365,58 +371,44 @@ review:
       % else:
       *You have not entered anything here yet*
       % endif
+    show if: defined('other_details')
   - raw html: |
       ${ next_accordion('<h2 class="h5">Requests for the Court</h2>') }
+    show if: defined('wants_no_entering_residential_property') or defined('no_stalking_choices')
   - Edit: 
       - wants_no_entering_residential_property
-      - has_property_interest_in_home
-      - respondent_has_property_interest_in_home
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not enter the property where you live?**
 
       ${ word(yesno(wants_no_entering_residential_property)) }
+  - Edit: 
+      - has_property_interest_in_home
+    button: |
+      **Do you have a property interest in the property where you live?**
 
-      **Do you have a property interest in this home?**
-      % if has_property_interest_in_home:
+      ${ word(yesno(has_property_interest_in_home)) }
+  - Edit: 
+      - respondent_has_property_interest_in_home
+    button: |
+      **Does ${ other_parties[0] } have a property interest in the property where you live?**
 
-      Yes
-      % elif not has_property_interest_in_home:
-
-      No
-      % else:
-
-      *You have not answered this question yet*
-      % endif
-
-      **Does ${ other_parties[0] } have a property interest in this home?**
-      % if respondent_has_property_interest_in_home:
-
-      Yes
-      % elif not respondent_has_property_interest_in_home:
-
-      No
-      % else:
-
-      *You have not answered this question yet*
-      % endif
+      ${ word(yesno(respondent_has_property_interest_in_home)) }
   - Edit: 
       - other_properties.there_are_any
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not enter another property (not your residence)?**
-      % if other_properties.there_are_any:
 
-      Yes
-      % elif not other_properties.there_are_any:
-
-      No
-      % endif
-      % if other_properties.there_are_any:
+      ${ word(yesno(other_properties.there_are_any)) }
+  - Edit: 
+      - other_properties.revisit
+    button: |
+      **Other property (not your residence):**
       % for item in other_properties:
 
       ${ item }
 
       % endfor
-      % endif
+    show if: other_properties.there_are_any
   - Edit: 
       - wants_no_harming_petitioner
     button: |
@@ -429,6 +421,7 @@ review:
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound another person?**
 
       ${ word(yesno(ppo_harm_protectees.there_are_any)) }
+    show if: ppo_type == "domestic" and defined('ppo_harm_protectees.there_are_any')
   - Edit: ppo_harm_protectees.revisit
     button: |
       % if len(ppo_harm_protectees.complete_elements()) > 0:
@@ -504,6 +497,7 @@ review:
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure another person?**
 
       ${ word(yesno(ppo_threat_protectees.there_are_any)) }
+    show if: ppo_type == "domestic" and defined('ppo_threat_protectees.there_are_any')
   - Edit: ppo_threat_protectees.revisit
     button: |
       % if len(ppo_threat_protectees.complete_elements()) > 0:
@@ -558,17 +552,22 @@ review:
 
       ${ word(yesno(wants_no_firearm_purchase_or_possession)) }
   - Edit: 
+      - wants_no_message_posting
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not harrass you by posting messages?**
+
+      ${ word(yesno(wants_no_message_posting)) }
+    show if: ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault"
+  - Edit: 
       - wants_other_request
-      - other_request_exp
     button: |
       **Is there anything else you want the judge to order in the PPO?**
 
       ${ word(yesno(wants_other_request)) }
-
+      % if wants_other_request:
       % if other_request_exp:
-      ${ other_request_exp }
-      % else:
-      You have not added anything to this section yet
+        - ${ other_request_exp }
+      % endif
       % endif
   - Edit: 
       - wants_ex_parte_order
@@ -577,10 +576,8 @@ review:
 
       ${ word(yesno(wants_ex_parte_order)) }
   - raw html: |
-      ${ end_accordion() }
-  - note: |
-      <hr>
-      <h2 class='h5'>Uploaded Documents</h2>
+      ${ next_accordion('<h2 class="h5">Uploaded Documents</h2>') }
+    show if: defined('exhibit_attachment.exhibits.has_exhibits')
   - Edit:
       - exhibit_attachment.exhibits.has_exhibits
     button: |
@@ -604,6 +601,8 @@ review:
 
     css class: bg-secondary-subtle
     show if: exhibit_attachment.exhibits.has_exhibits
+  - raw html: |
+      ${ end_accordion() }
 ---
 generic object: ALExhibitList
 table: exhibit_attachment.exhibits.rearrange_exhibits_table
