@@ -329,11 +329,12 @@ code: |
   if ppo_type != "domestic":
     wants_no_message_posting
 
+  wants_other_request
+
   if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
     need_ex_parte
     set_ex_parte
   else:
-    wants_other_request
     if wants_ex_parte_order:
       ex_parte_yes_screen
 
