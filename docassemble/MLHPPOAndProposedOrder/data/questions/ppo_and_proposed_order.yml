@@ -157,7 +157,7 @@ code: |
   if ppo_type == "domestic":
     petitioner_respondent_relationship
     set_petitioner_respondent_relationship
-    if petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
+    if parent_choice and petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
       petitioner_respondents_child_kickout
 
   set_ppo_type_full
@@ -4118,7 +4118,7 @@ attachments:
   variable name: pet_proof_of_serv_domestic[i]
   skip undefined: True
   editable: False
-  pdf template file: pet_proof_of_serv_domestic.pdf
+  pdf template file: proof_of_service_domestic.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
 ---
@@ -4128,7 +4128,7 @@ attachments:
   variable name: pet_proof_of_serv_nondomestic[i]
   skip undefined: True
   editable: False
-  pdf template file: pet_proof_of_serv_nondomestic.pdf
+  pdf template file: proof_of_service_nondomestic.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
 ---
@@ -4138,7 +4138,7 @@ attachments:
   variable name: pet_proof_of_serv_nondomestic_sa[i]
   skip undefined: True
   editable: False
-  pdf template file: pet_proof_of_serv_nondomestic_sa.pdf
+  pdf template file: proof_of_service_nondomestic_sa.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
 ---
@@ -4148,7 +4148,7 @@ attachments:
   variable name: pet_proof_of_serv_domestic_minor[i]
   skip undefined: True
   editable: False
-  pdf template file: pet_proof_of_serv_domestic_minor.pdf
+  pdf template file: proof_of_service_domestic_minor.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
 ---
@@ -4158,7 +4158,7 @@ attachments:
   variable name: pet_proof_of_serv_nondomestic_minor[i]
   skip undefined: True
   editable: False
-  pdf template file: pet_proof_of_serv_nondomestic_minor.pdf
+  pdf template file: proof_of_service_nondomestic_minor.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
 ---
@@ -4168,7 +4168,7 @@ attachments:
   variable name: pet_proof_of_serv_nondomestic_sa_minor[i]
   skip undefined: True
   editable: False
-  pdf template file: pet_proof_of_serv_nondomestic_sa_minor.pdf
+  pdf template file: proof_of_service_nondomestic_sa_minor.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
 ---
