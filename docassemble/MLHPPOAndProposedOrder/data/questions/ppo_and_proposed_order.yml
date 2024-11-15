@@ -362,9 +362,11 @@ code: |
        
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
+    have_patience_download
     snapshot_download
     personal_protection_order_download
   else: 
+    have_patience_download
     snapshot_download
     ETC_review_docs_screen
     ETC_review_exhibits
@@ -3485,7 +3487,7 @@ code: |
   ETC_esign = True
 ---
 code: |
-  ETC_court_phones = {'Cass': '269-445-4416', 'Ionia': '616-527-5322', 'Montcalm': '989-831-3520, option 1', 'Wayne': '313-967-3579'}
+  ETC_court_phones = {'Cass': '269-445-4416', 'Ionia': '616-527-5322', 'Montcalm': '989-831-3520, option 1', 'Wayne': '313-967-3579', 'Oakland': '248-303-1534'}
 ---
 code: |
   if len(next_friends.complete_elements()) > 0:
@@ -3555,6 +3557,8 @@ subquestion: |
   % endif
   
   ${ collapse_template(wait_to_file_help) }
+under: |
+  **It may take a minute** to get to the next screen. You do not need to refresh.
 ---
 template: email_to_self_option
 subject: |
@@ -3661,9 +3665,9 @@ fields:
       % endif
 under: |
   % if signatures_complete:
-  Tap **Submit** to send your forms to the court now. 
+  Tap **Submit** to send your forms to the court now. It may **take a few minutes** to get to the confirmation screen. You do not need to refresh.
   % else:
-  Tap **E-sign and Submit** to e-sign and send your forms to the court now. 
+  Tap **E-sign and Submit** to send your forms to the court now. It may **take a few minutes** to get to the confirmation screen. You do not need to refresh.
   % endif
 ---
 code: |
@@ -3690,21 +3694,34 @@ content: |
   
   **Optional note from sender:** ${ notes_to_clerk }
 ---
+id: patience download
+continue button field: have_patience_download
+question: |
+  Almost done
+subquestion: |
+  After you tap **${MLH_continue_button_label}**, it may take a few minutes to finish making your forms.
+  
+  You **do not** need to refresh your screen. Hang in there!
+---
 id: email confirmation ETCSent
 continue button field: email_status_sent
 question: |
   You forms were e-mailed to the court!
 subquestion: |
   Your forms **were e-mailed** to the ${ county_choice } County Circuit Court. 
-  % if county_choice in ETC_court_phones:
+  % if county_choice == "Oakland":
+  If you do not get an email from the PPO Office within 1 business day, please call ${ ETC_court_phones[county_choice] }.
+  % elif county_choice in ETC_court_phones:
   You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
   % endif
   
   **Important:** Read the **Instructions** document for what to do next. 
   
-  If you did not download your forms or instructions yet, tap **Continue**. It may take a minute to get to the next screen. You do not need to refresh.
+  To get a copy of your forms or instructions, tap **Continue**. 
 
-  Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on your forms.
+  Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on the court's copy of your forms.
+under: |
+  It may **take a few minutes** to get to the next screen. You do not need to refresh.
 ---
 id: email not sent ETCFailed
 continue button field: email_status_failed
@@ -3715,7 +3732,9 @@ subquestion: |
 
   Tap **Undo** to return to the Submit page and try again. 
   
-  Or tap "Continue" to download your forms. It may take a minute to get to the next screen. You do not need to refresh.
+  Or tap "Continue" to download your forms. 
+under: |
+  It may **take a few minutes** to get to the next screen. You do not need to refresh.
 ---
 id: email to court success screen
 prevent going back: True
