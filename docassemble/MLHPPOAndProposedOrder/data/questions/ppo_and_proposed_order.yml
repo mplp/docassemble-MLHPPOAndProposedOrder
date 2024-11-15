@@ -363,9 +363,17 @@ code: |
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
     snapshot_download
+  #### testing background generation v
+    if not al_user_bundle.generate_downloads_task.ready():
+      al_download_waiting_screen
+  #### testing background generation ^
     personal_protection_order_download
   else: 
     snapshot_download
+  #### testing background generation v
+    if not al_user_bundle.generate_downloads_task.ready():
+      al_download_waiting_screen
+  #### testing background generation ^
     ETC_review_docs_screen
     ETC_review_exhibits
     clerk_email_prep
@@ -3537,7 +3545,7 @@ subquestion: |
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
   
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True) }
 
   ${ collapse_template(email_to_self_option) }
 
@@ -3730,7 +3738,7 @@ subquestion: |
   
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
   
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True) }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
@@ -3746,7 +3754,7 @@ subquestion: |
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
   
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True) }
 
   &nbsp;
 
@@ -3770,7 +3778,7 @@ subquestion: |
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
 
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True) }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 ---
