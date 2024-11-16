@@ -3742,9 +3742,11 @@ event: ETC_success
 question: |
   Your forms were e-mailed to the court!
 subquestion: |
-  Your forms were **already emailed** to the ${ county_choice } County Circuit Court.
-  % if county_choice in ETC_court_phones:
-  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }
+  Your forms **were e-mailed** to the ${ county_choice } County Circuit Court. 
+  % if county_choice == "Oakland":
+  If you do not get an email from the PPO Office within 1 business day, please call ${ ETC_court_phones[county_choice] }.
+  % elif county_choice in ETC_court_phones:
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
   % endif
   
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
