@@ -157,7 +157,7 @@ code: |
   if ppo_type == "domestic":
     petitioner_respondent_relationship
     set_petitioner_respondent_relationship
-    if petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
+    if parent_choice and petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
       petitioner_respondents_child_kickout
 
   set_ppo_type_full
@@ -329,11 +329,12 @@ code: |
   if ppo_type != "domestic":
     wants_no_message_posting
 
+  wants_other_request
+
   if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
     need_ex_parte
     set_ex_parte
   else:
-    wants_other_request
     if wants_ex_parte_order:
       ex_parte_yes_screen
 
@@ -3784,12 +3785,12 @@ content: |
 #################### Documents Start #####################
 ---
 objects:
-  - proof_of_service_domestic: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - proof_of_service_nondomestic: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - proof_of_service_nondomestic_sa: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - proof_of_service_domestic_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - proof_of_service_nondomestic_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - proof_of_service_nondomestic_sa_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - pet_proof_of_serv_domestic: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - pet_proof_of_serv_nondomestic: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - pet_proof_of_serv_nondomestic_sa: ALDocument.using(title="Proof of Service", filename="Proof of Service", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - pet_proof_of_serv_domestic_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - pet_proof_of_serv_nondomestic_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - pet_proof_of_serv_nondomestic_sa_minor: ALDocument.using(title="Proof of Service (Minor)", filename="Proof of Service (Minor)", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - identifying_information: ALDocument.using(title="Identifying Information", filename="Identifying Information", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -3810,13 +3811,10 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
-  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, ppo_order_bundle, ppo_cc_381, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
----
-objects:
-  - ppo_order_bundle: ALDocumentBundle.using(elements=[ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, proof_of_service_domestic, proof_of_service_domestic_minor, proof_of_service_nondomestic, proof_of_service_nondomestic_minor, proof_of_service_nondomestic_sa, proof_of_service_nondomestic_sa_minor], filename="Proposed Order.pdf", title="Proposed Order", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
 ---
 objects:
   - ppo_cc_375_etc: ALDocumentBundle.using(elements=[etc_cover_page, ppo_cc_375], title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
@@ -3999,83 +3997,46 @@ code: |
     ppo_mc_319.enabled = False
 ---
 code: |
-  if county_choice == "Wayne":
-    proof_of_service_domestic.enabled = False
-    proof_of_service_domestic_minor.enabled = False
-    proof_of_service_nondomestic.enabled = False
-    proof_of_service_nondomestic_minor.enabled = False
-    proof_of_service_nondomestic_sa.enabled = False
-    proof_of_service_nondomestic_sa_minor.enabled = False
-  else:
-    if ppo_type == "domestic":
-      if respondent_is_minor:
-        if not respondent_is_emancipated_minor:
-          proof_of_service_domestic_minor.enabled = True
-          proof_of_service_domestic.enabled = False
-          proof_of_service_nondomestic.enabled = False
-          proof_of_service_nondomestic_minor.enabled = False
-          proof_of_service_nondomestic_sa.enabled = False
-          proof_of_service_nondomestic_sa_minor.enabled = False
-        else:
-          proof_of_service_domestic_minor.enabled = False
-          proof_of_service_domestic.enabled = True
-          proof_of_service_nondomestic.enabled = False
-          proof_of_service_nondomestic_minor.enabled = False
-          proof_of_service_nondomestic_sa.enabled = False
-          proof_of_service_nondomestic_sa_minor.enabled = False
-      else:
-        proof_of_service_domestic.enabled = True
-        proof_of_service_domestic_minor.enabled = False
-        proof_of_service_nondomestic.enabled = False
-        proof_of_service_nondomestic_minor.enabled = False
-        proof_of_service_nondomestic_sa.enabled = False
-        proof_of_service_nondomestic_sa_minor.enabled = False
-    elif ppo_type == "nondomestic":
-      if respondent_is_minor:
-        if not respondent_is_emancipated_minor:
-          proof_of_service_nondomestic_minor.enabled = True
-          proof_of_service_nondomestic.enabled = False
-          proof_of_service_domestic_minor.enabled = False
-          proof_of_service_domestic.enabled = False
-          proof_of_service_nondomestic_sa.enabled = False
-          proof_of_service_nondomestic_sa_minor.enabled = False
-        else:
-          proof_of_service_nondomestic_minor.enabled = False
-          proof_of_service_nondomestic.enabled = True
-          proof_of_service_domestic_minor.enabled = False
-          proof_of_service_domestic.enabled = False
-          proof_of_service_nondomestic_sa.enabled = False
-          proof_of_service_nondomestic_sa_minor.enabled = False
-      else:
-        proof_of_service_nondomestic.enabled = True
-        proof_of_service_nondomestic_minor.enabled = False
-        proof_of_service_domestic_minor.enabled = False
-        proof_of_service_domestic.enabled = False
-        proof_of_service_nondomestic_sa.enabled = False
-        proof_of_service_nondomestic_sa_minor.enabled = False
-    elif ppo_type == "nondomestic_sexual_assault":
-      if respondent_is_minor:
-        if not respondent_is_emancipated_minor:
-          proof_of_service_nondomestic_sa_minor.enabled = True
-          proof_of_service_nondomestic_sa.enabled = False
-          proof_of_service_nondomestic.enabled = False
-          proof_of_service_nondomestic_minor.enabled = False
-          proof_of_service_domestic_minor.enabled = False
-          proof_of_service_domestic.enabled = False
-        else:
-          proof_of_service_nondomestic_sa_minor.enabled = False
-          proof_of_service_nondomestic_sa.enabled = True
-          proof_of_service_nondomestic.enabled = False
-          proof_of_service_nondomestic_minor.enabled = False
-          proof_of_service_domestic_minor.enabled = False
-          proof_of_service_domestic.enabled = False
-      else:
-        proof_of_service_nondomestic_sa.enabled = True
-        proof_of_service_nondomestic_sa_minor.enabled = False
-        proof_of_service_nondomestic.enabled = False
-        proof_of_service_nondomestic_minor.enabled = False
-        proof_of_service_domestic_minor.enabled = False
-        proof_of_service_domestic.enabled = False
+  if wants_ex_parte_order or county_choice == "Wayne":
+    pet_proof_of_serv_domestic.enabled = False
+    pet_proof_of_serv_domestic_minor.enabled = False
+    pet_proof_of_serv_nondomestic.enabled = False
+    pet_proof_of_serv_nondomestic_minor.enabled = False
+    pet_proof_of_serv_nondomestic_sa.enabled = False
+    pet_proof_of_serv_nondomestic_sa_minor.enabled = False
+  elif ppo_type == "domestic":
+    if respondent_is_minor and not respondent_is_emancipated_minor:
+      pet_proof_of_serv_domestic_minor.enabled = True
+      pet_proof_of_serv_domestic.enabled = False
+    else:
+      pet_proof_of_serv_domestic_minor.enabled = False
+      pet_proof_of_serv_domestic.enabled = True
+    pet_proof_of_serv_nondomestic.enabled = False
+    pet_proof_of_serv_nondomestic_minor.enabled = False
+    pet_proof_of_serv_nondomestic_sa.enabled = False
+    pet_proof_of_serv_nondomestic_sa_minor.enabled = False
+  elif ppo_type == "nondomestic":
+    if respondent_is_minor and not respondent_is_emancipated_minor:
+      pet_proof_of_serv_nondomestic_minor.enabled = True
+      pet_proof_of_serv_nondomestic.enabled = False
+    else:
+      pet_proof_of_serv_nondomestic_minor.enabled = False
+      pet_proof_of_serv_nondomestic.enabled = True
+    pet_proof_of_serv_domestic_minor.enabled = False
+    pet_proof_of_serv_domestic.enabled = False
+    pet_proof_of_serv_nondomestic_sa.enabled = False
+    pet_proof_of_serv_nondomestic_sa_minor.enabled = False
+  elif ppo_type == "nondomestic_sexual_assault":
+    if respondent_is_minor and not respondent_is_emancipated_minor:
+      pet_proof_of_serv_nondomestic_sa_minor.enabled = True
+      pet_proof_of_serv_nondomestic_sa.enabled = False
+    else:
+      pet_proof_of_serv_nondomestic_sa_minor.enabled = False
+      pet_proof_of_serv_nondomestic_sa.enabled = True
+    pet_proof_of_serv_nondomestic.enabled = False
+    pet_proof_of_serv_nondomestic_minor.enabled = False
+    pet_proof_of_serv_domestic_minor.enabled = False
+    pet_proof_of_serv_domestic.enabled = False
 ---
 attachment:
   name: instructions  
@@ -4154,68 +4115,62 @@ attachments:
 attachments:
   name: Proof of Service
   filename: Proof of Service
-  variable name: proof_of_service_domestic[i]
+  variable name: pet_proof_of_serv_domestic[i]
   skip undefined: True
   editable: False
   pdf template file: proof_of_service_domestic.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service
   filename: Proof of Service
-  variable name: proof_of_service_nondomestic[i]
+  variable name: pet_proof_of_serv_nondomestic[i]
   skip undefined: True
   editable: False
   pdf template file: proof_of_service_nondomestic.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service
   filename: Proof of Service
-  variable name: proof_of_service_nondomestic_sa[i]
+  variable name: pet_proof_of_serv_nondomestic_sa[i]
   skip undefined: True
   editable: False
   pdf template file: proof_of_service_nondomestic_sa.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service (Minor)
   filename: Proof of Service (Minor)
-  variable name: proof_of_service_domestic_minor[i]
+  variable name: pet_proof_of_serv_domestic_minor[i]
   skip undefined: True
   editable: False
   pdf template file: proof_of_service_domestic_minor.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service (Minor)
   filename: Proof of Service (Minor)
-  variable name: proof_of_service_nondomestic_minor[i]
+  variable name: pet_proof_of_serv_nondomestic_minor[i]
   skip undefined: True
   editable: False
   pdf template file: proof_of_service_nondomestic_minor.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Proof of Service (Minor)
   filename: Proof of Service (Minor)
-  variable name: proof_of_service_nondomestic_sa_minor[i]
+  variable name: pet_proof_of_serv_nondomestic_sa_minor[i]
   skip undefined: True
   editable: False
   pdf template file: proof_of_service_nondomestic_sa_minor.pdf
   fields:
     - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Identifying Information
@@ -4559,6 +4514,7 @@ attachments:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age }
+    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
@@ -4638,6 +4594,7 @@ attachments:
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
     - other_parties_parents1_name: ${ other_parties_parents[0].name }
+    - other_parties1_name: ${ other_parties[0].name }
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address }
         ${ other_parties_parents[0].phone_number }
@@ -4645,7 +4602,6 @@ attachments:
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address }
         ${ other_parties_parents[1].phone_number }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Personal Protection Order (Non-Domestic Relationship) - CC 380
@@ -4669,6 +4625,7 @@ attachments:
         ${ users[0].address }
         ${ users[0].phone_number }
         % endif
+    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
@@ -4717,6 +4674,7 @@ attachments:
         ${ users[0].address }
         ${ users[0].phone_number }
         % endif
+    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_name__3: ${ other_parties[0].name }
@@ -4750,7 +4708,6 @@ attachments:
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address }
         ${ other_parties_parents[1].phone_number }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
@@ -4888,6 +4845,7 @@ attachments:
         ${ users[0].address }
         ${ users[0].phone_number }
         % endif
+    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
@@ -4934,6 +4892,7 @@ attachments:
         ${ users[0].address }
         ${ users[0].phone_number }
         % endif
+    - other_parties1_name: ${ other_parties[0].name }
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
@@ -4965,7 +4924,6 @@ attachments:
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address }
         ${ other_parties_parents[1].phone_number }
-    - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Notice of Hearing
