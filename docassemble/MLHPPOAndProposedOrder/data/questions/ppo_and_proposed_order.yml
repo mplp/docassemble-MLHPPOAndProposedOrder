@@ -69,7 +69,7 @@ objects:
   - children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
   - petitioner_other_children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
   - respondent_other_children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
-  - other_parties_parents: ALPeopleList.using(complete_attribute="complete")
+  - other_parties_parents: ALPeopleList.using(complete_attribute="complete", ask_number=True)
   - other_properties: ALAddressList.using(complete_attribute="complete")
   - ppo_harm_protectees: ALPeopleList.using(complete_attribute="complete")
   - ppo_harm_protectees_list: DAList.using(auto_gather=False)
@@ -196,7 +196,6 @@ code: |
 
   if respondent_is_minor:
     if (not respondent_is_emancipated_minor):
-      other_parties_parents_intro
       other_parties_parents.gather()
 
   if ppo_type == "domestic" and county_choice == "Oakland":
@@ -404,10 +403,6 @@ code: |
 ---
 code: |
   other_parties.there_is_another = False
----
-code: |
-  if respondent_is_minor and (not respondent_is_emancipated_minor):
-    other_parties_parents.there_are_any = True
 ---
 code: |
   if users[0].age_in_years() < 18:
@@ -1087,30 +1082,29 @@ fields:
     datatype: yesno
 ---
 id: respondent parent name
-sets:
-  - other_parties_parents[i].name.first
-  - other_parties_parents[i].name.middle
-  - other_parties_parents[i].name.last
-  - other_parties_parents[i].name.suffix
 question: |
   % if len(other_parties_parents.complete_elements()) < 1:
   Enter the name of one of ${ other_parties[0] }'s parent, guardian, or custodian
   % else:
   Enter the name of ${ other_parties[0] }'s other parent, guardian, or custodian
   % endif
+subquestion: |
+  If unknown, leave blank.
 fields:
-  - code: |
-      other_parties_parents[i].name_fields()
+  - First name: other_parties_parents[i].name.first
+    required: False
+  - Middle name: other_parties_parents[i].name.middle
+    required: False
+  - Last name: other_parties_parents[i].name.last
+    required: False
+  - Suffix: other_parties_parents[i].name.suffix
+    required: False
 ---
 id: respondent parent contact info
-sets:
-  - other_parties_parents[i].address.address
-  - other_parties_parents[i].address.city
-  - other_parties_parents[i].address.zip
-  - other_parties_parents[i].address.unit
-  - other_parties_parents[i].address.state
 question: |
   What is ${ other_parties_parents[i].name }'s address?
+subquestion: |
+  If none or unknown, leave blank.
 fields:
   - Street Address or P.O. Box: other_parties_parents[i].address.address
     required: False
@@ -1128,19 +1122,15 @@ validation code: |
   if len(other_parties_parents.complete_elements()) > 0:
     other_parties_parents.there_is_another = False
 ---
-id: other_parties_parents there_is_another
-question: |
-  Other parent, guardian, or custodian
-fields:
-  - Does ${ other_parties[0].name } have another parent, guardian, or custodian?: other_parties_parents.there_is_another
-    datatype: yesnoradio
----
 id: does respondent parent share address with respondent
 question: |
   ${ other_parties_parents[i].name }'s address
 fields:
   - Does ${ other_parties_parents[i].name } have the same address as ${ other_parties[0].name }?: other_parties_parents[i].shares_respondent_address
-    datatype: yesnoradio
+    datatype: radio
+    choices:
+      - Yes: True
+      - No, or I don't know: False
 ---
 id: respondent parent phone number
 sets:
@@ -1148,7 +1138,7 @@ sets:
 question: |
   Enter ${ other_parties_parents[i].name }'s telephone number
 subquestion: |
-  If none or unknown, leave blank.
+  If none or unknown, check the box.
 fields:
   - Phone: other_parties_parents[i].phone_number
     show if:
@@ -2222,12 +2212,19 @@ subquestion: |
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
-id: other party parents intro
+id: is there parental info for respondent
 question: |
-  We need information about ${ other_parties[0].name }'s parents, guardians, or custodians
+  ${ other_parties[0].name }'s parents, guardians, or custodians
 subquestion: |
-  Beause ${ other_parties[0].name } is an unemancipated minor, both ${ other_parties[0].name } and their parent(s), guardian(s), or custodian(s) must be served with your petition for a personal protection order.
-continue button field: other_parties_parents_intro
+  If you know or can easily find out the names and addresses of ${ other_parties[0].name }'s parent(s), guardian(s), or custodian(s), the judge needs that information.
+fields:
+  - Do you have information about ${ other_parties[0].name }'s parents, guardians, or custodians?: other_parties_parents.target_number
+    label above field: True
+    datatype: radio
+    choices:
+      - No: 0
+      - Yes, I have information about **one** parent, guardian, or custodian: 1
+      - Yes, I have information about **two** parents, guardians, or custoidans: 2
 ---
 id: minor children in common with respondent
 question: |
