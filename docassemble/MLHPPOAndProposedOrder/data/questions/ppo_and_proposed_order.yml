@@ -1084,7 +1084,7 @@ fields:
 id: respondent parent name
 question: |
   % if len(other_parties_parents.complete_elements()) < 1:
-  Enter the name of one of ${ other_parties[0] }'s parent, guardian, or custodian
+  Enter the name of ${ other_parties[0] }'s first parent, guardian, or custodian
   % else:
   Enter the name of ${ other_parties[0] }'s other parent, guardian, or custodian
   % endif
@@ -1102,7 +1102,11 @@ fields:
 ---
 id: respondent parent contact info
 question: |
-  What is ${ other_parties_parents[i].name }'s address?
+  % if other_parties_parents[i].name.first == "":
+  What is ${ other_parties[0] }'s first parent's address?
+  % else:
+  What is ${ other_parties_parents[i] }'s address?
+  % endif
 subquestion: |
   If none or unknown, leave blank.
 fields:
@@ -1118,15 +1122,16 @@ fields:
     required: False
   - Country: other_parties_parents[i].country
     required: False
-validation code: |
-  if len(other_parties_parents.complete_elements()) > 0:
-    other_parties_parents.there_is_another = False
 ---
 id: does respondent parent share address with respondent
 question: |
-  ${ other_parties_parents[i].name }'s address
+  % if other_parties_parents[i].name.first == "":
+  ${ other_parties[0] }'s first parent's address
+  % else:
+  ${ other_parties_parents[i] }'s address
+  % endif
 fields:
-  - Does ${ other_parties_parents[i].name } have the same address as ${ other_parties[0].name }?: other_parties_parents[i].shares_respondent_address
+  - Does this parent or guardian have the same address as ${ other_parties[0].name }?: other_parties_parents[i].shares_respondent_address
     datatype: radio
     choices:
       - Yes: True
@@ -1136,7 +1141,11 @@ id: respondent parent phone number
 sets:
   - other_parties_parents[i].phone_number
 question: |
-  Enter ${ other_parties_parents[i].name }'s telephone number
+  % if other_parties_parents[i].name.first == "":
+  Enter ${ other_parties[0] }'s first parent's telephone number
+  % else:
+  Enter ${ other_parties_parents[i] }'s telephone number
+  % endif
 subquestion: |
   If none or unknown, check the box.
 fields:
@@ -1144,7 +1153,7 @@ fields:
     show if:
       variable: other_parties_parents[i].no_phone_number
       is: False
-  - I do not know of any phone number for ${ other_parties_parents[i] }: other_parties_parents[i].no_phone_number
+  - I do not know their phone number: other_parties_parents[i].no_phone_number
     required: False
     datatype: yesno
 ---
