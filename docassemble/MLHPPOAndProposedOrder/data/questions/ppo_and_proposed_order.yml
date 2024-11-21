@@ -140,6 +140,8 @@ code: |
 
   check_if_respondent_minor
   if respondent_is_minor:
+    if respondent_under_ten:
+      minor_respondent_kickout
     if (not respondent_is_emancipated_minor):
       if respondent_is_petitioners_child:
         respondent_petitioners_child_kickout
@@ -427,11 +429,19 @@ code: |
       respondent_is_minor = True
     else:
       respondent_is_minor = False
+    if other_parties[0].age_in_years() < 10:
+      respondent_under_ten = True
+    else: 
+      respondent_under_ten = False
   elif (not knows_respondents_birthdate):
     if other_parties[0].estimated_age < 18:
       respondent_is_minor = True
     else:
       respondent_is_minor = False
+    if other_parties[0].estimated_age < 10:
+      respondent_under_ten = True
+    else: 
+      respondent_under_ten = False
   else:
     respondent_is_minor = False
 
@@ -1572,6 +1582,15 @@ subquestion: |
   Because you are under 18 and not emancipated, you must have a next friend file your petition for you. 
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
+---
+id: minor_respondent_kickout
+event: minor_respondent_kickout
+question: |
+  You cannot continue using this tool
+subquestion: |
+  We're sorry, but you cannot use this tool to prepare a *Petition for Personal Protection Order*. Under Michigan law, you can't get a personal protection order against someone who is younger than 10 years old.
+
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
 id: next friend agrees to role
 question: |
