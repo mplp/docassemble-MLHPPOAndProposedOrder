@@ -342,6 +342,7 @@ code: |
     ETC_optional_info
   elif ETC_county_status == "required":
     ETC_required_info
+    ETC_required_email_collect
     ETC_esign
 
   if ETC_county_status == "not_allowed" or ETC_county_status == "optional":
@@ -3532,6 +3533,22 @@ subquestion: |
 under: |
   ${ collapse_template(signature_info_template) }
 ---
+id: ETC required, collect email
+continue button field: ETC_required_email_collect
+question: |
+  Contact E-mail
+subquestion: |
+  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
+  
+  When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail ${ next_friends[0] } at this address.
+  % else:
+  Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
+  % endif
+fields:
+  - Contact e-mail address: contact_email
+    datatype: email
+---
 id: ETC review and download docs DownloadScreen
 continue button field: ETC_review_docs_screen
 continue button label: "E-mail your forms to the court"
@@ -3628,7 +3645,7 @@ content: |
   Opening this form again restarts the 180 days.
   % endif
 ---
-id: get email to clerk details
+id: email to clerk details
 continue button field: clerk_email_prep
 continue button label: |
   % if signatures_complete:
@@ -3639,6 +3656,7 @@ continue button label: |
 question: |
   Submit your forms to the court
 subquestion: |
+  % if not defined('contact_email'):
   % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
   Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
   
@@ -3646,9 +3664,14 @@ subquestion: |
   % else:
   Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
   % endif
+  % endif
   
 fields:
   - Contact e-mail address: contact_email
+    default: |
+      % if defined('contact_email'):
+      ${ contact_email }
+      % endif
     datatype: email
   - Notes for the court clerk (optional): notes_to_clerk
     input type: area
@@ -3838,8 +3861,8 @@ objects:
   - ppo_domestic_minor_attachment: ALDocumentBundle.using(elements=[ppo_cc_375m, cc_375_statement, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order Against a Minor (Domestic Relationship) - CC 375m.pdf", title="Petition for Personal Protection Order Against a Minor (Domestic Relationship) - CC 375m")
   - ppo_nondomestic_attachment: ALDocumentBundle.using(elements=[ppo_cc_377, cc_377_statement, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
   - ppo_nondomestic_minor_attachment: ALDocumentBundle.using(elements=[ppo_cc_377m, cc_377_statement, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order Against a Minor (Non-Domestic Relationship) - CC 377m.pdf", title="Petition for Personal Protection Order Against a Minor (Non-Domestic Relationship) - CC 377m")
-  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, ppo_cc_395m, cc_395_statement, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
-  - ppo_nondomestic_sexual_assault_minor_attachment: ALDocumentBundle.using(elements=[ppo_cc_395m, ppo_cc_395m, cc_395_statement, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order Against a Minor (Non-Domestic Sexual Assault) - CC 395m.pdf", title="Petition for Personal Protection Order Against a Minor (Non-Domestic Sexual Assault) - CC 395m")
+  - ppo_nondomestic_sexual_assault_attachment: ALDocumentBundle.using(elements=[ppo_cc_395, cc_395_statement, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395.pdf", title="Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395")
+  - ppo_nondomestic_sexual_assault_minor_attachment: ALDocumentBundle.using(elements=[ppo_cc_395m, cc_395_statement, identifying_information, cc_395_attachment], filename="Petition for Personal Protection Order Against a Minor (Non-Domestic Sexual Assault) - CC 395m.pdf", title="Petition for Personal Protection Order Against a Minor (Non-Domestic Sexual Assault) - CC 395m")
   - ppo_domestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375_etc, cc_375_statement, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375.pdf", title="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
   - ppo_domestic_minor_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_375m_etc, cc_375_statement, identifying_information, cc_375_attachment], filename="Petition for Personal Protection Order Against a Minor (Domestic Relationship) - CC 375m.pdf", title="Petition for Personal Protection Order Against a Minor (Domestic Relationship) - CC 375m")
   - ppo_nondomestic_attachment_court: ALDocumentBundle.using(elements=[ppo_cc_377_etc, cc_377_statement, identifying_information, cc_377_attachment], filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377.pdf", title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377")
