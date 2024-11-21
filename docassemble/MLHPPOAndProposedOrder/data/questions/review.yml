@@ -35,8 +35,15 @@ review:
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: 
+      - wants_confidential_contact_details
+    button: |-
+      **Do you want to keep your contact information confidential?**
+
+      ${ word(yesno(wants_confidential_contact_details)) }
+  - Edit: 
       - is_incapacitated_adult
-      - next_friends.there_are_any
+      - recompute:
+        - reset_next_friend
     button: |-
       **Is the Peititioner an incapacitated adult using a next friend to complete this interview?**
 
@@ -48,6 +55,7 @@ review:
       % for item in next_friends:
         ${ item }
       % endfor
+    show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
     show if: len(other_parties.complete_elements()) > 0
@@ -61,6 +69,15 @@ review:
 
         Aliases: ${ comma_and_list(other_party_alias) }
         % endif
+        % endif
+        % endif
+        % if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
+        (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
+        (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland") and \
+        all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating'])):
+        % if relationship_to_respondent_exp:
+
+        Relationship to You: ${ relationship_to_respondent_exp }
         % endif
         % endif
         

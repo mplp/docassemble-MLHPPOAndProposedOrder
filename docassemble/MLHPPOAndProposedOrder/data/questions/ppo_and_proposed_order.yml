@@ -336,6 +336,9 @@ code: |
     wants_other_request
     if wants_ex_parte_order:
       ex_parte_yes_screen
+  
+  if exhibit_attachment.exhibits.has_exhibits:
+    exhibit_attachment.exhibits.gather()
 
   nav.set_section("review_get_forms_info")
   if ETC_county_status == "optional":
@@ -356,9 +359,6 @@ code: |
     else:
       if MLH_esign:
         signature_date
-
-  if exhibit_attachment.exhibits.has_exhibits:
-    exhibit_attachment.exhibits.gather()
        
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
@@ -925,6 +925,21 @@ code: |
     parties_same_gender = False
 
   set_parties_same_gender = True
+---
+code: |
+  if not is_incapacitated_adult:
+    next_friends.clear()
+    next_friends.there_are_any = False
+  else:
+    next_friends.there_are_any = True
+
+  reset_next_friend = True
+---
+code: |
+  if not petitioner_knows_respondent_other_children_names:
+    respondent_other_children.clear()
+
+  set_respondent_has_other_children = True
 ---
 #################### Overridden AL Questions Start #####################
 ---
