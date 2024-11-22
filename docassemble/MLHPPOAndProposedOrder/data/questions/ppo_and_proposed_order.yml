@@ -858,6 +858,8 @@ code: |
   other_parties[i].carries_gun_for_work
   other_parties[i].complete = True
 ---
+reconsider:
+  - set_shared_respondent_address
 code: |
   other_parties_parents[i].name.first
   if ppo_type == "domestic":
