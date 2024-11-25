@@ -186,7 +186,7 @@ code: |
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
-  if ((ppo_type == "nondomestic" or "domestic") and (county_choice == "Wayne" or county_choice == "Oakland")) or (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland"):
+  if ((ppo_type == "nondomestic" or ppo_type == "domestic") and (county_choice == "Wayne" or county_choice == "Oakland")) or (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland"):
     if respondent_is_minor and (not respondent_is_emancipated_minor):
       if all(not petitioner_respondent_relationship.get(key) for key in ['have_child', 'dating']):
         relationship_to_respondent_exp
@@ -397,7 +397,7 @@ code: |
 ---
 code: |
   if users[0].no_phone_number:
-    users[0].phone_number = "Does not have phone"
+    users[0].phone_number = "Doesn't have phone"
   check_user_no_phone = True
 ---
 code: |
@@ -4528,6 +4528,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age_in_years() }
@@ -4553,8 +4558,7 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        ${ other_parties[0].phone_number }
-    - other_parties1_phone_number: ${ other_parties[0].phone_number }
+    - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -5143,6 +5147,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age_in_years() }
@@ -5168,7 +5177,7 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        ${ other_parties[0].phone_number }
+    - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -5522,8 +5531,13 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
-        ${ users[0].phone_number }
         % endif
+    - users1_phone: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        Confidential
+        % else:
+        ${ users[0].phone_number }
+        % endif        
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
@@ -5547,7 +5561,7 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-        ${ other_parties[0].phone_number }
+    - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
