@@ -399,7 +399,7 @@ code: |
 ---
 code: |
   if users[0].no_phone_number:
-    users[0].phone_number = "Doesn't have phone"
+    users[0].phone_number = "Has no phone"
   check_user_no_phone = True
 ---
 code: |
@@ -482,7 +482,7 @@ code: |
     other_parties[0].address.city = users[0].address.city
     other_parties[0].address.state = users[0].address.state
     other_parties[0].address.zip = users[0].address.zip
-    other_parties[0].address.country = users[0].address.country
+  # other_parties[0].address.country = users[0].address.country
     
   check_other_party_address_set_to_user_address = True
 ---
@@ -881,6 +881,12 @@ code: |
       other_parties_parents[i].address.address
   if other_parties_parents[i].no_phone_number:
     other_parties_parents[i].phone_number = "Unknown phone"
+  if other_parties_parents[i].address.on_one_line() == "":
+    other_parties_parents[i].address.address = "Unknown address"
+  if other_parties_parents[i].name.first == "":
+    other_parties_parents[i].name.first = "[unknown]"
+  if other_parties_parents[i].name.last == "":
+    other_parties_parents[i].name.last = "[unknown]"
   other_parties_parents[i].complete = True
 ---
 code: |
@@ -997,7 +1003,7 @@ subquestion: |
   % endif
 fields:
   - code: |
-      users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=True)
+      users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=False)
   - Phone: users[0].phone_number
     show if:
       variable: users[0].no_phone_number
@@ -1057,8 +1063,8 @@ fields:
     required: True if ppo_type == "domestic" else False
   - Zip or Postal Code: other_parties[0].address.zip
     required: False
-  - Country: other_parties[0].country
-    required: False
+  #- Country: other_parties[0].country
+  #  required: False
 ---
 template: respondent_address_explainer
 subject: |
@@ -1100,11 +1106,7 @@ fields:
 ---
 id: respondent parent name
 question: |
-  % if len(other_parties_parents.complete_elements()) < 1:
-  Enter the name of ${ other_parties[0] }'s first parent, guardian, or custodian
-  % else:
-  Enter the name of ${ other_parties[0] }'s other parent, guardian, or custodian
-  % endif
+  Enter the name of ${ other_parties[0] }'s ${ ordinal(i) } parent, guardian, or custodian
 subquestion: |
   If unknown, leave blank.
 fields:
@@ -1120,7 +1122,7 @@ fields:
 id: respondent parent contact info
 question: |
   % if other_parties_parents[i].name.first == "":
-  What is ${ other_parties[0] }'s first parent's address?
+  What is ${ other_parties[0] }'s ${ ordinal(i) } parent's address?
   % else:
   What is ${ other_parties_parents[i] }'s address?
   % endif
@@ -1129,6 +1131,7 @@ subquestion: |
 fields:
   - Street Address or P.O. Box: other_parties_parents[i].address.address
     required: False
+    address autocomplete: True
   - Apartment, suite, etc.: other_parties_parents[i].address.unit
     required: False
   - City: other_parties_parents[i].address.city
@@ -1137,13 +1140,13 @@ fields:
     required: False
   - Zip or Postal Code: other_parties_parents[i].address.zip
     required: False
-  - Country: other_parties_parents[i].country
-    required: False
+  #- Country: other_parties_parents[i].country
+  #  required: False
 ---
 id: does respondent parent share address with respondent
 question: |
   % if other_parties_parents[i].name.first == "":
-  ${ other_parties[0] }'s first parent's address
+  ${ other_parties[0] }'s ${ ordinal(i) } parent's address
   % else:
   ${ other_parties_parents[i] }'s address
   % endif
@@ -1159,7 +1162,7 @@ sets:
   - other_parties_parents[i].phone_number
 question: |
   % if other_parties_parents[i].name.first == "":
-  Enter ${ other_parties[0] }'s first parent's telephone number
+  Enter ${ other_parties[0] }'s ${ ordinal(i) } parent's telephone number
   % else:
   Enter ${ other_parties_parents[i] }'s telephone number
   % endif
@@ -1268,7 +1271,7 @@ sets:
   - other_properties[0].zip
   - other_properties[0].unit
   - other_properties[0].state
-  - other_properties[0].country
+  #- other_properties[0].country
 question: |
   Enter the address of the other property
 fields:
