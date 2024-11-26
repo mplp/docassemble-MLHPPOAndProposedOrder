@@ -34,16 +34,21 @@ review:
 
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
-  - Edit: 
+  - Edit:
       - wants_confidential_contact_details
     button: |-
       **Do you want to keep your contact information confidential?**
 
       ${ word(yesno(wants_confidential_contact_details)) }
-  - Edit: 
+  - Edit: petitioner_lives_in_michigan
+    button: |-
+      **Does the Petitioner live in Michigan?**
+
+      ${ word(yesno(petitioner_lives_in_michigan)) }
+  - Edit:
       - is_incapacitated_adult
       - recompute:
-        - reset_next_friend
+          - reset_next_friend
     button: |-
       **Is the Peititioner an incapacitated adult using a next friend to complete this interview?**
 
@@ -58,7 +63,7 @@ review:
     show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
-    show if: len(other_parties.complete_elements()) > 0
+    show if: len(other_parties.complete_elements()) > 0 or defined('respondent_lives_in_michigan')
   - Edit: other_parties.revisit
     button: |-
       % for item in other_parties:
@@ -133,6 +138,11 @@ review:
         
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: respondent_lives_in_michigan
+    button: |-
+      **Does the Respondent live in Michigan?**
+
+      ${ word(yesno(respondent_lives_in_michigan)) }
   - raw html: |
       ${ next_accordion('<h2 class="h5">Children</h2>') }
     show if: (len(children.complete_elements()) > 0) or (len(petitioner_other_children.complete_elements()) > 0) or (len(respondent_other_children.complete_elements()) > 0)
@@ -174,7 +184,7 @@ review:
         Parenting time order says ${ users[0] if item.who_has_supervised_time == "petitioner" else other_parties[0] } will be supervised by ${ item.who_supervises_parenting_time }
         % elif item.parenting_time_order == "one_parent_no_parenting_time":
 
-        Parenting time order says ${ users[0] if item.parent_whithout_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
+        Parenting time order says ${ users[0] if item.parent_without_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
         % endif
         % if item.physical_custody_by_order == 'sole_petitioner':
 
@@ -419,31 +429,31 @@ review:
   - raw html: |
       ${ next_accordion('<h2 class="h5">Requests for the Court</h2>') }
     show if: defined('wants_no_entering_residential_property') or defined('no_stalking_choices')
-  - Edit: 
+  - Edit:
       - wants_no_entering_residential_property
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not enter the property where you live?**
 
       ${ word(yesno(wants_no_entering_residential_property)) }
-  - Edit: 
+  - Edit:
       - has_property_interest_in_home
     button: |
       **Do you have a property interest in the property where you live?**
 
       ${ word(yesno(has_property_interest_in_home)) }
-  - Edit: 
+  - Edit:
       - respondent_has_property_interest_in_home
     button: |
       **Does ${ other_parties[0] } have a property interest in the property where you live?**
 
       ${ word(yesno(respondent_has_property_interest_in_home)) }
-  - Edit: 
+  - Edit:
       - other_properties.there_are_any
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not enter another property (not your residence)?**
 
       ${ word(yesno(other_properties.there_are_any)) }
-  - Edit: 
+  - Edit:
       - other_properties.revisit
     button: |
       **Other property (not your residence):**
@@ -453,13 +463,13 @@ review:
 
       % endfor
     show if: other_properties.there_are_any
-  - Edit: 
+  - Edit:
       - wants_no_harming_petitioner
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound you?**
 
       ${ word(yesno(wants_no_harming_petitioner)) }
-  - Edit: 
+  - Edit:
       - ppo_harm_protectees.there_are_any
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound another person?**
@@ -481,7 +491,7 @@ review:
 
       % endif
     show if: ppo_harm_protectees.there_are_any
-  - Edit: 
+  - Edit:
       - wants_no_removing_minor
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not remove any minor children from your custody?**
@@ -523,25 +533,25 @@ review:
       * Contacting me by telephone
       % endif
       % endif
-  - Edit: 
+  - Edit:
       - wants_no_children_property_removal_interference
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not interfere with your efforts to remove your children or personal property from a place that ${ other_parties[0] } owns or leases?**
 
       ${ word(yesno(wants_no_children_property_removal_interference)) }
-  - Edit: 
+  - Edit:
       - wants_no_threatening_petitioner
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure you?**
 
       ${ word(yesno(wants_no_threatening_petitioner)) }
-  - Edit: 
+  - Edit:
       - wants_no_sexual_assault_threats
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure you?**
 
       ${ word(yesno(wants_no_sexual_assault_threats)) }
-  - Edit: 
+  - Edit:
       - ppo_threat_protectees.there_are_any
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure another person?**
@@ -563,7 +573,7 @@ review:
 
       % endif
     show if: ppo_threat_protectees.there_are_any
-  - Edit: 
+  - Edit:
       - ppo_sexual_assault_threat_protectees.there_are_any
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure another person?**
@@ -585,13 +595,13 @@ review:
 
       % endif
     show if: ppo_sexual_assault_threat_protectees.there_are_any
-  - Edit: 
+  - Edit:
       - wants_no_work_education_interference
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?**
 
       ${ word(yesno(wants_no_work_education_interference)) }
-  - Edit: 
+  - Edit:
       - wants_no_access_to_personal_info_records
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not have access to information in your child’s records that shows your (or your child’s) home address, phone number, or work address?**
@@ -617,20 +627,20 @@ review:
       * Keeping any animal I own from me, or taking possession of it
       % endif
       % endif
-  - Edit: 
+  - Edit:
       - wants_no_firearm_purchase_or_possession
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not buy or have a gun?**
 
       ${ word(yesno(wants_no_firearm_purchase_or_possession)) }
-  - Edit: 
+  - Edit:
       - wants_no_message_posting
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not harrass you by posting messages?**
 
       ${ word(yesno(wants_no_message_posting)) }
     show if: ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault"
-  - Edit: 
+  - Edit:
       - wants_other_request
     button: |
       **Is there anything else you want the judge to order in the PPO?**
@@ -641,7 +651,7 @@ review:
         - ${ other_request_exp }
       % endif
       % endif
-  - Edit: 
+  - Edit:
       - wants_ex_parte_order
     button: |
       **Do you want to request an ex parte order?**

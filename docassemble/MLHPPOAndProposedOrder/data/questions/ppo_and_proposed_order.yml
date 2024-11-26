@@ -337,7 +337,7 @@ code: |
   else:
     if wants_ex_parte_order:
       ex_parte_yes_screen
-  
+
   if exhibit_attachment.exhibits.has_exhibits:
     exhibit_attachment.exhibits.gather()
 
@@ -793,7 +793,7 @@ code: |
           children[i].who_has_supervised_time
           children[i].who_supervises_parenting_time
         elif children[i].parenting_time_order == "one_parent_no_parenting_time":
-          children[i].parent_whithout_parenting_time
+          children[i].parent_without_parenting_time
   if i < 1:
     if children.target_number > 1:
       custody_parenting_time_provisions_same
@@ -1070,7 +1070,7 @@ subject: |
   What if I don't know the address?
 content: |
   Fill in as much of ${ other_parties[0] }'s address as you are able to. If you aren't able to find out their home address, you can use the address of their job, if you know it. 
-  
+
   In some counties, you may not be able to file your petition without an address and/or phone number for the respondent. If this is the situation in your county, the clerk will let you know.
 
   You will need the respondent's address to have them served with the PPO if the judge grants the order without a hearing. A PPO is effective and enforceable anywhere in Michigan as soon as it is signed by a judge. However, the police may not arrest ${ other_parties[0] } for violating the PPO until ${ other_parties[0] } has been served with it. In most situations it is best to have ${ other_parties[0] } served with the PPO as soon as possible after the judge issues it.
@@ -1333,7 +1333,7 @@ subquestion: |
     * "The respondent is my neighbor."
     * "The respondent used to be my co-worker."
     % endif
-  
+
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
   - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
@@ -1592,7 +1592,7 @@ subquestion: |
 ---
 id: next friend agrees to role
 question: |
-  ${ next_friends[0] } must agree to be ${ users[0] }'s next friend 
+  ${ next_friends[0] } must agree to be ${ users[0] }'s next friend
 subquestion: |
   Before your *Petition for Personal Protection Order* can be filed, ${ next_friends[0] } must sign it. This tool can place ${ next_friends[0] }'s e-signature on the petition if they agree to it.
 
@@ -1634,7 +1634,7 @@ question: |
   E-signatures
 subquestion: |
   Because ${ users[0] } is over 14, they must sign the *Request for Next Friend*. The next friend, ${ next_friends[0] }, must sign the other forms.
-  
+
   This tool can put "**/s/ ${ users[0] }**" and "**/s/ ${ next_friends[0] }**" where you would sign your names so you do not have to sign the forms by hand. The court will accept these electronic signatures.
 fields:
   - Does ${ users[0] }, agree to add their electronic signature to the *Request for Next Friend* now?: fourteen_plus_agrees_to_sign
@@ -1650,7 +1650,7 @@ subject: |
 content: |
   % if ETC_county_status == "optional":
   E-signatures are required to use the direct e-mail filing option. Choose **Yes** to e-sign now. There will be another chance to e-sign later.
-  
+
   % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
   If you're not going to use direct e-mail filing, ${ next_friends[0] } and ${ users[0] } can e-sign now or sign the forms after you download and print them.
   % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
@@ -1660,11 +1660,11 @@ content: |
   % endif
   % elif ETC_county_status == "not_allowed":    
   The court will accept e-signatures or written signatures.
-  
+
   If you **plan to e-file**, e-signing simplifies the process. Otherwise, you will need to print your forms and then scan signed copies before you can e-file.
-  
+
   To find out **if you can e-file**, read [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing) The article tells you how to find out which courts have e-filing for which case types. 
-  
+
   ${ MLH_case_type_language }
   % else:
   Yes. Because these forms will be e-mailed directly to the court, e-signatures are required. 
@@ -1682,7 +1682,7 @@ question: |
 subquestion: |
   % if ETC_county_status == "required":
   If you have any documents you want to show the judge, attach them now. This could include things like:
-  
+
   * Police reports
   * Medical records
   * Photos
@@ -1691,7 +1691,7 @@ subquestion: |
 
   % elif ETC_county_status == "optional":
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
-  
+
   * Police reports
   * Medical records
   * Photos
@@ -1699,20 +1699,20 @@ subquestion: |
   * Letters
 
   If you plan to file by direct e-mail from this tool, attach any documents now. If you plan to file in a different way, you can choose to:
-  
+
   * upload documents using this tool, or
   * attach documents yourself outside of this tool.
   % else:
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
-  
+
   * Police reports
   * Medical records
   * Photos
   * Copies of e-mails or text messages
   * Letters
-  
+
   You can choose to:
-  
+
   * upload documents using this tool, or
   * attach documents yourself after you get your forms.
   % endif
@@ -1735,7 +1735,7 @@ fields:
     maximum image size: 1024
     image upload type: jpeg
     accept: |
-      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"
 validation code: |
   if x.has_exhibits:
     full_size = sum(a_page.size_in_bytes() for a_page in x[0].pages)
@@ -2429,7 +2429,7 @@ id: who does not have parenting time
 question: |
   Supervised parenting time for ${ children[i] }
 fields:
-  Who does **not** have parenting time?: children[i].parent_whithout_parenting_time
+  Who does **not** have parenting time?: children[i].parent_without_parenting_time
   datatype: radio
   choices:
     - Me: petitioner
@@ -2689,7 +2689,7 @@ validation code: |
 id: respondent sexual assault conviction, yes orders listed
 if: orders_judgments_re_parties_yes == True
 question: |
-  Sexual assault convictions 
+  Sexual assault convictions
 fields:
   - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
     datatype: yesnoradio
@@ -2705,7 +2705,7 @@ fields:
       variable: respondent_sexual_assault_conviction
       is: True
   - note: |
-      Tap **${ MLH_back_button_label }** twice to go back to the "Other court orders and judgments" screen and add information about this conviction. 
+      Tap **${ MLH_back_button_label }** twice to go back to the "Other court orders and judgments" screen and add information about this conviction.
     show if:
       variable: orders_judgments_include_sa_conviction
       is: False
@@ -2827,7 +2827,7 @@ question: |
   Attaching Evidence
 subquestion: |
   If you have any documents you want to show the judge, you should attach copies to your petition. You'll have a chance to upload electronic documents before your forms are finalized.
-  
+
   Even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
 
   If you have audio or video evidence, include descriptions about what is in the evidence when you are typing your descriptions of the incidents in the following screens. Save any audio/video evidence you have. If there will be a hearing for your case, you can submit the audio/video evidence to the court directly.
@@ -3518,7 +3518,7 @@ question: |
   ${ county_choice } County Circuit Court Accepts Direct E-mail Filing from MLH-Forms
 subquestion: |
   You can choose whether to: 
-  
+
   * file your forms right away with a direct email from this tool, 
   * wait and file later, or 
   * download and file your forms in another way.
@@ -3532,7 +3532,7 @@ question: |
   ${ county_choice } County Circuit Court Requires Direct E-mail Filing from MLH-Forms
 subquestion: |
   When you're ready, you will email your forms to the ${ county_choice } Circuit Court directly from this tool.
-  
+
   % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
   This tool will add "**/s/ ${ next_friends[0] }**" and "**/s/ ${ users[0] }**" as e-signatures where needed on the forms. Continue only if both of you agree to e-sign.
   % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
@@ -3550,11 +3550,11 @@ question: |
   Review your forms
 subquestion: |
   <h2 class="h3">Review and Finalize Your Forms </h2>
-  
+
   Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
-  
+
   ${ al_user_bundle.download_list_html() }
 
   ${ collapse_template(email_to_self_option) }
@@ -3568,10 +3568,10 @@ subquestion: |
   % else:
   Tap the button below if you want to file now by e-mail. 
   % endif  
-  
+
   If you prefer to file in a different way, read the **Instructions** to learn about your options.
   % endif
-  
+
   ${ collapse_template(wait_to_file_help) }
 under: |
   **It may take a minute** to get to the next screen. You do not need to refresh.
@@ -3581,7 +3581,7 @@ subject: |
   Want to email these forms to yourself or someone you trust?
 content: |
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
-  
+
   This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **E-mail your forms to the court** button below.
 ---
 continue button field: ETC_review_exhibits
@@ -3592,7 +3592,7 @@ review:
   - note: |
       Review your answers below and add any documents you want the court to see. When you're finished, tap **${MLH_continue_button_label}**.
   - Edit:
-    - exhibit_attachment.exhibits.has_exhibits
+      - exhibit_attachment.exhibits.has_exhibits
     button: |
       **Do you have documents you want the judge to see?**:
 
@@ -3624,20 +3624,20 @@ subject: |
 content: |
   % if not user_logged_in():
   **Important:** To save your forms here for later, you must **sign in or sign up** now using the menu at the top right of the page or the link below. 
-  
+
   % else:
   You can log back in later to:
-  
+
   * update your forms,
   * download your forms, or
   * email your forms to the court with the button below.
-  
+
   Your forms will be **saved here for 180 days**. To restart the 180 day clock and keep your forms here for longer:
-  
+
   * come back to [forms.michiganlegalhelp.org](forms.michiganlegalhelp.org),
   * sign in, and
   * open this form by selecting it on the My Forms page. 
-  
+
   Opening this form again restarts the 180 days.
   % endif
 ---
@@ -3654,12 +3654,12 @@ question: |
 subquestion: |
   % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
   Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
-  
+
   When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail ${ next_friends[0] } at this address.
   % else:
   Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
   % endif
-  
+
 fields:
   - Contact e-mail address: contact_email
     datatype: email
@@ -3705,9 +3705,9 @@ content: |
   % else:
   ${ users[0] } is filing a PPO petition via MLH-Forms.
   % endif
-  
+
   Petitioner contact information: ${ contact_email }
-  
+
   **Optional note from sender:** ${ notes_to_clerk }
 ---
 id: patience download
@@ -3716,7 +3716,7 @@ question: |
   Almost done
 subquestion: |
   After you tap **${MLH_continue_button_label}**, it may take a few minutes to finish making your forms.
-  
+
   You **do not** need to refresh your screen. Hang in there!
 ---
 id: email confirmation ETCSent
@@ -3730,9 +3730,9 @@ subquestion: |
   % elif county_choice in ETC_court_phones:
   You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
   % endif
-  
+
   **Important:** Read the **Instructions** document for what to do next. 
-  
+
   To get a copy of your forms or instructions, tap **Continue**. 
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on the court's copy of your forms.
@@ -3747,8 +3747,8 @@ subquestion: |
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
   Tap **Undo** to return to the Submit page and try again. 
-  
-  Or tap "Continue" to download your forms. 
+
+  Or tap "Continue" to download your forms.
 under: |
   It may **take a few minutes** to get to the next screen. You do not need to refresh.
 ---
@@ -3764,9 +3764,9 @@ subquestion: |
   % elif county_choice in ETC_court_phones:
   You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
   % endif
-  
+
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
-  
+
   ${ al_user_bundle.download_list_html() }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
@@ -3782,7 +3782,7 @@ subquestion: |
   Click **Undo** to try again. You can also download your forms below. 
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
-  
+
   ${ al_user_bundle.download_list_html() }
 
   &nbsp;
@@ -3850,7 +3850,7 @@ objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
-  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
+  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True)
 ---
 objects:
   - ppo_cc_375_etc: ALDocumentBundle.using(elements=[etc_cover_page, ppo_cc_375], title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
@@ -4075,7 +4075,7 @@ code: |
     pet_proof_of_serv_domestic.enabled = False
 ---
 attachment:
-  name: instructions  
+  name: instructions
   variable name: instructions[i]
   skip undefined: False
   tagged pdf: True
