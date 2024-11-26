@@ -1121,6 +1121,9 @@ fields:
     required: False
   - Suffix: other_parties_parents[i].name.suffix
     required: False
+    # make dropdown to match other name screens (which use AL name_fields() method)
+    code: |
+      name_suffix()
 ---
 id: respondent parent contact info
 question: |
