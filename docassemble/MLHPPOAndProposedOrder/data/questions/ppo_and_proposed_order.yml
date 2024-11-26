@@ -1061,6 +1061,9 @@ fields:
     required: True if ppo_type == "domestic" else False
   - State or Province: other_parties[0].address.state
     required: True if ppo_type == "domestic" else False
+  # make dropdown to match other address screens (which default to dropdown when country not shown)
+    code: |
+      states_list(country_code=AL_DEFAULT_COUNTRY)
   - Zip or Postal Code: other_parties[0].address.zip
     required: False
   #- Country: other_parties[0].country
@@ -1138,6 +1141,9 @@ fields:
     required: False
   - State: other_parties_parents[i].address.state
     required: False
+  # make dropdown to match other address screens (which default to dropdown when country not shown)
+    code: |
+      states_list(country_code=AL_DEFAULT_COUNTRY)
   - Zip or Postal Code: other_parties_parents[i].address.zip
     required: False
   #- Country: other_parties_parents[i].country
