@@ -803,6 +803,12 @@ code: |
 
 #   check_oakland_respondent_contact_info = True
 ---
+code: |
+  if not MLH_esign:
+    undefine('signature_date')
+    
+  reset_signature_date = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
