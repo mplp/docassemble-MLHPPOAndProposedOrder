@@ -21,19 +21,29 @@ review:
       % for item in users:
         **${ item }**
         
-        % if county_choice == "Oakland":
-        % if len(user_alias.complete_elements()) > 0:
-
-        Aliases: ${ comma_and_list(user_alias) }
-        % endif
-        % endif
-        
         Age: ${ item.age_in_years() }
 
         ${ item.address.block() }
 
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: user_alias.there_are_any
+    button: |-
+      **Do you have any aliases?**
+
+      ${ word(yesno(user_alias.there_are_any)) }
+  - Edit: user_alias.revisit
+    button: |-
+      **Your aliases:**
+
+      % if len(user_alias.complete_elements()) > 0:
+      % for item in user_alias:
+        * ${ item }
+      % endfor
+      % else:
+      *You have not added any aliases yet.*
+      % endif
+    show if: user_alias.there_are_any
   - Edit:
       - wants_confidential_contact_details
     button: |-
@@ -68,14 +78,6 @@ review:
     button: |-
       % for item in other_parties:
         **${ item }**
-        % if county_choice == "Oakland":
-        % if other_party_alias.there_are_any:
-        % if len(other_party_alias.complete_elements()) > 0:
-
-        Aliases: ${ comma_and_list(other_party_alias) }
-        % endif
-        % endif
-        % endif
         % if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
         (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
         (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland") and \
@@ -138,6 +140,23 @@ review:
         
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: other_party_alias.there_are_any
+    button: |-
+      **Does the Respondent have any aliases?**
+
+      ${ word(yesno(other_party_alias.there_are_any)) }
+  - Edit: other_party_alias.revisit
+    button: |-
+      **Respondent's aliases:**
+
+      % if len(other_party_alias.complete_elements()) > 0:
+      % for item in other_party_alias:
+        * ${ item }
+      % endfor
+      % else:
+      *You have not added any aliases yet.*
+      % endif
+    show if: other_party_alias.there_are_any
   - Edit: respondent_lives_in_michigan
     button: |-
       **Does the Respondent live in Michigan?**
@@ -293,7 +312,10 @@ review:
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
     show if: defined('pending_actions.there_are_any')
-  - Edit: pending_actions.there_are_any
+  - Edit: 
+      - pending_actions.there_are_any
+      - recompute:
+        - update_pending_actions
     button: |
       **Are there any pending legal cases between you and ${ other_parties[0] }?**
 
@@ -325,7 +347,10 @@ review:
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Orders & Judgments</h2>') }
     show if: defined('orders_judgments.there_are_any')
-  - Edit: orders_judgments.there_are_any
+  - Edit: 
+      - orders_judgments.there_are_any
+      - recompute:
+        - update_orders_judgments
     button: |
       **Are there any pending court orders or judgments regarding you and ${ other_parties[0] }?**
 
@@ -386,6 +411,8 @@ review:
     show if: len(incidents.complete_elements()) > 0
   - Edit:
       - incidents.revisit
+      - recompute:
+        - check_minimum_incident_number
     button: |
       % if len(incidents.complete_elements()) > 0:
       % for item in incidents:
@@ -414,7 +441,7 @@ review:
 
       % endfor
       % else:
-      You have added any incidents yet.
+      You have not added any incidents yet.
       % endif
   - Edit: other_details
     button: |
@@ -465,12 +492,16 @@ review:
     show if: other_properties.there_are_any
   - Edit:
       - wants_no_harming_petitioner
+      - recompute:
+        - add_remove_petitioner_from_harm_protectees_list
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound you?**
 
       ${ word(yesno(wants_no_harming_petitioner)) }
   - Edit:
       - ppo_harm_protectees.there_are_any
+      - recompute:
+        - review_ppo_harm_protectees
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound another person?**
 
@@ -541,6 +572,8 @@ review:
       ${ word(yesno(wants_no_children_property_removal_interference)) }
   - Edit:
       - wants_no_threatening_petitioner
+      - recompute:
+        - add_remove_petitioner_from_threat_protectees_list
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure you?**
 
@@ -553,6 +586,8 @@ review:
       ${ word(yesno(wants_no_sexual_assault_threats)) }
   - Edit:
       - ppo_threat_protectees.there_are_any
+      - recompute:
+        - review_ppo_threat_protectees
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure another person?**
 
@@ -708,6 +743,64 @@ subject: |
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
 ---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name_full()
+  - Address: |
+      row_item.address.block()
+  - Phone: |
+      row_item.phone_number
+  - Birthdate: |
+      row_item.birthdate
+edit:
+  - name.first
+  - address.address
+  - birthdate
+  - phone_number
+confirm: True
+---
+table: other_parties.table
+rows: other_parties
+columns:
+  - Name: |
+      row_item.name_full()
+  - Address: |
+      row_item.address.block()
+  - Phone: |
+      row_item.phone_number
+  - Age: |
+      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
+  - Race: |
+      row_item.race
+  - Gender: |
+      row_item.gender
+  - Height: |
+      row_item.height
+  - Weight: |
+      row_item.weight
+  - Hair Color: |
+      row_item.hair_color
+  - Eye Color: |
+      row_item.eye_color
+  - License Number: |
+      row_item.license_number if defined("row_item.license_number") else ""
+edit:
+  - name.first
+  - address.address
+  - birthdate
+  - phone_number
+  - birthdate
+  - race
+  - gender
+  - height_feet
+  - weight
+  - hair_color
+  - eye_color
+  - license_number
+confirm: True
+---
 table: children.table
 rows: children
 columns:
@@ -717,7 +810,87 @@ columns:
       row_item.birthdate
 edit:
   - name.first
-  - birthdate
+  - lives_with
+  - parties_married_when_born
+  - has_order_in_effect
+confirm: True
+---
+table: petitioner_other_children.table
+rows: petitioner_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+confirm: True
+---
+table: respondent_other_children.table
+rows: respondent_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+confirm: True
+---
+continue button field: pending_actions.revisit
+question: |
+  Pending Legal Cases
+subquestion: |
+  ${ pending_actions.table }
+
+  ${ pending_actions.add_action() }
+---
+table: pending_actions.table
+rows: pending_actions
+columns:
+  - Docket Number: |
+      row_item.docket_number if defined("row_item.docket_number") else ""
+  - Court: |
+      row_item.court_name if defined("row_item.court_name") else ""
+  - County: |
+      row_item.court_county if defined("row_item.court_county") else ""
+  - State: |
+      row_item.court_state if defined("row_item.court_state") else ""
+  - Judge: |
+      row_item.judge if defined("row_item.judge") else ""
+edit:
+  - docket_number
+  - court_name
+  - judge
+confirm: True
+---
+continue button field: orders_judgments.revisit
+question: |
+  Court Orders & Judgments
+subquestion: |
+  ${ orders_judgments.table }
+
+  ${ orders_judgments.add_action() }
+---
+table: orders_judgments.table
+rows: orders_judgments
+columns:
+  - Docket Number: |
+      row_item.docket_number if defined("row_item.docket_number") else ""
+  - Court: |
+      row_item.court_name if defined("row_item.court_name") else ""
+  - County: |
+      row_item.court_county if defined("row_item.court_county") else ""
+  - State: |
+      row_item.court_state if defined("row_item.court_state") else ""
+  - Judge: |
+      row_item.judge if defined("row_item.judge") else ""
+edit:
+  - docket_number
+  - court_name
+  - judge
 confirm: True
 ---
 continue button field: incidents.revisit

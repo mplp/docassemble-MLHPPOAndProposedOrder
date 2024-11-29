@@ -578,6 +578,61 @@ code: |
   check_ppo_harm_protectees_list = True
 ---
 code: |
+  if defined('check_ppo_harm_protectees_list'):
+    if not wants_no_harming_petitioner:
+      if users[0] in ppo_harm_protectees_list:
+        ppo_harm_protectees_list.remove(users[0])
+    elif wants_no_harming_petitioner:
+      if users[0] not in ppo_harm_protectees_list:
+        ppo_harm_protectees_list.append(users[0])
+
+  add_remove_petitioner_from_harm_protectees_list = True
+---
+code: |
+  if not ppo_harm_protectees.there_are_any:
+    if len(ppo_harm_protectees.complete_elements()) > 0:
+      if defined('check_ppo_harm_protectees_list'):
+        for protectee in ppo_harm_protectees:
+          if protectee in ppo_harm_protectees_list:
+            ppo_harm_protectees_list.remove(protectee)
+      ppo_harm_protectees.clear()
+  elif ppo_harm_protectees.there_are_any:
+    if len(ppo_harm_protectees.complete_elements()) > 0:
+      for protectee in ppo_harm_protectees:
+        if protectee not in ppo_harm_protectees_list:
+          ppo_harm_protectees_list.append(protectee)
+
+  review_ppo_harm_protectees = True
+---
+code: |
+  if ppo_type == "domestic":
+    if defined('check_ppo_threat_protectees_list'):
+      if not wants_no_threatening_petitioner:
+        if users[0] in ppo_threat_protectees_list:
+          ppo_threat_protectees_list.remove(users[0])
+      elif wants_no_threatening_petitioner:
+        if users[0] not in ppo_threat_protectees_list:
+          ppo_threat_protectees_list.append(users[0])
+
+  add_remove_petitioner_from_threat_protectees_list = True
+---
+code: |
+  if not ppo_threat_protectees.there_are_any:
+    if len(ppo_threat_protectees.complete_elements()) > 0:
+      if defined('check_ppo_threat_protectees_list'):
+        for protectee in ppo_threat_protectees:
+          if protectee in ppo_threat_protectees_list:
+            ppo_threat_protectees_list.remove(protectee)
+      ppo_threat_protectees.clear()
+  elif ppo_threat_protectees.there_are_any:
+    if len(ppo_threat_protectees.complete_elements()) > 0:
+      for protectee in ppo_threat_protectees:
+        if protectee not in ppo_threat_protectees_list:
+          ppo_threat_protectees_list.append(protectee)
+
+  review_ppo_threat_protectees = True
+---
+code: |
   if no_stalking_choices['following']:
     stalking_includes_following_appearing_in_sight = True
     wants_no_stalking = True
@@ -953,6 +1008,36 @@ code: |
     respondent_other_children.clear()
 
   set_respondent_has_other_children = True
+---
+code: |
+  if not pending_actions.there_are_any:
+    pending_actions.clear()
+    pending_actions.there_are_any = False
+  else:
+    pending_actions.there_are_any = True
+
+  update_pending_actions = True
+---
+code: |
+  if not orders_judgments.there_are_any:
+    orders_judgments.clear()
+    orders_judgments.there_are_any = False
+  else:
+    orders_judgments.there_are_any = True
+
+  update_orders_judgments = True
+---
+code: |
+  if ppo_type == "domestic":
+    if len(incidents.complete_elements()) < 1:
+      incidents.there_are_any = True
+      minimum_incidents_explainer
+  elif ppo_type == "nondomestic":
+    if len(incidents.complete_elements()) < 2:
+      incidents.there_are_any = True
+      minimum_incidents_explainer
+
+  check_minimum_incident_number = True
 ---
 #################### Overridden AL Questions Start #####################
 ---
@@ -1333,6 +1418,17 @@ fields:
       ppo_sexual_assault_threat_protectees[i].name_fields()
 ---
 #################### Overridden AL Questions End #####################
+---
+id: minimum incidents
+question: |
+  You will need to add incidents
+subquestion: |
+  % if ppo_type == "domestic":
+  Because you are filing a domestic PPO, you will need to add **at least one previous incident** between yourself and ${ other_parties[0] }.
+  % elif ppo_type == "nondomestic":
+  Because you are filing a non-domestic PPO, you will need to add **at least two previous incidents** between yourself and ${ other_parties[0] }.
+  % endif
+continue button field: minimum_incidents_explainer
 ---
 id: describe relationship to respondent
 question: |
@@ -3580,7 +3676,7 @@ question: |
 subquestion: |
   % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
   Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
-  
+
   When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail ${ next_friends[0] } at this address.
   % else:
   Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
@@ -3882,7 +3978,7 @@ objects:
   - ppo_cc_375: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_375m: ALDocument.using(title="Petition for Personal Protection Order Against a Minor (Domestic Relationship) - CC 375m", filename="Petition for Personal Protection Order Against a Minor (Domestic Relationship) - CC 375m", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - ppo_cc_377: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", filename="Petition for Personal Protection Order (Non-Domestic Relationship) - CC 377", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - ppo_cc_377m: ALDocument.using(title="Petition for Personal Protection Order Against a Minor (Non-Domestic Relationship) - CC 377m", filename="Petition for Personal Protection Order Against a Minor (Non-Domestic Relationship) - CC 377m", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE) 
+  - ppo_cc_377m: ALDocument.using(title="Petition for Personal Protection Order Against a Minor (Non-Domestic Relationship) - CC 377m", filename="Petition for Personal Protection Order Against a Minor (Non-Domestic Relationship) - CC 377m", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - cc_375_statement: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - cc_377_statement: ALDocument.using(title="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", filename="Petition for Personal Protection Order (Non-Domestic Relationship) Statement of Facts", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - cc_375_attachment: ALDocument.using(title="Petition for Personal Protection Order (Domestic Relationship) Attachment", filename="Petition for Personal Protection Order (Domestic Relationship) Attachment", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -3904,7 +4000,7 @@ objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_domestic_minor_attachment, ppo_nondomestic_minor_attachment, ppo_nondomestic_sexual_assault_minor_attachment, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
-  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, ppo_domestic_minor_attachment_court, ppo_nondomestic_minor_attachment_court, ppo_nondomestic_sexual_assault_minor_attachment_court, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True) 
+  - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, ppo_domestic_minor_attachment_court, ppo_nondomestic_minor_attachment_court, ppo_nondomestic_sexual_assault_minor_attachment_court, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True)
 ---
 objects:
   - ppo_cc_375_etc: ALDocumentBundle.using(elements=[etc_cover_page, ppo_cc_375], title="Petition for Personal Protection Order (Domestic Relationship) - CC 375", filename="Petition for Personal Protection Order (Domestic Relationship) - CC 375")
@@ -5572,7 +5668,7 @@ attachments:
         Confidential
         % else:
         ${ users[0].phone_number }
-        % endif        
+        % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
