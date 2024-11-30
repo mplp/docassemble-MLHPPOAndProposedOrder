@@ -493,7 +493,7 @@ review:
   - Edit:
       - wants_no_harming_petitioner
       - recompute:
-        - add_remove_petitioner_from_harm_protectees_list
+        - check_ppo_harm_protectees_list
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound you?**
 
@@ -501,13 +501,16 @@ review:
   - Edit:
       - ppo_harm_protectees.there_are_any
       - recompute:
-        - review_ppo_harm_protectees
+        - check_ppo_harm_protectees_list
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound another person?**
 
       ${ word(yesno(ppo_harm_protectees.there_are_any)) }
     show if: ppo_type == "domestic" and defined('ppo_harm_protectees.there_are_any')
-  - Edit: ppo_harm_protectees.revisit
+  - Edit: 
+      - ppo_harm_protectees.revisit
+      - recompute:
+        - check_ppo_harm_protectees_list
     button: |
       % if len(ppo_harm_protectees.complete_elements()) > 0:
       **I want the following people to be protected from being assaulted, attacked, beaten, molested, or wounded:**
@@ -528,6 +531,41 @@ review:
       **Do you want the judge to order ${ other_parties[0] } to not remove any minor children from your custody?**
 
       ${ word(yesno(wants_no_removing_minor)) }
+  - Edit:
+      - wants_no_sexual_assault_threats
+      - recompute:
+        - check_ppo_sexual_assault_threat_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } not to threaten to sexually assault, kill, or physically injure you?**
+
+      ${ word(yesno(wants_no_sexual_assault_threats)) }
+  - Edit:
+      - ppo_sexual_assault_threat_protectees.there_are_any
+      - recompute:
+        - check_ppo_sexual_assault_threat_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure another person?**
+
+      ${ word(yesno(ppo_sexual_assault_threat_protectees.there_are_any)) }
+    show if: ppo_type == "nondomestic_sexual_assault" and defined('ppo_sexual_assault_threat_protectees.there_are_any')
+  - Edit: 
+      - ppo_sexual_assault_threat_protectees.revisit
+      - recompute:
+        - check_ppo_sexual_assault_threat_protectees_list
+    button: |
+      % if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
+      **I want the following people to be protected from threats of sexually assault, death, or physically injury:**
+      % for item in ppo_sexual_assault_threat_protectees:
+
+      * ${ item }
+
+      % endfor
+      % else:
+
+      *You have not listed anyone yet*
+
+      % endif
+    show if: ppo_sexual_assault_threat_protectees.there_are_any
   - Edit: no_stalking_choices
     button: |-
       **I want to be protected from the following stalking behaviors:**
@@ -573,27 +611,24 @@ review:
   - Edit:
       - wants_no_threatening_petitioner
       - recompute:
-        - add_remove_petitioner_from_threat_protectees_list
+        - check_ppo_threat_protectees_list
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure you?**
 
       ${ word(yesno(wants_no_threatening_petitioner)) }
   - Edit:
-      - wants_no_sexual_assault_threats
-    button: |
-      **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure you?**
-
-      ${ word(yesno(wants_no_sexual_assault_threats)) }
-  - Edit:
       - ppo_threat_protectees.there_are_any
       - recompute:
-        - review_ppo_threat_protectees
+        - check_ppo_threat_protectees_list
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure another person?**
 
       ${ word(yesno(ppo_threat_protectees.there_are_any)) }
     show if: ppo_type == "domestic" and defined('ppo_threat_protectees.there_are_any')
-  - Edit: ppo_threat_protectees.revisit
+  - Edit: 
+      - ppo_threat_protectees.revisit
+      - recompute:
+        - check_ppo_threat_protectees_list
     button: |
       % if len(ppo_threat_protectees.complete_elements()) > 0:
       **I want the following people to be protected from threats of death or physical injury:**
@@ -608,28 +643,6 @@ review:
 
       % endif
     show if: ppo_threat_protectees.there_are_any
-  - Edit:
-      - ppo_sexual_assault_threat_protectees.there_are_any
-    button: |
-      **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure another person?**
-
-      ${ word(yesno(ppo_sexual_assault_threat_protectees.there_are_any)) }
-    show if: ppo_type == "nondomestic_sexual_assault" and defined('ppo_sexual_assault_threat_protectees.there_are_any')
-  - Edit: ppo_sexual_assault_threat_protectees.revisit
-    button: |
-      % if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
-      **I want the following people to be protected from threats of sexual assault, death, or physical injury:**
-      % for item in ppo_sexual_assault_threat_protectees:
-
-      * ${ item }
-
-      % endfor
-      % else:
-
-      *You have not listed anyone yet*
-
-      % endif
-    show if: ppo_sexual_assault_threat_protectees.there_are_any
   - Edit:
       - wants_no_work_education_interference
     button: |

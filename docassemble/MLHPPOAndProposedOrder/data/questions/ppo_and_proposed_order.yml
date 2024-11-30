@@ -564,73 +564,128 @@ code: |
   check_wants_no_harming_people = True
 ---
 code: |
-  ppo_harm_protectees_list_temp = []
+  if defined('ppo_harm_protectees_list_temp'):
+    ppo_harm_protectees_list_temp.clear()
+  else:
+    ppo_harm_protectees_list_temp = []
 
   if wants_no_harming_petitioner:
-    ppo_harm_protectees_list_temp.append(users[0])
+    if users[0] not in ppo_harm_protectees_list_temp:
+      ppo_harm_protectees_list_temp.append(users[0])
+  else:
+    if users[0] in ppo_harm_protectees_list_temp:
+      ppo_harm_protectees_list_temp.remove(users[0])
 
   if ppo_harm_protectees.there_are_any:
-    for person in ppo_harm_protectees:
-      ppo_harm_protectees_list_temp.append(person)
+    for protectee in ppo_harm_protectees:
+      if protectee not in ppo_harm_protectees_list_temp:
+        ppo_harm_protectees_list_temp.append(protectee)
+  
+  ppo_harm_protectees_list.clear()
 
   ppo_harm_protectees_list = DAList(elements=ppo_harm_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_harm_protectees_list = True
 ---
-code: |
-  if defined('check_ppo_harm_protectees_list'):
-    if not wants_no_harming_petitioner:
-      if users[0] in ppo_harm_protectees_list:
-        ppo_harm_protectees_list.remove(users[0])
-    elif wants_no_harming_petitioner:
-      if users[0] not in ppo_harm_protectees_list:
-        ppo_harm_protectees_list.append(users[0])
+# code: |
+#   if defined('check_ppo_harm_protectees_list'):
+#     if not wants_no_harming_petitioner:
+#       if users[0] in ppo_harm_protectees_list:
+#         ppo_harm_protectees_list.remove(users[0])
+#     elif wants_no_harming_petitioner:
+#       if users[0] not in ppo_harm_protectees_list:
+#         ppo_harm_protectees_list.append(users[0])
 
-  add_remove_petitioner_from_harm_protectees_list = True
+#   add_remove_petitioner_from_harm_protectees_list = True
 ---
-code: |
-  if not ppo_harm_protectees.there_are_any:
-    if len(ppo_harm_protectees.complete_elements()) > 0:
-      if defined('check_ppo_harm_protectees_list'):
-        for protectee in ppo_harm_protectees:
-          if protectee in ppo_harm_protectees_list:
-            ppo_harm_protectees_list.remove(protectee)
-      ppo_harm_protectees.clear()
-  elif ppo_harm_protectees.there_are_any:
-    if len(ppo_harm_protectees.complete_elements()) > 0:
-      for protectee in ppo_harm_protectees:
-        if protectee not in ppo_harm_protectees_list:
-          ppo_harm_protectees_list.append(protectee)
+# code: |
+#   if not ppo_harm_protectees.there_are_any:
+#     if len(ppo_harm_protectees.complete_elements()) > 0:
+#       if defined('check_ppo_harm_protectees_list'):
+#         for protectee in ppo_harm_protectees:
+#           if protectee in ppo_harm_protectees_list:
+#             ppo_harm_protectees_list.remove(protectee)
+#       ppo_harm_protectees.clear()
+#   elif ppo_harm_protectees.there_are_any:
+#     if len(ppo_harm_protectees.complete_elements()) > 0:
+#       for protectee in ppo_harm_protectees:
+#         if protectee not in ppo_harm_protectees_list:
+#           ppo_harm_protectees_list.append(protectee)
 
-  review_ppo_harm_protectees = True
+#   review_ppo_harm_protectees = True
 ---
-code: |
-  if ppo_type == "domestic":
-    if defined('check_ppo_threat_protectees_list'):
-      if not wants_no_threatening_petitioner:
-        if users[0] in ppo_threat_protectees_list:
-          ppo_threat_protectees_list.remove(users[0])
-      elif wants_no_threatening_petitioner:
-        if users[0] not in ppo_threat_protectees_list:
-          ppo_threat_protectees_list.append(users[0])
+# code: |
+#   if ppo_type == "domestic":
+#     if defined('check_ppo_threat_protectees_list'):
+#       if not wants_no_threatening_petitioner:
+#         if users[0] in ppo_threat_protectees_list:
+#           ppo_threat_protectees_list.remove(users[0])
+#       elif wants_no_threatening_petitioner:
+#         if users[0] not in ppo_threat_protectees_list:
+#           ppo_threat_protectees_list.append(users[0])
 
-  add_remove_petitioner_from_threat_protectees_list = True
+#   add_remove_petitioner_from_threat_protectees_list = True
 ---
-code: |
-  if not ppo_threat_protectees.there_are_any:
-    if len(ppo_threat_protectees.complete_elements()) > 0:
-      if defined('check_ppo_threat_protectees_list'):
-        for protectee in ppo_threat_protectees:
-          if protectee in ppo_threat_protectees_list:
-            ppo_threat_protectees_list.remove(protectee)
-      ppo_threat_protectees.clear()
-  elif ppo_threat_protectees.there_are_any:
-    if len(ppo_threat_protectees.complete_elements()) > 0:
-      for protectee in ppo_threat_protectees:
-        if protectee not in ppo_threat_protectees_list:
-          ppo_threat_protectees_list.append(protectee)
+# code: |
+#   if not ppo_threat_protectees.there_are_any:
+#     if len(ppo_threat_protectees.complete_elements()) > 0:
+#       if defined('check_ppo_threat_protectees_list'):
+#         for protectee in ppo_threat_protectees:
+#           if protectee in ppo_threat_protectees_list:
+#             ppo_threat_protectees_list.remove(protectee)
+#       ppo_threat_protectees.clear()
+#   elif ppo_threat_protectees.there_are_any:
+#     if len(ppo_threat_protectees.complete_elements()) > 0:
+#       for protectee in ppo_threat_protectees:
+#         if protectee not in ppo_threat_protectees_list:
+#           ppo_threat_protectees_list.append(protectee)
 
-  review_ppo_threat_protectees = True
+#   review_ppo_threat_protectees = True
+---
+# code: |
+#   if ppo_type == "nondomestic_sexual_assault":
+#     if defined('check_ppo_sexual_assault_threat_protectees_list'):
+#       if not wants_no_sexual_assault_threats:
+#         if users[0] in ppo_sexual_assault_threat_protectees_list:
+#           ppo_sexual_assault_threat_protectees_list.remove(users[0])
+#       elif wants_no_sexual_assault_threats:
+#         if users[0] not in ppo_sexual_assault_threat_protectees_list:
+#           ppo_sexual_assault_threat_protectees_list.append(users[0])
+
+#   add_remove_petitioner_from_sa_threat_protectees_list = True
+---
+# code: |
+#   if not ppo_sexual_assault_threat_protectees.there_are_any:
+#     if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
+#       if defined('check_ppo_sexual_assault_threat_protectees_list'):
+#         for protectee in ppo_sexual_assault_threat_protectees:
+#           if protectee in ppo_sexual_assault_threat_protectees_list:
+#             ppo_sexual_assault_threat_protectees_list.remove(protectee)
+#       ppo_sexual_assault_threat_protectees.clear()
+#   elif ppo_sexual_assault_threat_protectees.there_are_any:
+#     if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
+#       for protectee in ppo_sexual_assault_threat_protectees:
+#         if protectee not in ppo_sexual_assault_threat_protectees_list:
+#           ppo_sexual_assault_threat_protectees_list.append(protectee)
+
+#   review_ppo_sexual_assault_threat_protectees = True
+---
+# code: |
+#   if not ppo_sexual_assault_threat_protectees.there_are_any: #user selects that there are no protectees in final protection list
+#     if defined('check_ppo_sexual_assault_threat_protectees_list'): #if final protection list already made, proceed
+#       for protectee in ppo_sexual_assault_threat_protectees:
+#         if protectee in ppo_sexual_assault_threat_protectees_list:
+#           ppo_sexual_assault_threat_protectees_list.remove(protectee) #remove protectee from final protection list if final protection list already made
+#       ppo_sexual_assault_threat_protectees.clear() #clear original protectee list
+#   elif ppo_sexual_assault_threat_protectees.there_are_any: #user indicated there are protectees in final protection list
+#     if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0: #if there are protectees in original list already
+#       for protectee in ppo_sexual_assault_threat_protectees:
+#         if protectee not in ppo_sexual_assault_threat_protectees_list: #run through each protectee, if not included in final list, add
+#           ppo_sexual_assault_threat_protectees_list.append(protectee)
+#     else:
+
+
+#   review_ppo_sexual_assault_threat_protectees = True
 ---
 code: |
   if no_stalking_choices['following']:
@@ -674,28 +729,50 @@ code: |
   check_wants_no_sexual_assault_threatening_others = True
 ---
 code: |
-  ppo_threat_protectees_list_temp = []
+  if defined('ppo_threat_protectees_list_temp'):
+    ppo_threat_protectees_list_temp.clear()
+  else:
+    ppo_threat_protectees_list_temp = []
 
   if wants_no_threatening_petitioner:
-    ppo_threat_protectees_list_temp.append(users[0])
+    if users[0] not in ppo_threat_protectees_list_temp:
+      ppo_threat_protectees_list_temp.append(users[0])
+  else:
+    if users[0] in ppo_threat_protectees_list_temp:
+      ppo_threat_protectees_list_temp.remove(users[0])
 
   if ppo_threat_protectees.there_are_any:
-    for person in ppo_threat_protectees:
-      ppo_threat_protectees_list_temp.append(person)
-
+    for protectee in ppo_threat_protectees:
+      if protectee not in ppo_threat_protectees_list_temp:
+        ppo_threat_protectees_list_temp.append(protectee)
+  
+  ppo_threat_protectees_list.clear()
+  
   ppo_threat_protectees_list = DAList(elements=ppo_threat_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_threat_protectees_list = True
 ---
 code: |
-  ppo_sexual_assault_threat_protectees_list = []
+  if defined('ppo_sexual_assault_threat_protectees_list_temp'):
+    ppo_sexual_assault_threat_protectees_list_temp.clear()
+  else:
+    ppo_sexual_assault_threat_protectees_list_temp = []
 
   if wants_no_sexual_assault_threats:
-    ppo_sexual_assault_threat_protectees_list.append(users[0])
+    if users[0] not in ppo_sexual_assault_threat_protectees_list_temp:
+      ppo_sexual_assault_threat_protectees_list_temp.append(users[0])
+  else:
+    if users[0] in ppo_sexual_assault_threat_protectees_list_temp:
+      ppo_sexual_assault_threat_protectees_list_temp.remove(users[0])
 
   if ppo_sexual_assault_threat_protectees.there_are_any:
-    for person in ppo_sexual_assault_threat_protectees:
-      ppo_sexual_assault_threat_protectees_list.append(person)
+    for protectee in ppo_sexual_assault_threat_protectees:
+      if protectee not in ppo_sexual_assault_threat_protectees_list_temp: 
+        ppo_sexual_assault_threat_protectees_list_temp.append(protectee)
+
+  ppo_sexual_assault_threat_protectees_list.clear()
+  
+  ppo_sexual_assault_threat_protectees_list = DAList(elements=ppo_sexual_assault_threat_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_sexual_assault_threat_protectees_list = True
 ---
@@ -806,7 +883,7 @@ code: |
 code: |
   if not MLH_esign:
     undefine('signature_date')
-    
+
   reset_signature_date = True
 ---
 #################### Other Code Blocks End #####################
