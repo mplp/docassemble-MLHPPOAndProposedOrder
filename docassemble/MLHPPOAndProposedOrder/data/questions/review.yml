@@ -407,7 +407,7 @@ review:
 
     show if: fears_future_sexual_assault
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Past Indicents</h2>') }
+      ${ next_accordion('<h2 class="h5">Past Incidents</h2>') }
     show if: len(incidents.complete_elements()) > 0
   - Edit:
       - incidents.revisit
