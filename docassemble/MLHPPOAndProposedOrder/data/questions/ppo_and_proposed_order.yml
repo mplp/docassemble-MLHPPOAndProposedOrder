@@ -556,6 +556,8 @@ code: |
 code: |
   if other_properties.there_are_any:
     wants_no_entering_other_property = True
+  else:
+    wants_no_entering_other_property = False
   check_wants_no_entering_other_property = True
 ---
 code: |

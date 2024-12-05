@@ -476,6 +476,8 @@ review:
       ${ word(yesno(respondent_has_property_interest_in_home)) }
   - Edit:
       - other_properties.there_are_any
+      - recompute:
+        - check_wants_no_entering_other_property
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not enter another property (not your residence)?**
 
