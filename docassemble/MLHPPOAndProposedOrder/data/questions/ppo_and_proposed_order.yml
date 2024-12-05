@@ -133,9 +133,6 @@ code: |
         else:
           minor_kickout
 
-  respondent_lives_in_michigan
-  if (not petitioner_lives_in_michigan) and (not respondent_lives_in_michigan):
-    parties_reside_outside_michigan_kickout
   knows_respondents_birthdate
 
   check_if_respondent_minor
@@ -1879,20 +1876,26 @@ subject: |
 content: |
   Even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
-id: respondent living in michigan
+id: petitioner or respondent living in michigan
 question: |
-  Respondent's residence
-fields:
-  - ${ users[0] }, does the Respondent (the person you want to be protected from) live in Michigan?: respondent_lives_in_michigan
-    datatype: yesnoradio
-    label above field: True
----
-id: petitioner living in michigan
-question: |
-  Your residence
+  Connection to Michigan
 fields:
   - Do you live in Michigan?: petitioner_lives_in_michigan
     datatype: yesnoradio
+  - Does the Respondent (the person you want to be protected from) live in Michigan?: respondent_lives_in_michigan
+    datatype: yesnoradio
+    label above field: True
+under: |
+      ${ collapse_template(Michigan_connection) }
+validation code: |
+  if not petitioner_lives_in_michigan and not respondent_lives_in_michigan:
+    validation_error("To use this tool, at least one of you must live in Michigan.", field='respondent_lives_in_michigan')
+---
+template: Michigan_connection
+subject: |
+  What if neither of us lives in Michigan?
+content: |
+  To use this tool, at least one of you must live in Michigan. If neither of you live in Michigan, return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal resources.
 ---
 id: respondent birthdate
 question: |
@@ -2059,17 +2062,6 @@ subquestion: |
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 
   Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders).
----
-id: parties reside outside michigan kickout
-event: parties_reside_outside_michigan_kickout
-question: |
-  We're sorry, but you cannot use this tool to prepare your forms. At least one of the parties (you or the Respondent) must live in Michigan to use this tool.
-subquestion: |
-  To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
-
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
-
-  Otherwise, **Exit** the interview.
 ---
 reconsider: relationship_choices
 id: relationship to respondent
