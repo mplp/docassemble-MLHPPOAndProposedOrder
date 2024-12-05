@@ -782,7 +782,6 @@ edit:
   - name.first
   - address.address
   - birthdate
-  - phone_number
 confirm: True
 ---
 table: other_parties.table
