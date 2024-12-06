@@ -50,7 +50,10 @@ review:
       **Do you want to keep your contact information confidential?**
 
       ${ word(yesno(wants_confidential_contact_details)) }
-  - Edit: petitioner_lives_in_michigan
+  - Edit: 
+      - petitioner_lives_in_michigan
+      - recompute:
+          - county_check_minor_respondent_done
     button: |-
       **Does the Petitioner live in Michigan?**
 
@@ -73,7 +76,7 @@ review:
     show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
-    show if: len(other_parties.complete_elements()) > 0 or defined('respondent_lives_in_michigan')
+    show if: respondent_lives_in_michigan or not respondent_lives_in_michigan
   - Edit: other_parties.revisit
     button: |-
       % for item in other_parties:
@@ -157,7 +160,10 @@ review:
       *You have not added any aliases yet.*
       % endif
     show if: other_party_alias.there_are_any
-  - Edit: respondent_lives_in_michigan
+  - Edit: 
+      - respondent_lives_in_michigan
+      - recompute:
+          - county_check_minor_respondent_done
     button: |-
       **Does the Respondent live in Michigan?**
 

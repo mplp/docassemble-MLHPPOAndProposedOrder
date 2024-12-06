@@ -2104,6 +2104,35 @@ fields:
   - Select the county you will file your PPO case in: county_choice
     code: court_list._load_courts()["address_county"].unique()
 ---
+code: |
+  if defined('county_choice') and (respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child)) and (not petitioner_lives_in_michigan or not respondent_lives_in_michigan):
+    county_check_minor_respondent
+
+  county_check_minor_respondent_done = True
+---
+only sets: county_check_minor_respondent
+continue button field: county_check_minor_respondent
+id: county_choice check after edits for minor respondent
+question: |
+  Make sure you can file in your selected county
+subquestion: |  
+  % if respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and (not petitioner_lives_in_michigan) and respondent_lives_in_michigan:
+  You said you **don't** live in Michigan and ${ other_parties[0] } does live in Michigan.
+  
+  Because ${ other_parties[0] } is a minor, you need to file your PPO case in the county **where ${ other_parties[0] } lives**.
+
+  ${ collapse_template(unknown_minor_respondent_county) }
+  % elif respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and petitioner_lives_in_michigan and (not respondent_lives_in_michigan):
+  You said you live in Michigan and ${ other_parties[0] } **does not** live in Michigan.
+  
+  You must file your PPO case in the county **where you live**.
+  % endif
+
+  Make sure the county chosen below is correct.
+fields:
+  - Select the county you will file your PPO case in: county_choice
+    code: court_list._load_courts()["address_county"].unique()
+---
 id: oakland confidential address option
 question: |
   Do you want to keep your contact information confidential?
