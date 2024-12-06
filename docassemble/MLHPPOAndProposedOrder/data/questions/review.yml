@@ -1,4 +1,10 @@
 ---
+modules:
+  - docassemble.demo.accordion
+---
+features:
+  css: docassemble.demo:data/static/accordion.css
+---
 id: personal protection order review screen
 event: review_full
 question: |
@@ -8,90 +14,81 @@ review:
       % if not defined('docket_number'):
       ${ review_empty_explainer }
       % endif
-  - note: |
-      <hr>
-      <h2 class='h5'>Parties and Children</h2>
+  - raw html: |
+      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>', showing=True) }
   - Edit: users.revisit
     button: |-
-      **Your Information**
-
       % for item in users:
-        ${ item }
-        % if len(user_alias.complete_elements()) > 0:
-
-        Aliases: ${ comma_and_list(user_alias) }
-        % endif
+        **${ item }**
         
         Age: ${ item.age_in_years() }
-      
+
         ${ item.address.block() }
 
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: user_alias.there_are_any
+    button: |-
+      **Do you have any aliases?**
+
+      ${ word(yesno(user_alias.there_are_any)) }
+  - Edit: user_alias.revisit
+    button: |-
+      **Your aliases:**
+
+      % if len(user_alias.complete_elements()) > 0:
+      % for item in user_alias:
+        * ${ item }
+      % endfor
+      % else:
+      *You have not added any aliases yet.*
+      % endif
+    show if: user_alias.there_are_any
+  - Edit:
+      - wants_confidential_contact_details
+    button: |-
+      **Do you want to keep your contact information confidential?**
+
+      ${ word(yesno(wants_confidential_contact_details)) }
+  - Edit: 
+      - petitioner_lives_in_michigan
+      - recompute:
+          - county_check_minor_respondent_done
+    button: |-
+      **Does the Petitioner live in Michigan?**
+
+      ${ word(yesno(petitioner_lives_in_michigan)) }
+  - Edit:
+      - is_incapacitated_adult
+      - recompute:
+          - reset_next_friend
+    button: |-
+      **Is the Peititioner an incapacitated adult using a next friend to complete this interview?**
+
+      ${ word(yesno(is_incapacitated_adult)) }
   - Edit: next_friends.revisit
     button: |-
-      **Your Next Friend**
+      **Next Friend**
 
       % for item in next_friends:
         ${ item }
       % endfor
-  - Edit: children.revisit
-    button: |-
-      **Children**
-
-      % for item in children:
-        ${ item }
-
-        DOB: ${ item.birthdate }
-        % if item.lives_with:
-
-        Lives with: ${ item.lives_with }
-        % endif
-        % if item.parties_married_when_born:
-
-        How was paternity established?: Parties married when item.familiar() was born
-        % elif (not item.parties_married_when_born) and item.paternity == "by_court_order":
-
-        Paternity established by court order: 
-        
-          * Case number: ${ item.paternity_case_number }
-
-          * Court: ${ item.paternity_case_court_name }
-        % elif (not item.parties_married_when_born) and item.paternity == "by_acknowledgment_of_parentage":
-        
-        Paternity established by *Acknowledgment of Parentage*
-        % elif (not item.parties_married_when_born) and item.paternity == "paternity_case_pending":
-        
-        Paternity case still pending: 
-        
-          * Case number: ${ item.paternity_case_number }
-
-          * Court: ${ item.paternity_case_court_name }
-        % endif
-        % if item.has_order_in_effect:
-
-        Custody/parenting time order in effect:
-
-          * Case number: ${ item.custody_case_number }
-
-          * Court: ${ item.custody_case_court }
-
-        % endif
-      % endfor
-  # note, removed previous line 79 "Who has custody?: ..." becasuse it was cut off mid-line and causing syntax errors. Needs to be added back.
-  - note: |
-      <hr>
-      <h2 class='h5'>Case and Court Information</h2>
-    show if: docket_number
+    show if: next_friends.there_are_any
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Respondent</h2>') }
+    show if: respondent_lives_in_michigan or not respondent_lives_in_michigan
   - Edit: other_parties.revisit
     button: |-
-      **The Other Party**
-
       % for item in other_parties:
-        ${ item }
-        % if len(other_party_alias.complete_elements()) > 0:
+        **${ item }**
+        % if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
+        (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
+        (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland") and \
+        all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating'])):
+        % if relationship_to_respondent_exp:
 
-        Aliases: ${ comma_and_list(other_party_alias) }
+        Relationship to You: ${ relationship_to_respondent_exp }
+        % endif
         % endif
         
         % if knows_respondents_birthdate:
@@ -131,34 +128,596 @@ review:
 
         Other Identifying Info: ${ item.other_identifying_info }
         % endif
+        % if item.carries_gun_for_work == "unknown":
 
-        Carries gun for work?: ${ word("Yes") if item.carries_gun_for_work else word("No") }
-      
+        Carries gun for work?: Unknown
+        % elif item.carries_gun_for_work == "no":
+
+        Carries gun for work?: No
+        % elif item.carries_gun_for_work == "yes":
+
+        Carries gun for work?: Yes
+        % endif
+
         ${ item.address.block() }
         
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: other_party_alias.there_are_any
+    button: |-
+      **Does the Respondent have any aliases?**
+
+      ${ word(yesno(other_party_alias.there_are_any)) }
+  - Edit: other_party_alias.revisit
+    button: |-
+      **Respondent's aliases:**
+
+      % if len(other_party_alias.complete_elements()) > 0:
+      % for item in other_party_alias:
+        * ${ item }
+      % endfor
+      % else:
+      *You have not added any aliases yet.*
+      % endif
+    show if: other_party_alias.there_are_any
   - Edit: 
-    - county_choice
-    - recompute:
-      - court_index
-      - the_court
+      - respondent_lives_in_michigan
+      - recompute:
+          - county_check_minor_respondent_done
+    button: |-
+      **Does the Respondent live in Michigan?**
+
+      ${ word(yesno(respondent_lives_in_michigan)) }
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Children</h2>') }
+    show if: (len(children.complete_elements()) > 0) or (len(petitioner_other_children.complete_elements()) > 0) or (len(respondent_other_children.complete_elements()) > 0)
+  - Edit: children.revisit
+    button: |-
+      % for item in children:
+
+        **${ item }**
+
+        DOB: ${ item.birthdate }
+        % if item.lives_with:
+
+        Lives with: ${ item.lives_with }
+        % endif
+        % if item.parties_married_when_born:
+
+        Paternity established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born
+        % elif (not item.parties_married_when_born) and item.paternity == "by_court_order":
+
+        Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif (not item.parties_married_when_born) and item.paternity == "by_acknowledgment_of_parentage":
+        
+        Paternity established by *Acknowledgment of Parentage*
+        % elif (not item.parties_married_when_born) and item.paternity == "paternity_case_pending":
+        
+        Paternity case still pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % endif
+        % if item.has_order_in_effect:
+
+        Custody/parenting time order in effect (Case \#${ item.custody_case_number } - ${ item.custody_case_court })
+        % if item.parenting_time_order == "reasonable_parenting_time":
+
+        Parenting time order only says there will be "reasonable parenting time"
+        % elif item.parenting_time_order == "specific_times":
+
+        Parenting time order lists specific days and times
+        % elif item.parenting_time_order == "one_parent_supervised":
+
+        Parenting time order says ${ users[0] if item.who_has_supervised_time == "petitioner" else other_parties[0] } will be supervised by ${ item.who_supervises_parenting_time }
+        % elif item.parenting_time_order == "one_parent_no_parenting_time":
+
+        Parenting time order says ${ users[0] if item.parent_without_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
+        % endif
+        % if item.physical_custody_by_order == 'sole_petitioner':
+
+        Custody: ${ users[0] } has sole custody
+        % elif item.physical_custody_by_order == 'sole_respondent':
+
+        Custody: ${ other_parties[0] } has sole custody
+        % elif item.physical_custody_by_order == 'joint_custody':
+
+        Custody: ${ users[0] } and ${ other_parties[0] } share custody
+        % endif
+        % if not custody_parenting_time_provisions_same:
+        % if item.desired_parenting_time_changes == "no_change":
+
+        Desired parenting time changes: None
+        % elif item.desired_parenting_time_changes == "no_change_except_exchange":
+
+        Desired parenting time change: No change to parenting time, but exchange should take place at ${ item.exchange_police_department_location if item.exchange_location == "police" else item.exchange_other_location }
+        % elif item.desired_parenting_time_changes == "suspend_respondent_time":
+
+        Desired parenting time change: ${ other_parties }'s parenting time should be suspended
+        % endif
+        % endif
+        % endif
+
+      % endfor
+  - note: |
+      % if defined('petitioner_has_other_children'):
+      <hr>
+      <h2 class='h5'>Other Children Living with You</h2>
+      % endif
+  - Edit: petitioner_has_other_children
     button: |
-      **Court Information**
-      
+      **Do you have any children living in your home who are NOT ${ other_parties[0] }'s children?**
+
+      % if petitioner_has_other_children:
+      Yes
+      % else:
+      No
+      %endif
+  - Edit: petitioner_other_children.revisit
+    button: |-
+      % for item in petitioner_other_children:
+
+        **${ item }**
+
+        % if item.knows_other_child_birthdate:
+        DOB: ${ item.birthdate }
+        % else:
+        Est. Age: ${ item.estimated_age }
+        % endif
+
+      % endfor
+  - note: |
+      % if defined('respondent_has_other_children'):
+      <hr>
+      <h2 class='h5'>Other Children Living with ${ other_parties[0] }</h2>
+      % endif
+  - Edit: respondent_has_other_children
+    button: |
+      **Does ${ other_parties[0] } have any children living in their home who are NOT your children?**
+
+      % if respondent_has_other_children:
+      Yes
+      % else:
+      No
+      %endif
+  - Edit:
+      - petitioner_knows_respondent_other_children_names
+      - recompute:
+          - set_respondent_has_other_children
+    button: |
+      **Do you know the names of the other children living with ${ other_parties[0] }?**
+
+      % if petitioner_knows_respondent_other_children_names:
+      Yes
+      % else:
+      No
+      %endif
+    show if: respondent_has_other_children
+  - Edit: respondent_other_children.revisit
+    button: |-
+      % for item in respondent_other_children:
+
+        **${ item }**
+
+        % if item.knows_other_child_birthdate:
+        DOB: ${ item.birthdate }
+        % else:
+        Est. Age: ${ item.estimated_age }
+        % endif
+
+      % endfor
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Court Where You Will File This Petition</h2>') }
+    show if: defined('county_choice')
+  - Edit:
+      - county_choice
+      - recompute:
+          - court_index
+          - the_court
+    button: |
       ${ the_court }
 
       ${ county_choice } County
-  - Edit: docket_number
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
+    show if: defined('pending_actions.there_are_any')
+  - Edit: 
+      - pending_actions.there_are_any
+      - recompute:
+        - update_pending_actions
     button: |
-      **What is your case number?**
+      **Are there any pending legal cases between you and ${ other_parties[0] }?**
 
-      ${ docket_number }
-  - note: |
-      <hr>
-      <h2 class='h5'>Uploaded Documents</h2>
+      % if pending_actions.there_are_any:
+      Yes
+      % elif not pending_actions.there_are_any:
+      No
+      % endif
   - Edit:
-    - exhibit_attachment.exhibits.has_exhibits
+      - pending_actions.revisit
+    button: |
+      % if len(pending_actions.complete_elements()) > 0:
+      % for item in pending_actions:
+
+      **Pending Case \#${ loop.index+1 }**
+
+      * Docket: ${ item.docket_number }
+      * Court: ${ item.court_name }
+      * County: ${ item.court_county }
+      * State: ${ item.court_state }
+      * Judge: ${ item.judge }
+
+
+      % endfor
+      % else:
+      You have not listed any cases yet.
+      % endif
+    show if: pending_actions.there_are_any
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Pending Orders & Judgments</h2>') }
+    show if: defined('orders_judgments.there_are_any')
+  - Edit: 
+      - orders_judgments.there_are_any
+      - recompute:
+        - update_orders_judgments
+    button: |
+      **Are there any pending court orders or judgments regarding you and ${ other_parties[0] }?**
+
+      % if orders_judgments.there_are_any:
+      Yes
+      % elif not orders_judgments.there_are_any:
+      No
+      % endif
+  - Edit:
+      - orders_judgments.revisit
+    button: |
+      % if len(orders_judgments.complete_elements()) > 0:
+      % for item in orders_judgments:
+
+      **Pending Order/Judgment \#${ loop.index+1 }**
+
+      * Docket: ${ item.docket_number }
+      * Court: ${ item.court_name }
+      * County: ${ item.court_county }
+      * State: ${ item.court_state }
+      * Judge: ${ item.judge }
+
+
+      % endfor
+      % else:
+      You have not listed any orders or judgments yet.
+      % endif
+    show if: orders_judgments.there_are_any
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Sexual Assault History</h2>') }
+    show if: defined('respondent_sexual_assault_conviction')
+  - Edit: respondent_sexual_assault_conviction
+    button: |
+      **Was ${ other_parties[0] } convicted of sexual assault against you?**
+
+      ${ word(yesno(respondent_sexual_assault_conviction)) }
+  - Edit: orders_judgments_include_sa_conviction
+    button: |
+      **Did you list the case where ${ other_parties[0] } was convicted of sexual assault against you when asked about past orders or judgments?**
+
+      ${ word(yesno(orders_judgments_include_sa_conviction)) }
+    show if: respondent_sexual_assault_conviction
+  - Edit: fears_future_sexual_assault
+    button: |
+      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
+
+      ${ word(yesno(fears_future_sexual_assault)) }
+    show if: not respondent_sexual_assault_conviction
+  - Edit: potential_sexual_assault_exp
+    button: |
+      **Explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0] }:**
+
+      ${ potential_sexual_assault_exp }
+
+    show if: fears_future_sexual_assault
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Past Incidents</h2>') }
+    show if: len(incidents.complete_elements()) > 0
+  - Edit:
+      - incidents.revisit
+      - recompute:
+        - check_minimum_incident_number
+    button: |
+      % if len(incidents.complete_elements()) > 0:
+      % for item in incidents:
+
+      **Incident \#${ loop.index+1 }**
+
+      * When: ${ item.date }
+      * Location: ${ item.location }
+      * Description: ${ item.other_party_actions }
+      % if ppo_type == "nondomestic":
+      * ${ item.reason_other_party_responsible }
+      % endif
+      * Because of this incident, I felt...: ${ item.emotional_effect }
+      % if ppo_type == "domestic":
+      * Were you physically injured?: ${ word("Yes") if item.petitioner_injured else word("No") } 
+      % if item.petitioner_injured: 
+      * Injuries: ${ item.physical_injury }
+      % endif
+      % endif
+      * Were there witnesses?: ${ word("Yes") if item.had_witnesses else word("No") }
+      * Were the police called?: ${ word("Yes") if item.had_police else word("No") }
+      % if item.had_police:
+      * What did the police do?: ${ item.police_actions }
+      % endif
+
+
+      % endfor
+      % else:
+      You have not added any incidents yet.
+      % endif
+  - Edit: other_details
+    button: |
+      **Other things ${ other_parties[0] } has done to make you feel threatened, abused, or afraid:**
+
+      % if other_details:
+      ${ other_details }
+      % else:
+      *You have not entered anything here yet*
+      % endif
+    show if: defined('other_details')
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Requests for the Court</h2>') }
+    show if: defined('wants_no_entering_residential_property') or defined('no_stalking_choices')
+  - Edit:
+      - wants_no_entering_residential_property
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not enter the property where you live?**
+
+      ${ word(yesno(wants_no_entering_residential_property)) }
+  - Edit:
+      - has_property_interest_in_home
+    button: |
+      **Do you have a property interest in the property where you live?**
+
+      ${ word(yesno(has_property_interest_in_home)) }
+  - Edit:
+      - respondent_has_property_interest_in_home
+    button: |
+      **Does ${ other_parties[0] } have a property interest in the property where you live?**
+
+      ${ word(yesno(respondent_has_property_interest_in_home)) }
+  - Edit:
+      - other_properties.there_are_any
+      - recompute:
+        - check_wants_no_entering_other_property
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not enter another property (not your residence)?**
+
+      ${ word(yesno(other_properties.there_are_any)) }
+  - Edit:
+      - other_properties.revisit
+    button: |
+      **Other property (not your residence):**
+      % for item in other_properties:
+
+      ${ item }
+
+      % endfor
+    show if: other_properties.there_are_any
+  - Edit:
+      - wants_no_harming_petitioner
+      - recompute:
+        - check_ppo_harm_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound you?**
+
+      ${ word(yesno(wants_no_harming_petitioner)) }
+  - Edit:
+      - ppo_harm_protectees.there_are_any
+      - recompute:
+        - check_ppo_harm_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound another person?**
+
+      ${ word(yesno(ppo_harm_protectees.there_are_any)) }
+    show if: ppo_type == "domestic" and defined('ppo_harm_protectees.there_are_any')
+  - Edit: 
+      - ppo_harm_protectees.revisit
+      - recompute:
+        - check_ppo_harm_protectees_list
+    button: |
+      % if len(ppo_harm_protectees.complete_elements()) > 0:
+      **I want the following people to be protected from being assaulted, attacked, beaten, molested, or wounded:**
+      % for item in ppo_harm_protectees:
+
+      * ${ item }
+
+      % endfor
+      % else:
+
+      *You have not listed anyone yet*
+
+      % endif
+    show if: ppo_harm_protectees.there_are_any
+  - Edit:
+      - wants_no_removing_minor
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not remove any minor children from your custody?**
+
+      ${ word(yesno(wants_no_removing_minor)) }
+  - Edit:
+      - wants_no_sexual_assault_threats
+      - recompute:
+        - check_ppo_sexual_assault_threat_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } not to threaten to sexually assault, kill, or physically injure you?**
+
+      ${ word(yesno(wants_no_sexual_assault_threats)) }
+  - Edit:
+      - ppo_sexual_assault_threat_protectees.there_are_any
+      - recompute:
+        - check_ppo_sexual_assault_threat_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure another person?**
+
+      ${ word(yesno(ppo_sexual_assault_threat_protectees.there_are_any)) }
+    show if: ppo_type == "nondomestic_sexual_assault" and defined('ppo_sexual_assault_threat_protectees.there_are_any')
+  - Edit: 
+      - ppo_sexual_assault_threat_protectees.revisit
+      - recompute:
+        - check_ppo_sexual_assault_threat_protectees_list
+    button: |
+      % if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
+      **I want the following people to be protected from threats of sexually assault, death, or physically injury:**
+      % for item in ppo_sexual_assault_threat_protectees:
+
+      * ${ item }
+
+      % endfor
+      % else:
+
+      *You have not listed anyone yet*
+
+      % endif
+    show if: ppo_sexual_assault_threat_protectees.there_are_any
+  - Edit: no_stalking_choices
+    button: |-
+      **I want to be protected from the following stalking behaviors:**
+      % if no_stalking_choices.all_false():
+
+      *You have not added any protections yet*
+      % else:
+      % if no_stalking_choices['following']:
+
+      * Following me or appearing within my sight
+      % endif
+      % if no_stalking_choices['communications']:
+
+      * Sending mail or other communications to me
+      % endif
+      % if no_stalking_choices['approaching']:
+
+      * Approaching or confronting me in a public place or on private property
+      % endif
+      % if no_stalking_choices['entering_property']:
+
+      * Entering onto or staying on property I own, lease, or occupy
+      % endif
+      % if no_stalking_choices['placing_object']:
+
+      * Placing an object on or delivering an object to property I own, lease, or occupy
+      % endif
+      % if no_stalking_choices['appear_work_residence']:
+
+      * Appearing at my workplace or residence
+      % endif
+      % if no_stalking_choices['phone_contact']:
+
+      * Contacting me by telephone
+      % endif
+      % endif
+  - Edit:
+      - wants_no_children_property_removal_interference
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not interfere with your efforts to remove your children or personal property from a place that ${ other_parties[0] } owns or leases?**
+
+      ${ word(yesno(wants_no_children_property_removal_interference)) }
+  - Edit:
+      - wants_no_threatening_petitioner
+      - recompute:
+        - check_ppo_threat_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure you?**
+
+      ${ word(yesno(wants_no_threatening_petitioner)) }
+  - Edit:
+      - ppo_threat_protectees.there_are_any
+      - recompute:
+        - check_ppo_threat_protectees_list
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure another person?**
+
+      ${ word(yesno(ppo_threat_protectees.there_are_any)) }
+    show if: ppo_type == "domestic" and defined('ppo_threat_protectees.there_are_any')
+  - Edit: 
+      - ppo_threat_protectees.revisit
+      - recompute:
+        - check_ppo_threat_protectees_list
+    button: |
+      % if len(ppo_threat_protectees.complete_elements()) > 0:
+      **I want the following people to be protected from threats of death or physical injury:**
+      % for item in ppo_threat_protectees:
+
+      * ${ item }
+
+      % endfor
+      % else:
+
+      *You have not listed anyone yet*
+
+      % endif
+    show if: ppo_threat_protectees.there_are_any
+  - Edit:
+      - wants_no_work_education_interference
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not interfere with you at work or school, or to act in a way that impairs your work or school relationships or environment?**
+
+      ${ word(yesno(wants_no_work_education_interference)) }
+  - Edit:
+      - wants_no_access_to_personal_info_records
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not have access to information in your child’s records that shows your (or your child’s) home address, phone number, or work address?**
+
+      ${ word(yesno(wants_no_access_to_personal_info_records)) }
+  - Edit: no_mental_distress_or_control_choices
+    button: |-
+      **I want the judge to order ${ other_parties[0] } to not intentionally cause me mental distress or try to control me through the following behaviors:**
+      % if no_mental_distress_or_control_choices.all_false():
+
+      *You have not added any protections yet*
+      % else:
+      % if no_mental_distress_or_control_choices['harming_animal']:
+
+      * Injuring, killing, torturing, or neglecting any animal that I own, or threatening to do any of those things
+      % endif
+      % if no_mental_distress_or_control_choices['removing_animal']:
+
+      * Removing any animal I own from my possession
+      % endif
+      % if no_mental_distress_or_control_choices['keeping_animal']:
+
+      * Keeping any animal I own from me, or taking possession of it
+      % endif
+      % endif
+  - Edit:
+      - wants_no_firearm_purchase_or_possession
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not buy or have a gun?**
+
+      ${ word(yesno(wants_no_firearm_purchase_or_possession)) }
+  - Edit:
+      - wants_no_message_posting
+    button: |
+      **Do you want the judge to order ${ other_parties[0] } to not harrass you by posting messages?**
+
+      ${ word(yesno(wants_no_message_posting)) }
+    show if: ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault"
+  - Edit:
+      - wants_other_request
+    button: |
+      **Is there anything else you want the judge to order in the PPO?**
+
+      ${ word(yesno(wants_other_request)) }
+      % if wants_other_request:
+      % if other_request_exp:
+        - ${ other_request_exp }
+      % endif
+      % endif
+  - Edit:
+      - wants_ex_parte_order
+    button: |
+      **Do you want to request an ex parte order?**
+
+      ${ word(yesno(wants_ex_parte_order)) }
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Uploaded Documents</h2>') }
+    show if: defined('exhibit_attachment.exhibits.has_exhibits')
+  - Edit:
+      - exhibit_attachment.exhibits.has_exhibits
     button: |
       **Do you have documents you want the judge to see?**:
 
@@ -180,6 +739,19 @@ review:
 
     css class: bg-secondary-subtle
     show if: exhibit_attachment.exhibits.has_exhibits
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Electronic Signature</h2>') }
+    show if: defined('MLH_esign')
+  - Edit:
+      - MLH_esign
+      - recompute:
+        - reset_signature_date
+    button: |
+      **Do you want to add your electronic signature?**
+
+      ${ word(yesno(MLH_esign)) }
+  - raw html: |
+      ${ end_accordion() }
 ---
 generic object: ALExhibitList
 table: exhibit_attachment.exhibits.rearrange_exhibits_table
@@ -203,6 +775,63 @@ subject: |
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
 ---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name_full()
+  - Address: |
+      row_item.address.block()
+  - Phone: |
+      row_item.phone_number
+  - Birthdate: |
+      row_item.birthdate
+edit:
+  - name.first
+  - address.address
+  - birthdate
+confirm: True
+---
+table: other_parties.table
+rows: other_parties
+columns:
+  - Name: |
+      row_item.name_full()
+  - Address: |
+      row_item.address.block()
+  - Phone: |
+      row_item.phone_number
+  - Age: |
+      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
+  - Race: |
+      row_item.race
+  - Gender: |
+      row_item.gender
+  - Height: |
+      row_item.height
+  - Weight: |
+      row_item.weight
+  - Hair Color: |
+      row_item.hair_color
+  - Eye Color: |
+      row_item.eye_color
+  - License Number: |
+      row_item.license_number if defined("row_item.license_number") else ""
+edit:
+  - name.first
+  - address.address
+  - birthdate
+  - phone_number
+  - birthdate
+  - race
+  - gender
+  - height_feet
+  - weight
+  - hair_color
+  - eye_color
+  - license_number
+confirm: True
+---
 table: children.table
 rows: children
 columns:
@@ -212,6 +841,106 @@ columns:
       row_item.birthdate
 edit:
   - name.first
-  - birthdate
+  - lives_with
+  - parties_married_when_born
+  - has_order_in_effect
+confirm: True
+---
+table: petitioner_other_children.table
+rows: petitioner_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+confirm: True
+---
+table: respondent_other_children.table
+rows: respondent_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+confirm: True
+---
+continue button field: pending_actions.revisit
+question: |
+  Pending Legal Cases
+subquestion: |
+  ${ pending_actions.table }
+
+  ${ pending_actions.add_action() }
+---
+table: pending_actions.table
+rows: pending_actions
+columns:
+  - Docket Number: |
+      row_item.docket_number if defined("row_item.docket_number") else ""
+  - Court: |
+      row_item.court_name if defined("row_item.court_name") else ""
+  - County: |
+      row_item.court_county if defined("row_item.court_county") else ""
+  - State: |
+      row_item.court_state if defined("row_item.court_state") else ""
+  - Judge: |
+      row_item.judge if defined("row_item.judge") else ""
+edit:
+  - docket_number
+  - court_name
+  - judge
+confirm: True
+---
+continue button field: orders_judgments.revisit
+question: |
+  Court Orders & Judgments
+subquestion: |
+  ${ orders_judgments.table }
+
+  ${ orders_judgments.add_action() }
+---
+table: orders_judgments.table
+rows: orders_judgments
+columns:
+  - Docket Number: |
+      row_item.docket_number if defined("row_item.docket_number") else ""
+  - Court: |
+      row_item.court_name if defined("row_item.court_name") else ""
+  - County: |
+      row_item.court_county if defined("row_item.court_county") else ""
+  - State: |
+      row_item.court_state if defined("row_item.court_state") else ""
+  - Judge: |
+      row_item.judge if defined("row_item.judge") else ""
+edit:
+  - docket_number
+  - court_name
+  - judge
+confirm: True
+---
+continue button field: incidents.revisit
+question: |
+  Past Incidents
+subquestion: |
+  ${ incidents.table }
+
+  ${ incidents.add_action() }
+---
+table: incidents.table
+rows: incidents
+columns:
+  - Date: |
+      row_item.date if defined("row_item.date") else ""
+  - Location: |
+      row_item.location if defined("row_item.location") else ""
+edit:
+  - date
+  - location
 confirm: True
 ---
