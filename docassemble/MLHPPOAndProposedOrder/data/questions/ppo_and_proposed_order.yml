@@ -2110,7 +2110,6 @@ code: |
 
   county_check_minor_respondent_done = True
 ---
-only sets: county_check_minor_respondent
 continue button field: county_check_minor_respondent
 id: county_choice check after edits for minor respondent
 question: |
@@ -2121,17 +2120,16 @@ subquestion: |
   
   Because ${ other_parties[0] } is a minor, you need to file your PPO case in the county **where ${ other_parties[0] } lives**.
 
+  Right now, you have selected **${ county_choice }** as your filing county. If that is not where ${ other_parties[0] } lives, please edit the Court Where You Will File this Petition on the next screen.
+
   ${ collapse_template(unknown_minor_respondent_county) }
   % elif respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and petitioner_lives_in_michigan and (not respondent_lives_in_michigan):
   You said you live in Michigan and ${ other_parties[0] } **does not** live in Michigan.
   
   You must file your PPO case in the county **where you live**.
-  % endif
 
-  Make sure the county chosen below is correct.
-fields:
-  - Select the county you will file your PPO case in: county_choice
-    code: court_list._load_courts()["address_county"].unique()
+  Right now, you have selected **${ county_choice }** as your filing county. If that is not where you live, please edit the Court Where You Will File this Petition on the next screen.
+  % endif
 ---
 id: oakland confidential address option
 question: |
