@@ -44,16 +44,27 @@ review:
       *You have not added any aliases yet.*
       % endif
     show if: user_alias.there_are_any
+  - Edit: users[0].gender
+    button: |-
+      **Your gender:**
+
+      % if defined('users[0].gender'):
+      % if users[0].gender == "M":
+      Male
+      % elif users[0].gender == "F":
+      Female
+      % else:
+      *You have not selected a gender yet.*
+      % endif
+      % endif
+    show if: defined('users[0].gender')
   - Edit:
       - wants_confidential_contact_details
     button: |-
       **Do you want to keep your contact information confidential?**
 
       ${ word(yesno(wants_confidential_contact_details)) }
-  - Edit: 
-      - petitioner_lives_in_michigan
-      - recompute:
-          - county_check_minor_respondent_done
+  - Edit: petitioner_lives_in_michigan
     button: |-
       **Does the Petitioner live in Michigan?**
 
@@ -76,24 +87,16 @@ review:
     show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
-    show if: respondent_lives_in_michigan or not respondent_lives_in_michigan
+    show if: len(other_parties.complete_elements()) > 0 or defined('respondent_lives_in_michigan')
   - Edit: other_parties.revisit
     button: |-
       % for item in other_parties:
-        **${ item }**
-        % if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
-        (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
-        (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland") and \
-        all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating'])):
-        % if relationship_to_respondent_exp:
-
-        Relationship to You: ${ relationship_to_respondent_exp }
-        % endif
-        % endif
-        
+        **${ item }**        
         % if knows_respondents_birthdate:
+
         Age: ${ item.age_in_years() }
         % else:
+
         Est. Age: ${ item.estimated_age }
         % endif
         % if item.race:
@@ -143,6 +146,12 @@ review:
         
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: relationship_to_respondent_exp
+    button: |-
+      **Relationship to you:**
+
+      ${ relationship_to_respondent_exp }
+    show if: defined('relationship_to_respondent_exp')
   - Edit: other_party_alias.there_are_any
     button: |-
       **Does the Respondent have any aliases?**
@@ -160,10 +169,7 @@ review:
       *You have not added any aliases yet.*
       % endif
     show if: other_party_alias.there_are_any
-  - Edit: 
-      - respondent_lives_in_michigan
-      - recompute:
-          - county_check_minor_respondent_done
+  - Edit: respondent_lives_in_michigan
     button: |-
       **Does the Respondent live in Michigan?**
 
@@ -311,6 +317,10 @@ review:
       - recompute:
           - court_index
           - the_court
+          - reset_confidential_contact_details
+          - reset_user_alias
+          - reset_user_gender
+          - reset_relationship_to_respondent_exp
     button: |
       ${ the_court }
 
@@ -482,8 +492,6 @@ review:
       ${ word(yesno(respondent_has_property_interest_in_home)) }
   - Edit:
       - other_properties.there_are_any
-      - recompute:
-        - check_wants_no_entering_other_property
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not enter another property (not your residence)?**
 
@@ -790,6 +798,7 @@ edit:
   - name.first
   - address.address
   - birthdate
+  - phone_number
 confirm: True
 ---
 table: other_parties.table
