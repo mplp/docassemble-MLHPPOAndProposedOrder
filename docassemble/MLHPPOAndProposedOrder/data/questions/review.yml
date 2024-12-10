@@ -11,18 +11,6 @@ question: |
   Review your answers
 review:
   - note: |
-      % if defined('ppo_type'):
-      You are filling out a petition for a
-      % if ppo_type == "domestic":
-      *domestic*
-      % elif ppo_type == "nondomestic":
-      *non-domestic*
-      % elif ppo_type == "nondomestic_sexual_assault":
-      *non-domestic sexual assault*
-      % endif
-      PPO. To change the petition type, use the **Undo** button or start over.
-      % endif
-  - note: |
       % if not defined('docket_number'):
       ${ review_empty_explainer }
       % endif
@@ -316,8 +304,20 @@ review:
 
       % endfor
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Court Where You Will File This Petition</h2>') }
-    show if: defined('county_choice')
+      ${ next_accordion('<h2 class="h5">PPO Type and Court</h2>') }
+    show if: defined('ppo_type')
+  - note: |
+      % if defined('ppo_type'):
+      You are filling out a petition for a
+      % if ppo_type == "domestic":
+      **domestic**
+      % elif ppo_type == "nondomestic":
+      **non-domestic**
+      % elif ppo_type == "nondomestic_sexual_assault":
+      **non-domestic sexual assault**
+      % endif
+      PPO. To change the petition type, use the **Undo** button or start over.
+      % endif
   - Edit:
       - county_choice
       - recompute:
