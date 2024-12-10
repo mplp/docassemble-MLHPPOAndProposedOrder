@@ -304,17 +304,29 @@ review:
 
       % endfor
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Court Where You Will File This Petition</h2>') }
-    show if: defined('county_choice')
+      ${ next_accordion('<h2 class="h5">PPO Type and Court</h2>') }
+    show if: defined('ppo_type')
+  - note: |
+      % if defined('ppo_type'):
+      You are filling out a petition for a
+      % if ppo_type == "domestic":
+      **domestic**
+      % elif ppo_type == "nondomestic":
+      **non-domestic**
+      % elif ppo_type == "nondomestic_sexual_assault":
+      **non-domestic sexual assault**
+      % endif
+      PPO. To change the petition type, use the **Undo** button or start over.
+      % endif
   - Edit:
       - county_choice
       - recompute:
           - court_index
           - the_court
     button: |
-      ${ the_court }
-
-      ${ county_choice } County
+      **Court you will file in**: 
+      
+      ${ the_court }, ${ county_choice } County
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
     show if: defined('pending_actions.there_are_any')
