@@ -11,11 +11,14 @@ question: |
   Review your answers
 review:
   - note: |
-      % if not defined('docket_number'):
+      % if defined('is_incapacitated_adult'):
+      ${ review_accordion_explainer }
+      % else:
       ${ review_empty_explainer }
       % endif
   - raw html: |
-      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>', showing=True) }
+      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>') }
+    show if: is_incapacitated_adult or not is_incapacitated_adult
   - Edit: users.revisit
     button: |-
       % for item in users:
@@ -752,6 +755,7 @@ review:
       ${ word(yesno(MLH_esign)) }
   - raw html: |
       ${ end_accordion() }
+    show if: is_incapacitated_adult or not is_incapacitated_adult
 ---
 generic object: ALExhibitList
 table: exhibit_attachment.exhibits.rearrange_exhibits_table
