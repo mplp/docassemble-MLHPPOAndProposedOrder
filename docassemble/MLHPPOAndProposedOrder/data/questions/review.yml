@@ -467,22 +467,18 @@ review:
     show if: defined('wants_no_entering_residential_property') or defined('no_stalking_choices')
   - Edit:
       - wants_no_entering_residential_property
+      - recompute:
+        - set_no_entering_residential_property
     button: |
-      **Do you want the judge to order ${ other_parties[0] } to not enter the property where you live?**
+      **Do you want the judge to order ${ other_parties[0] } to not enter the property where you live?**  ${ word(yesno(wants_no_entering_residential_property)) }
 
-      ${ word(yesno(wants_no_entering_residential_property)) }
-  - Edit:
-      - has_property_interest_in_home
-    button: |
-      **Do you have a property interest in the property where you live?**
+      % if defined('has_property_interest_in_home'):
+      **Do you have a property interest in this property?** ${ word(yesno(has_property_interest_in_home)) }
+      % endif
 
-      ${ word(yesno(has_property_interest_in_home)) }
-  - Edit:
-      - respondent_has_property_interest_in_home
-    button: |
-      **Does ${ other_parties[0] } have a property interest in the property where you live?**
-
-      ${ word(yesno(respondent_has_property_interest_in_home)) }
+      % if defined('respondent_has_property_interest_in_home'):
+      **Does ${ other_parties[0] } have a property interest in the property where you live?**  ${ word(yesno(respondent_has_property_interest_in_home)) }
+      % endif
   - Edit:
       - other_properties.there_are_any
       - recompute:

@@ -267,9 +267,10 @@ code: |
 
   if ppo_type == "domestic":
     if wants_no_entering_residential_property:
-      if not has_property_interest_in_home:
-        if respondent_has_property_interest_in_home:
-          cannot_prohibit_respondent_entering_property
+      if not petitioner_respondent_married:
+        if not has_property_interest_in_home:
+          if respondent_has_property_interest_in_home:
+            cannot_prohibit_respondent_entering_property
     set_no_entering_residential_property
     if other_properties.there_are_any:
       other_properties.gather()
@@ -282,10 +283,7 @@ code: |
     wants_no_removing_minor
 
   if ppo_type == "nondomestic_sexual_assault":
-    if wants_no_entering_residential_property:
-      if not has_property_interest_in_home:
-        if respondent_has_property_interest_in_home:
-          cannot_prohibit_respondent_entering_property
+    wants_no_entering_residential_property
     set_no_entering_residential_property
     
     if other_properties.there_are_any:
@@ -449,9 +447,10 @@ code: |
   check_if_respondent_minor = True
 ---
 code: |
-  if married_choice:
-    if petitioner_respondent_relationship['married']:
+  if married_choice and petitioner_respondent_relationship['married']:
       petitioner_respondent_married = True
+  else:
+    petitioner_respondent_married = False
 
   if was_married_choice:
     if petitioner_respondent_relationship['was_married']:
@@ -717,15 +716,21 @@ code: |
   set_next_friend = True
 ---
 code: |
-  if wants_no_entering_residential_property:
-    if not has_property_interest_in_home:
-      if respondent_has_property_interest_in_home:
+  if ppo_type == "domestic":
+    if wants_no_entering_residential_property:
+      if not petitioner_respondent_married and not has_property_interest_in_home and respondent_has_property_interest_in_home:
         no_entering_residential_property = False
       else:
         no_entering_residential_property = True
     else:
+      no_entering_residential_property = False
+  
+  elif ppo_type == "nondomestic_sexual_assault":
+    if wants_no_entering_residential_property:
       no_entering_residential_property = True
-
+    else:
+      no_entering_residential_property = False
+  
   set_no_entering_residential_property = True
 ---
 code: |
