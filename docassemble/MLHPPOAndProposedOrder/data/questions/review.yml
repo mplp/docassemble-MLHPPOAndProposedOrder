@@ -324,9 +324,9 @@ review:
           - court_index
           - the_court
     button: |
-      ${ the_court }
-
-      ${ county_choice } County
+      **Court you will file in**: 
+      
+      ${ the_court }, ${ county_choice } County
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
     show if: defined('pending_actions.there_are_any')
