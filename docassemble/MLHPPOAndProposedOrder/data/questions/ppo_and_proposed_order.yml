@@ -1001,8 +1001,12 @@ code: |
   if not pending_actions.there_are_any:
     pending_actions.clear()
     pending_actions.there_are_any = False
+    pending_actions_between_parties_no = True
+    pending_actions_between_parties_yes = False
   else:
     pending_actions.there_are_any = True
+    pending_actions_between_parties_yes = True
+    pending_actions_between_parties_no = False
 
   update_pending_actions = True
 ---
@@ -1010,8 +1014,12 @@ code: |
   if not orders_judgments.there_are_any:
     orders_judgments.clear()
     orders_judgments.there_are_any = False
+    orders_judgments_re_parties_yes = False
+    orders_judgments_re_parties_no = True
   else:
     orders_judgments.there_are_any = True
+    orders_judgments_re_parties_yes = True
+    orders_judgments_re_parties_no = False
 
   update_orders_judgments = True
 ---
