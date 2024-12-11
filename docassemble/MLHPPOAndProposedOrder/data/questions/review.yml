@@ -20,13 +20,24 @@ review:
     button: |-
       % for item in users:
         **${ item }**
+
+
+        Age: ${ users[0].age_in_years() }
         
-        Age: ${ item.age_in_years() }
+        (If you need to change your age, please use the **Undo** button or start over from the beginning.)
+
 
         ${ item.address.block() }
 
+
         ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  # - note: |
+  #     % if defined('users[0].birthdate'):
+  #     Age: ${ users[0].age_in_years() }
+
+  #     If you need to change this answer, please use the **Undo** button or start over from the beginning.
+  #     % endif
   - Edit: user_alias.there_are_any
     button: |-
       **Do you have any aliases?**
@@ -796,12 +807,9 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
-  - Birthdate: |
-      row_item.birthdate
 edit:
   - name.first
   - address.address
-  - birthdate
 confirm: True
 ---
 table: other_parties.table
