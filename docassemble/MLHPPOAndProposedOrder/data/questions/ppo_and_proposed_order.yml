@@ -1027,6 +1027,19 @@ code: |
 
   check_minimum_incident_number = True
 ---
+code: |
+  if defined('petitioner_and_respondent_living_together'):
+    if users[0].address.address == other_parties[0].address.address and \
+    users[0].address.unit == other_parties[0].address.unit and \
+    users[0].address.city == other_parties[0].address.city and \
+    users[0].address.state == other_parties[0].address.state and \
+    users[0].address.zip == other_parties[0].address.zip:
+      petitioner_and_respondent_living_together = True
+    else:
+      petitioner_and_respondent_living_together = False
+
+  check_parties_living_together = True
+---
 #################### Overridden AL Questions Start #####################
 ---
 id: your name

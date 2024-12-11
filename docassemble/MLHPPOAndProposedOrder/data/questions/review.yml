@@ -16,7 +16,10 @@ review:
       % endif
   - raw html: |
       ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>', showing=True) }
-  - Edit: users.revisit
+  - Edit: 
+      - users.revisit
+      - recompute:
+        - check_parties_living_together
     button: |-
       % for item in users:
         **${ item }**
@@ -77,7 +80,10 @@ review:
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
     show if: respondent_lives_in_michigan or not respondent_lives_in_michigan
-  - Edit: other_parties.revisit
+  - Edit: 
+      - other_parties.revisit
+      - recompute:
+        - check_parties_living_together
     button: |-
       % for item in other_parties:
         **${ item }**
