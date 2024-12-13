@@ -11,11 +11,14 @@ question: |
   Review your answers
 review:
   - note: |
-      % if not defined('docket_number'):
+      % if defined('is_incapacitated_adult'):
+      ${ review_accordion_explainer }
+      % else:
       ${ review_empty_explainer }
       % endif
   - raw html: |
-      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>', showing=True) }
+      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>') }
+    show if: is_incapacitated_adult or not is_incapacitated_adult
   - Edit: 
       - users.revisit
       - recompute:
@@ -482,22 +485,18 @@ review:
     show if: defined('wants_no_entering_residential_property') or defined('no_stalking_choices')
   - Edit:
       - wants_no_entering_residential_property
+      - recompute:
+        - set_no_entering_residential_property
     button: |
-      **Do you want the judge to order ${ other_parties[0] } to not enter the property where you live?**
+      **Include a request to order ${ other_parties[0] } to not enter the property where you live?**  ${ word(yesno(no_entering_residential_property)) }
 
-      ${ word(yesno(wants_no_entering_residential_property)) }
-  - Edit:
-      - has_property_interest_in_home
-    button: |
-      **Do you have a property interest in the property where you live?**
+      % if ppo_type == "domestic" and not petitioner_respondent_married and no_entering_residential_property and defined('has_property_interest_in_home'):
+      **Do you have a property interest in this property?** ${ word(yesno(has_property_interest_in_home)) }
+      % endif
 
-      ${ word(yesno(has_property_interest_in_home)) }
-  - Edit:
-      - respondent_has_property_interest_in_home
-    button: |
-      **Does ${ other_parties[0] } have a property interest in the property where you live?**
-
-      ${ word(yesno(respondent_has_property_interest_in_home)) }
+      % if ppo_type == "domestic" and not petitioner_respondent_married and no_entering_residential_property and not has_property_interest_in_home and defined('respondent_has_property_interest_in_home'):
+      **Does ${ other_parties[0] } have a property interest in the property where you live?**  ${ word(yesno(respondent_has_property_interest_in_home)) }
+      % endif
   - Edit:
       - other_properties.there_are_any
       - recompute:
@@ -770,6 +769,7 @@ review:
       ${ word(yesno(MLH_esign)) }
   - raw html: |
       ${ end_accordion() }
+    show if: is_incapacitated_adult or not is_incapacitated_adult
 ---
 generic object: ALExhibitList
 table: exhibit_attachment.exhibits.rearrange_exhibits_table
