@@ -785,6 +785,19 @@ code: |
 
   reset_signature_date = True
 ---
+code: |
+  if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
+  (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
+  (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland")):
+    if defined('relationship_to_respondent_exp'):
+      if any(petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+        undefine('relationship_to_respondent_exp')
+    else:
+      if all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+        relationship_to_respondent_exp
+  
+  reset_relationship_description = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
