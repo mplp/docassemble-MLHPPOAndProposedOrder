@@ -108,53 +108,80 @@ review:
         **Est. Age:** ${ item.estimated_age }[BR]
         (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % endif
-        % if item.race:
-
-        **Race:** ${ item.race }
-        % endif
-        % if item.gender:
-
-        **Gender:** ${ item.gender }
-        % endif
-        % if item.height:
-
-        **Height:** ${ item.height }
-        % endif
-        % if item.weight:
-
-        **Weight:** ${ item.weight }
-        % endif
-        % if item.hair_color:
-
-        **Hair Color:** ${ item.hair_color }
-        % endif
-        % if item.eye_color:
-
-        **Eye Color:** ${ item.eye_color }
-        % endif
-        % if item.license_number:
-
-        **License Number:** ${ item.license_number }
-        % endif
-        % if item.other_identifying_info:
-
-        **Other Identifying Info:** ${ item.other_identifying_info }
-        % endif
-        % if item.carries_gun_for_work == "unknown":
-
-        **Carries gun for work?:** Unknown
-        % elif item.carries_gun_for_work == "no":
-
-        **Carries gun for work?:** No
-        % elif item.carries_gun_for_work == "yes":
-
-        **Carries gun for work?:** Yes
-        % endif
 
         **Address:** ${ item.address.on_one_line() }
         
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: other_parties[0].gender
+    button: |-
+      **What is the Respondent's gender?**
+      % if other_parties[0].gender == "M":
+      Male
+      % elif other_parties[0].gender == "F":
+      Female
+      % endif
+  - Edit: other_parties[0].race
+    button: |-
+      **What is the Respondent's race?**
+
+      ${ other_parties[0].race }
+  - Edit: other_parties[0].height_feet
+    button: |-
+      **What is the Respondent's height?**
+
+      ${ other_parties[0].height }
+  - Edit: other_parties[0].weight
+    button: |-
+      **What is the Respondent's weight?**
+
+      ${ other_parties[0].weight } lbs
+  - Edit: other_parties[0].hair_color
+    button: |-
+      **What is the Respondent's hair color?**
+
+      ${ other_parties[0].hair_color }
+  - Edit: other_parties[0].eye_color
+    button: |-
+      **What is the Respondent's eye color?**
+
+      ${ other_parties[0].eye_color }
+  - Edit: other_parties[0].license_number
+    button: |-
+      **What is the Respondent's license number?**
+      % if other_parties[0].license_number:
+
+      ${ other_parties[0].license_number }
+      % else:
+
+      *You have not entered a license number yet.*
+      % endif
+    show if: defined('other_parties[0].license_number')
+  - Edit: other_parties[0].other_identifying_info
+    button: |-
+      **Do you have any other identifying information for the Respondent?**
+      % if other_parties[0].other_identifying_info:
+
+      ${ other_parties[0].other_identifying_info }
+      % else:
+
+      *You have not entered any other identifying information yet.*
+      % endif
+    show if: defined('other_parties[0].other_identifying_info')
+  - Edit: other_parties[0].carries_gun_for_work
+    button: |-
+      **Does the Respondent carry a gun for work?**
+        % if other_parties[0].carries_gun_for_work == "unknown":
+
+        I don't know
+        % elif other_parties[0].carries_gun_for_work == "no":
+
+        No
+        % elif other_parties[0].carries_gun_for_work == "yes":
+
+        Yes
+        % endif
+    show if: defined('other_parties[0].carries_gun_for_work')
   - Edit: other_party_alias.there_are_any
     button: |-
       **Does the Respondent have any aliases?**
@@ -821,31 +848,10 @@ columns:
       row_item.phone_number
   - Age: |
       row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
-  - Race: |
-      row_item.race
-  - Gender: |
-      row_item.gender
-  - Height: |
-      row_item.height
-  - Weight: |
-      row_item.weight
-  - Hair Color: |
-      row_item.hair_color
-  - Eye Color: |
-      row_item.eye_color
-  - License Number: |
-      row_item.license_number if defined("row_item.license_number") else ""
 edit:
   - name.first
   - address.address
   - phone_number
-  - race
-  - gender
-  - height_feet
-  - weight
-  - hair_color
-  - eye_color
-  - license_number
 confirm: True
 ---
 table: children.table
