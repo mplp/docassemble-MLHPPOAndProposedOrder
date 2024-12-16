@@ -26,12 +26,13 @@ review:
     button: |-
       % for item in users:
         **${ item }**
-        
-        Age: ${ item.age_in_years() }
 
-        ${ item.address.block() }
+        **Age:** ${ users[0].age_in_years() }[BR]
+        (If you need to change your age, please use the **Undo** button or start over from the beginning.)
 
-        ${ word("") if item.no_phone_number else item.phone_numbers() }
+        **Address:** ${ item.address.on_one_line() }
+
+        **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: user_alias.there_are_any
     button: |-
@@ -96,61 +97,63 @@ review:
         all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating'])):
         % if relationship_to_respondent_exp:
 
-        Relationship to You: ${ relationship_to_respondent_exp }
+        **Relationship to You:** ${ relationship_to_respondent_exp }
         % endif
         % endif
         
         % if knows_respondents_birthdate:
-        Age: ${ item.age_in_years() }
+        **Age:** ${ item.age_in_years() }[BR]
+        (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % else:
-        Est. Age: ${ item.estimated_age }
+        **Est. Age:** ${ item.estimated_age }[BR]
+        (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % endif
         % if item.race:
 
-        Race: ${ item.race }
+        **Race:** ${ item.race }
         % endif
         % if item.gender:
 
-        Gender: ${ item.gender }
+        **Gender:** ${ item.gender }
         % endif
         % if item.height:
 
-        Height: ${ item.height }
+        **Height:** ${ item.height }
         % endif
         % if item.weight:
 
-        Weight: ${ item.weight }
+        **Weight:** ${ item.weight }
         % endif
         % if item.hair_color:
 
-        Hair Color: ${ item.hair_color }
+        **Hair Color:** ${ item.hair_color }
         % endif
         % if item.eye_color:
 
-        Eye Color: ${ item.eye_color }
+        **Eye Color:** ${ item.eye_color }
         % endif
         % if item.license_number:
 
-        License Number: ${ item.license_number }
+        **License Number:** ${ item.license_number }
         % endif
         % if item.other_identifying_info:
 
-        Other Identifying Info: ${ item.other_identifying_info }
+        **Other Identifying Info:** ${ item.other_identifying_info }
         % endif
         % if item.carries_gun_for_work == "unknown":
 
-        Carries gun for work?: Unknown
+        **Carries gun for work?:** Unknown
         % elif item.carries_gun_for_work == "no":
 
-        Carries gun for work?: No
+        **Carries gun for work?:** No
         % elif item.carries_gun_for_work == "yes":
 
-        Carries gun for work?: Yes
+        **Carries gun for work?:** Yes
         % endif
 
-        ${ item.address.block() }
+        **Address:** ${ item.address.on_one_line() }
         
-        ${ word("") if item.no_phone_number else item.phone_numbers() }
+        **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: other_party_alias.there_are_any
     button: |-
@@ -802,12 +805,9 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
-  - Birthdate: |
-      row_item.birthdate
 edit:
   - name.first
   - address.address
-  - birthdate
 confirm: True
 ---
 table: other_parties.table
@@ -838,9 +838,7 @@ columns:
 edit:
   - name.first
   - address.address
-  - birthdate
   - phone_number
-  - birthdate
   - race
   - gender
   - height_feet
