@@ -147,11 +147,11 @@ review:
         - set_petitioner_respondent_relationship
     button: |-
       **Your Relationship to the Respondent:**
-      % if petitioner_respondent_relationship['married']:
+      % if married_choice and petitioner_respondent_relationship['married']:
 
       * You are currently married.
       % endif
-      % if petitioner_respondent_relationship['was_married']:
+      % if was_married_choice and petitioner_respondent_relationship['was_married']:
 
       * You were previously married.
       % endif
@@ -167,7 +167,7 @@ review:
 
       * You live or used to live together.
       % endif
-      % if petitioner_respondent_relationship['parent']:
+      % if parent_choice and petitioner_respondent_relationship['parent']:
       
       * They are your parent and you live, or used to live, together.
       % endif
