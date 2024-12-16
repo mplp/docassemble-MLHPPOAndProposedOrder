@@ -144,6 +144,7 @@ review:
       - petitioner_respondent_relationship
       - recompute:
         - reset_relationship_description
+        - set_petitioner_respondent_relationship
     button: |-
       **Your Relationship to the Respondent:**
       % if petitioner_respondent_relationship.all_false():

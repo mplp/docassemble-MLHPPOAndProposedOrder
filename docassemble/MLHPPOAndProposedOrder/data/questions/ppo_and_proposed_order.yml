@@ -449,26 +449,35 @@ code: |
   check_if_respondent_minor = True
 ---
 code: |
-  if married_choice:
-    if petitioner_respondent_relationship['married']:
-      petitioner_respondent_married = True
+  if married_choice and petitioner_respondent_relationship['married']:
+    petitioner_respondent_married = True
+  else:
+    petitioner_respondent_married = False
 
-  if was_married_choice:
-    if petitioner_respondent_relationship['was_married']:
-      petitioner_respondent_prev_married = True
+  if was_married_choice and petitioner_respondent_relationship['was_married']:
+    petitioner_respondent_prev_married = True
+  else:
+   petitioner_respondent_prev_married = False
 
   if petitioner_respondent_relationship['have_child']:
     petitioner_respondent_have_child = True
-
+  else:
+    petitioner_respondent_have_child = False
+  
   if petitioner_respondent_relationship['dating']:
     petitioner_respondent_dating = True
+  else:
+    petitioner_respondent_dating = False
 
   if petitioner_respondent_relationship['live_together']:
     petitioner_respondent_share_household = True
+  else:
+    petitioner_respondent_share_household = False
 
-  if parent_choice:
-    if petitioner_respondent_relationship['parent']:
-      petitioner_respondent_share_household = True
+  if parent_choice and petitioner_respondent_relationship['parent']:
+    petitioner_respondent_share_household = True
+  else:
+    petitioner_respondent_share_household = False
 
   set_petitioner_respondent_relationship = True
 ---
