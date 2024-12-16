@@ -267,9 +267,10 @@ code: |
 
   if ppo_type == "domestic":
     if wants_no_entering_residential_property:
-      if not has_property_interest_in_home:
-        if respondent_has_property_interest_in_home:
-          cannot_prohibit_respondent_entering_property
+      if not petitioner_respondent_married:
+        if not has_property_interest_in_home:
+          if respondent_has_property_interest_in_home:
+            cannot_prohibit_respondent_entering_property
     set_no_entering_residential_property
     if other_properties.there_are_any:
       other_properties.gather()
@@ -282,10 +283,7 @@ code: |
     wants_no_removing_minor
 
   if ppo_type == "nondomestic_sexual_assault":
-    if wants_no_entering_residential_property:
-      if not has_property_interest_in_home:
-        if respondent_has_property_interest_in_home:
-          cannot_prohibit_respondent_entering_property
+    wants_no_entering_residential_property
     set_no_entering_residential_property
     
     if other_properties.there_are_any:
@@ -721,15 +719,22 @@ code: |
   set_next_friend = True
 ---
 code: |
-  if wants_no_entering_residential_property:
-    if not has_property_interest_in_home:
-      if respondent_has_property_interest_in_home:
+  if ppo_type == "domestic":
+    if wants_no_entering_residential_property:
+      if not petitioner_respondent_married and not has_property_interest_in_home and respondent_has_property_interest_in_home:
         no_entering_residential_property = False
+        cannot_prohibit_respondent_entering_property
       else:
         no_entering_residential_property = True
     else:
+      no_entering_residential_property = False
+  
+  elif ppo_type == "nondomestic_sexual_assault":
+    if wants_no_entering_residential_property:
       no_entering_residential_property = True
-
+    else:
+      no_entering_residential_property = False
+  
   set_no_entering_residential_property = True
 ---
 code: |
@@ -2383,6 +2388,8 @@ fields:
     required: False
     label above field: True
     maxlength: 50
+  - note: |
+      If none, leave blank.
 script: |
   <script>
   $(document).ready(function() {
@@ -2407,8 +2414,6 @@ script: |
     return count == 1 ? singularWord : pluralWord;
   }
   </script>
-under: |
-  If none, leave blank.
 ---
 id: respondent required to carry gun for work
 question: |
@@ -2948,50 +2953,6 @@ subquestion: |
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
 ---
-id: petitioner property interest
-question: |
-  Property interest
-subquestion: |
-  ${ collapse_template(property_interest_explained) }
-fields:
-  - Do you have a property interest in this home?: has_property_interest_in_home
-    datatype: yesnoradio
----
-id: respondent property interest
-question: |
-  Property interest
-fields:
-  - Does ${ other_parties[0].name } have a property interest in this home?: respondent_has_property_interest_in_home
-    datatype: yesnoradio
-    label above field: True
----
-template: property_interest_explained
-subject: |
-  What is a property interest?
-content: |
-  Michigan law uses the term "property interest," but does not give a definition for it. It doesn't necessarily mean your name must be on the title or lease. We can't know how the judge in your case will interpret the law, but you could argue that the following things make up a property interest:
-
-    * You own or rent the home (your name is the deed/lease)
-    * Your name is not on the deed or lease, but you live there with ${ other_parties[0].name }
-    * You lived in the home with ${ other_parties[0].name } until recently, but moved out to stay safe
-    * A friend or family member owns a house, and you stay there but do not have a written lease
-    * Any other property where you live, or lived recently but had to move to stay safe
-
-  If your situation is out of the ordinary, use your judgment to decide if you have a property interest in the home. Be prepared to explain your reasoning to the judge, if needed.
----
-id: respondent property interest kickout
-question: |
-  We're sorry, but you are not allowed to ask for this protection
-subquestion: |
-  Michigan law does not allow the court to prohibit ${ other_parties[0].name } from entering on the property where you live if:
-
-    1. you are not married to ${ other_parties[0].name };
-    2. you do not have a property interest in the home, **and**
-    3. ${ other_parties[0].name } has a property interest in the home.
-
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, tap Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
-continue button field: cannot_prohibit_respondent_entering_property
----
 template: stalking_harassing_explained
 subject: |
   Learn more about stalking behavior.
@@ -3307,13 +3268,68 @@ subquestion: |
 
 continue button field: relief_requested_intro
 ---
-id: wants_no_entering_residential_property
+id: wants_no_entering_residential_property_simple
+if: ppo_type == "nondomestic_sexual_assault" or (ppo_type == "domestic" and petitioner_respondent_married == True)
 question: |
   Access to your home
 fields:
   - Do you want the judge to order ${ other_parties[0].name } not to enter the property where you live?: wants_no_entering_residential_property
     datatype: yesnoradio
     label above field: True
+---
+id: wants_no_entering_residential_property domestic unmarried
+if: ppo_type == "domestic" and petitioner_respondent_married == False
+undefine:
+  - cannot_prohibit_respondent_entering_property
+question: |
+  Access to your home
+fields:
+  - Do you want the judge to order ${ other_parties[0].name } not to enter the property where you live?: wants_no_entering_residential_property
+    datatype: yesnoradio
+    label above field: True
+  - Do you have a property interest in this home?: has_property_interest_in_home
+    datatype: yesnoradio
+    show if:
+      variable: wants_no_entering_residential_property
+      is: True
+  - Does ${ other_parties[0].name } have a property interest in this home?: respondent_has_property_interest_in_home
+    datatype: yesnoradio
+    label above field: True
+    show if:
+      variable: has_property_interest_in_home
+      is: False
+  - note: |
+      ${ collapse_template(property_interest_explained) }
+    show if:
+      variable: wants_no_entering_residential_property
+      is: True
+---
+template: property_interest_explained
+subject: |
+  What is a property interest?
+content: |
+  Michigan law uses the term "property interest," but does not give a definition for it. It doesn't necessarily mean your name must be on the title or lease. We can't know how the judge in your case will interpret the law, but you could argue that the following things make up a property interest:
+
+    * You own or rent the home (your name is the deed/lease)
+    * Your name is not on the deed or lease, but you live there with ${ other_parties[0].name }
+    * You lived in the home with ${ other_parties[0].name } until recently, but moved out to stay safe
+    * A friend or family member owns a house, and you stay there but do not have a written lease
+    * Any other property where you live, or lived recently but had to move to stay safe
+
+  If your situation is out of the ordinary, use your judgment to decide if you have a property interest in the home. Be prepared to explain your reasoning to the judge, if needed.
+---
+id: respondent property interest kickout
+question: |
+  We're sorry, but you are not allowed to ask for this protection
+subquestion: |
+  Michigan law does not allow the court to prohibit ${ other_parties[0].name } from entering on the property where you live if:
+
+    1. you are not married to ${ other_parties[0].name };
+    2. you do not have a property interest in the home, **and**
+    3. ${ other_parties[0].name } has a property interest in the home.
+
+  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, tap Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
+continue button field: cannot_prohibit_respondent_entering_property
 ---
 id: wants no entering other property
 question: |

@@ -11,11 +11,14 @@ question: |
   Review your answers
 review:
   - note: |
-      % if not defined('docket_number'):
+      % if defined('is_incapacitated_adult'):
+      ${ review_accordion_explainer }
+      % else:
       ${ review_empty_explainer }
       % endif
   - raw html: |
-      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>', showing=True) }
+      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>') }
+    show if: is_incapacitated_adult or not is_incapacitated_adult
   - Edit: 
       - users.revisit
       - recompute:
@@ -23,12 +26,13 @@ review:
     button: |-
       % for item in users:
         **${ item }**
-        
-        Age: ${ item.age_in_years() }
 
-        ${ item.address.block() }
+        **Age:** ${ users[0].age_in_years() }[BR]
+        (If you need to change your age, please use the **Undo** button or start over from the beginning.)
 
-        ${ word("") if item.no_phone_number else item.phone_numbers() }
+        **Address:** ${ item.address.on_one_line() }
+
+        **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: user_alias.there_are_any
     button: |-
@@ -89,56 +93,58 @@ review:
         **${ item }**
 
         % if knows_respondents_birthdate:
-        Age: ${ item.age_in_years() }
+        **Age:** ${ item.age_in_years() }[BR]
+        (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % else:
-        Est. Age: ${ item.estimated_age }
+        **Est. Age:** ${ item.estimated_age }[BR]
+        (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % endif
         % if item.race:
 
-        Race: ${ item.race }
+        **Race:** ${ item.race }
         % endif
         % if item.gender:
 
-        Gender: ${ item.gender }
+        **Gender:** ${ item.gender }
         % endif
         % if item.height:
 
-        Height: ${ item.height }
+        **Height:** ${ item.height }
         % endif
         % if item.weight:
 
-        Weight: ${ item.weight }
+        **Weight:** ${ item.weight }
         % endif
         % if item.hair_color:
 
-        Hair Color: ${ item.hair_color }
+        **Hair Color:** ${ item.hair_color }
         % endif
         % if item.eye_color:
 
-        Eye Color: ${ item.eye_color }
+        **Eye Color:** ${ item.eye_color }
         % endif
         % if item.license_number:
 
-        License Number: ${ item.license_number }
+        **License Number:** ${ item.license_number }
         % endif
         % if item.other_identifying_info:
 
-        Other Identifying Info: ${ item.other_identifying_info }
+        **Other Identifying Info:** ${ item.other_identifying_info }
         % endif
         % if item.carries_gun_for_work == "unknown":
 
-        Carries gun for work?: Unknown
+        **Carries gun for work?:** Unknown
         % elif item.carries_gun_for_work == "no":
 
-        Carries gun for work?: No
+        **Carries gun for work?:** No
         % elif item.carries_gun_for_work == "yes":
 
-        Carries gun for work?: Yes
+        **Carries gun for work?:** Yes
         % endif
 
-        ${ item.address.block() }
+        **Address:** ${ item.address.on_one_line() }
         
-        ${ word("") if item.no_phone_number else item.phone_numbers() }
+        **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: 
       - petitioner_respondent_relationship
@@ -513,22 +519,18 @@ review:
     show if: defined('wants_no_entering_residential_property') or defined('no_stalking_choices')
   - Edit:
       - wants_no_entering_residential_property
+      - recompute:
+        - set_no_entering_residential_property
     button: |
-      **Do you want the judge to order ${ other_parties[0] } to not enter the property where you live?**
+      **Include a request to order ${ other_parties[0] } to not enter the property where you live?**  ${ word(yesno(no_entering_residential_property)) }
 
-      ${ word(yesno(wants_no_entering_residential_property)) }
-  - Edit:
-      - has_property_interest_in_home
-    button: |
-      **Do you have a property interest in the property where you live?**
+      % if ppo_type == "domestic" and not petitioner_respondent_married and no_entering_residential_property and defined('has_property_interest_in_home'):
+      **Do you have a property interest in this property?** ${ word(yesno(has_property_interest_in_home)) }
+      % endif
 
-      ${ word(yesno(has_property_interest_in_home)) }
-  - Edit:
-      - respondent_has_property_interest_in_home
-    button: |
-      **Does ${ other_parties[0] } have a property interest in the property where you live?**
-
-      ${ word(yesno(respondent_has_property_interest_in_home)) }
+      % if ppo_type == "domestic" and not petitioner_respondent_married and no_entering_residential_property and not has_property_interest_in_home and defined('respondent_has_property_interest_in_home'):
+      **Does ${ other_parties[0] } have a property interest in the property where you live?**  ${ word(yesno(respondent_has_property_interest_in_home)) }
+      % endif
   - Edit:
       - other_properties.there_are_any
       - recompute:
@@ -801,6 +803,7 @@ review:
       ${ word(yesno(MLH_esign)) }
   - raw html: |
       ${ end_accordion() }
+    show if: is_incapacitated_adult or not is_incapacitated_adult
 ---
 generic object: ALExhibitList
 table: exhibit_attachment.exhibits.rearrange_exhibits_table
@@ -833,12 +836,9 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
-  - Birthdate: |
-      row_item.birthdate
 edit:
   - name.first
   - address.address
-  - birthdate
 confirm: True
 ---
 table: other_parties.table
@@ -869,9 +869,7 @@ columns:
 edit:
   - name.first
   - address.address
-  - birthdate
   - phone_number
-  - birthdate
   - race
   - gender
   - height_feet
