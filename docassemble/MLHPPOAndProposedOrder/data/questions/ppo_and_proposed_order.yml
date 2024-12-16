@@ -448,26 +448,29 @@ code: |
 ---
 code: |
   if married_choice and petitioner_respondent_relationship['married']:
-      petitioner_respondent_married = True
+    petitioner_respondent_married = True
   else:
     petitioner_respondent_married = False
 
-  if was_married_choice:
-    if petitioner_respondent_relationship['was_married']:
-      petitioner_respondent_prev_married = True
+  if was_married_choice and petitioner_respondent_relationship['was_married']:
+    petitioner_respondent_prev_married = True
+  else:
+   petitioner_respondent_prev_married = False
 
   if petitioner_respondent_relationship['have_child']:
     petitioner_respondent_have_child = True
+  else:
+    petitioner_respondent_have_child = False
 
   if petitioner_respondent_relationship['dating']:
     petitioner_respondent_dating = True
+  else:
+    petitioner_respondent_dating = False
 
-  if petitioner_respondent_relationship['live_together']:
+  if petitioner_respondent_relationship['live_together'] or (parent_choice and petitioner_respondent_relationship['parent']):
     petitioner_respondent_share_household = True
-
-  if parent_choice:
-    if petitioner_respondent_relationship['parent']:
-      petitioner_respondent_share_household = True
+  else:
+    petitioner_respondent_share_household = False
 
   set_petitioner_respondent_relationship = True
 ---
@@ -790,6 +793,19 @@ code: |
     undefine('signature_date')
 
   reset_signature_date = True
+---
+code: |
+  if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
+  (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
+  (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland")):
+    if defined('relationship_to_respondent_exp'):
+      if any(petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+        undefine('relationship_to_respondent_exp')
+    else:
+      if all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+        relationship_to_respondent_exp
+  
+  reset_relationship_description = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -2099,6 +2115,24 @@ fields:
     datatype: checkboxes
     code: |
       relationship_choices
+under: |
+  ${ collapse_template(what_if_no_domestic_relationship) }
+validation code: |
+  if petitioner_respondent_relationship.all_false():
+    validation_error("You cannot use this tool to prepare a domestic PPO petition unless you have one of these relationships with the respondent.", field='petitioner_respondent_relationship')
+---
+template: what_if_no_domestic_relationship
+subject: |
+  What if none of these options apply?
+content: |
+  If you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for a **domestic relationship** PPO. 
+  
+  You can go back or start over and chooose a different PPO type if 
+  
+  * someone is stalking or harassing you, or 
+  * someone has sexually assaulted you. 
+  
+  Read the article [Overview of Personal Protection Orders ](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn about different kinds of PPOs.
 ---
 id: relationship to respondent kickout
 question: |

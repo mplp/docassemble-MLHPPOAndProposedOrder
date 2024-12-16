@@ -91,16 +91,7 @@ review:
     button: |-
       % for item in other_parties:
         **${ item }**
-        % if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
-        (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
-        (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland") and \
-        all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating'])):
-        % if relationship_to_respondent_exp:
 
-        **Relationship to You:** ${ relationship_to_respondent_exp }
-        % endif
-        % endif
-        
         % if knows_respondents_birthdate:
         **Age:** ${ item.age_in_years() }[BR]
         (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
@@ -155,6 +146,46 @@ review:
         
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: 
+      - petitioner_respondent_relationship
+      - recompute:
+        - reset_relationship_description
+        - set_petitioner_respondent_relationship
+    button: |-
+      **Your Relationship to the Respondent:**
+      % if married_choice and petitioner_respondent_relationship['married']:
+
+      * You are currently married.
+      % endif
+      % if was_married_choice and petitioner_respondent_relationship['was_married']:
+
+      * You were previously married.
+      % endif
+      % if petitioner_respondent_relationship['have_child']:
+
+      * You have children together.
+      % endif
+      % if petitioner_respondent_relationship['dating']:
+
+      * You dated or are dating.
+      % endif
+      % if petitioner_respondent_relationship['live_together']:
+
+      * You live or used to live together.
+      % endif
+      % if parent_choice and petitioner_respondent_relationship['parent']:
+      
+      * They are your parent and you live, or used to live, together.
+      % endif
+  - Edit: relationship_to_respondent_exp
+    button: |-
+      **Describe Your Relationship to the Respondent:**
+
+      % if relationship_to_respondent_exp:
+      ${ relationship_to_respondent_exp }
+      % else:
+      *You have not entered a description of your relationship yet.*
+      % endif
   - Edit: other_party_alias.there_are_any
     button: |-
       **Does the Respondent have any aliases?**
