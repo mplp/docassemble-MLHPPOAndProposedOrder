@@ -147,10 +147,6 @@ review:
         - set_petitioner_respondent_relationship
     button: |-
       **Your Relationship to the Respondent:**
-      % if petitioner_respondent_relationship.all_false():
-
-      *You chose "None of the above" from the list provided.*
-      % else:
       % if petitioner_respondent_relationship['married']:
 
       * You are currently married.
@@ -174,7 +170,6 @@ review:
       % if petitioner_respondent_relationship['parent']:
       
       * They are your parent and you live, or used to live, together.
-      % endif
       % endif
   - Edit: relationship_to_respondent_exp
     button: |-

@@ -463,18 +463,13 @@ code: |
     petitioner_respondent_have_child = True
   else:
     petitioner_respondent_have_child = False
-  
+
   if petitioner_respondent_relationship['dating']:
     petitioner_respondent_dating = True
   else:
     petitioner_respondent_dating = False
 
-  if petitioner_respondent_relationship['live_together']:
-    petitioner_respondent_share_household = True
-  else:
-    petitioner_respondent_share_household = False
-
-  if parent_choice and petitioner_respondent_relationship['parent']:
+  if petitioner_respondent_relationship['live_together'] or (parent_choice and petitioner_respondent_relationship['parent']):
     petitioner_respondent_share_household = True
   else:
     petitioner_respondent_share_household = False
@@ -2115,6 +2110,24 @@ fields:
     datatype: checkboxes
     code: |
       relationship_choices
+under: |
+  ${ collapse_template(what_if_no_domestic_relationship) }
+validation code: |
+  if petitioner_respondent_relationship.all_false():
+    validation_error("You cannot use this tool to prepare a domestic PPO petition unless you have one of these relationships with the respondent.", field='petitioner_respondent_relationship')
+---
+template: what_if_no_domestic_relationship
+subject: |
+  What if none of these options apply?
+content: |
+  If you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for a **domestic relationship** PPO. 
+  
+  You can go back or start over and chooose a different PPO type if 
+  
+  * someone is stalking or harassing you, or 
+  * someone has sexually assaulted you. 
+  
+  Read the article [Overview of Personal Protection Orders ](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn about different kinds of PPOs.
 ---
 id: relationship to respondent kickout
 question: |
