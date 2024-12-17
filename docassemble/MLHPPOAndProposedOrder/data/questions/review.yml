@@ -65,21 +65,26 @@ review:
       **Does the Petitioner live in Michigan?**
 
       ${ word(yesno(petitioner_lives_in_michigan)) }
-  - Edit:
-      - is_incapacitated_adult
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Next Friend & Incapacitated Adult Status</h2>') }
+    show if: is_incapacitated_adult or next_friends.there_are_any
+  - note: |
+      The person who needs a PPO is an **incapacitated adult**.
+      
+      If you need to change this, please use the **Undo** button or start over from the beginning.
+    show if: is_incapacitated_adult
+  - Edit: 
+      - next_friends.revisit
       - recompute:
-          - reset_next_friend
+        - reset_next_friend
     button: |-
-      **Is the Peititioner an incapacitated adult using a next friend to complete this interview?**
-
-      ${ word(yesno(is_incapacitated_adult)) }
-  - Edit: next_friends.revisit
-    button: |-
-      **Next Friend**
-
+      % if len(next_friends.complete_elements()) > 0:
       % for item in next_friends:
-        ${ item }
+      **Next Friend:**  ${ item }
       % endfor
+      % else:
+      *You have not named anyone as your Next Friend yet.*
+      % endif
     show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
@@ -839,6 +844,15 @@ columns:
 edit:
   - name.first
   - address.address
+confirm: True
+---
+table: next_friends.table
+rows: next_friends
+columns:
+  - Name: |
+      row_item.name_full()
+edit:
+  - name.first
 confirm: True
 ---
 table: other_parties.table

@@ -1005,11 +1005,11 @@ code: |
   set_parties_same_gender = True
 ---
 code: |
-  if not is_incapacitated_adult:
-    next_friends.clear()
-    next_friends.there_are_any = False
-  else:
+  if is_incapacitated_adult:
     next_friends.there_are_any = True
+  elif petitioner_is_minor:
+    if not petitioner_is_emancipated_minor:
+      next_friends.there_are_any = True
 
   reset_next_friend = True
 ---
