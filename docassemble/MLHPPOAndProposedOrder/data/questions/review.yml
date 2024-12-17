@@ -630,7 +630,10 @@ review:
 
       % endif
     show if: ppo_sexual_assault_threat_protectees.there_are_any
-  - Edit: no_stalking_choices
+  - Edit: 
+      - no_stalking_choices
+      - recompute:
+        - set_stalking_options
     button: |-
       **I want to be protected from the following stalking behaviors:**
       % if no_stalking_choices.all_false():
