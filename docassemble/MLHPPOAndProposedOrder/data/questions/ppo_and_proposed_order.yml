@@ -967,7 +967,7 @@ code: |
 ---
 code: |
   if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and len(incidents.complete_elements()) > 0:
-    nondomestic_subsequent_incident_intro
+    incidents[i].nondomestic_subsequent_incident_intro
   incidents[i].date
   incidents[i].location
   incidents[i].other_party_actions
@@ -3221,7 +3221,7 @@ id: nondomestic_subsequent_incident_intro
 question: |
   The following questions will apply to the **${ ordinal(i) }** most recent incident of stalking, harassing, or threatening behavior.
 
-continue button field: nondomestic_subsequent_incident_intro
+continue button field: incidents[i].nondomestic_subsequent_incident_intro
 ---
 id: other details
 question: |
