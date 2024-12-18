@@ -255,11 +255,12 @@ code: |
       else:
         no_past_or_potential_sexual_assault_kickout
 
-  if ppo_type != "nondomestic_sexual_assault":
-    incidents.gather()
-    if ppo_type == "nondomestic" and len(incidents.complete_elements()) < 2:
-      separate_noncontinuous_incidents_kickout
-
+  if ppo_type == "nondomestic":
+    incidents.gather(minimum=2)
+    other_details
+  
+  if ppo_type == "domestic":
+    incidents.gather(minimum=1)
     other_details
 
   nav.set_section("review_what_you_want_in_ppo_info")
@@ -966,7 +967,7 @@ code: |
 ---
 code: |
   if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and len(incidents.complete_elements()) > 0:
-    nondomestic_subsequent_incident_intro
+    incidents[i].nondomestic_subsequent_incident_intro
   incidents[i].date
   incidents[i].location
   incidents[i].other_party_actions
@@ -1048,14 +1049,19 @@ code: |
 code: |
   if ppo_type == "domestic":
     if len(incidents.complete_elements()) < 1:
-      incidents.there_are_any = True
       minimum_incidents_explainer
+      incidents.gather(minimum=1)
   elif ppo_type == "nondomestic":
     if len(incidents.complete_elements()) < 2:
-      incidents.there_are_any = True
       minimum_incidents_explainer
+      incidents.gather(minimum=2)
 
   check_minimum_incident_number = True
+---
+undefine:
+  - minimum_incidents_explainer
+code: |
+  reset_minimum_incident_check = True
 ---
 code: |
   if defined('petitioner_and_respondent_living_together'):
@@ -1457,13 +1463,15 @@ fields:
 #################### Overridden AL Questions End #####################
 ---
 id: minimum incidents
+undefine:
+  - incidents.gathered
 question: |
   You will need to add incidents
 subquestion: |
   % if ppo_type == "domestic":
-  Because you are filing a domestic PPO, you will need to add **at least one previous incident** between yourself and ${ other_parties[0] }.
+  Because you are filing a domestic PPO, you need to include **at least one previous incident** between yourself and ${ other_parties[0] }.
   % elif ppo_type == "nondomestic":
-  Because you are filing a non-domestic PPO, you will need to add **at least two previous incidents** between yourself and ${ other_parties[0] }.
+  Because you are filing a non-domestic PPO, you need to include **at least two previous incidents** between yourself and ${ other_parties[0] }.
   % endif
 continue button field: minimum_incidents_explainer
 ---
@@ -3213,7 +3221,7 @@ id: nondomestic_subsequent_incident_intro
 question: |
   The following questions will apply to the **${ ordinal(i) }** most recent incident of stalking, harassing, or threatening behavior.
 
-continue button field: nondomestic_subsequent_incident_intro
+continue button field: incidents[i].nondomestic_subsequent_incident_intro
 ---
 id: other details
 question: |

@@ -478,6 +478,7 @@ review:
   - Edit:
       - incidents.revisit
       - recompute:
+        - reset_minimum_incident_check
         - check_minimum_incident_number
     button: |
       % if len(incidents.complete_elements()) > 0:
