@@ -592,31 +592,43 @@ code: |
 code: |
   if no_stalking_choices['following']:
     stalking_includes_following_appearing_in_sight = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_following_appearing_in_sight = False
 
   if no_stalking_choices['communications']:
     stalking_includes_sending_communications = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_sending_communications = False
 
   if no_stalking_choices['approaching']:
     stalking_includes_approaching_confronting_in_public = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_approaching_confronting_in_public = False
 
   if no_stalking_choices['entering_property']:
     stalking_includes_being_on_petitioners_property = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_being_on_petitioners_property = False
 
   if no_stalking_choices['placing_object']:  
     stalking_includes_leaving_object = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_leaving_object = False
 
   if no_stalking_choices['appear_work_residence']:  
     stalking_includes_appearing_at_petitioners_work = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_appearing_at_petitioners_work = False
 
   if no_stalking_choices['phone_contact']:  
     stalking_includes_phone_contact = True
+  else:
+    stalking_includes_phone_contact = False
+
+  if no_stalking_choices.any_true():
     wants_no_stalking = True
+  else:
+    wants_no_stalking = False
 
   set_stalking_options = True
 ---
