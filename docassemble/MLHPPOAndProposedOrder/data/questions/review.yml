@@ -19,6 +19,11 @@ review:
   - raw html: |
       ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>') }
     show if: is_incapacitated_adult or not is_incapacitated_adult
+  - note: |
+      The person who needs a PPO is an **incapacitated adult**.
+      
+      If you need to change this, please use the **Undo** button or start over from the beginning.
+    show if: is_incapacitated_adult
   - Edit: 
       - users.revisit
       - recompute:
@@ -65,14 +70,6 @@ review:
       **Does the Petitioner live in Michigan?**
 
       ${ word(yesno(petitioner_lives_in_michigan)) }
-  - raw html: |
-      ${ next_accordion('<h2 class="h5">Next Friend & Incapacitated Adult Status</h2>') }
-    show if: is_incapacitated_adult or next_friends.there_are_any
-  - note: |
-      The person who needs a PPO is an **incapacitated adult**.
-      
-      If you need to change this, please use the **Undo** button or start over from the beginning.
-    show if: is_incapacitated_adult
   - Edit: 
       - next_friends.revisit
       - recompute:
