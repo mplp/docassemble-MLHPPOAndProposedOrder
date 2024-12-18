@@ -5346,6 +5346,7 @@ attachments:
     - wants_no_children_property_removal_interference: ${ wants_no_children_property_removal_interference }
     - wants_no_work_education_interference: ${ wants_no_work_education_interference }
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
+    - wants_no_message_posting: ${ wants_no_message_posting }
     - wants_other_request: ${ wants_other_request }
     - other_request_see_attached: |
         % if wants_other_request:
@@ -5463,6 +5464,7 @@ attachments:
     - wants_no_children_property_removal_interference: ${ wants_no_children_property_removal_interference }
     - wants_no_work_education_interference: ${ wants_no_work_education_interference }
     - wants_no_firearm_purchase_or_possession: ${ wants_no_firearm_purchase_or_possession }
+    - wants_no_message_posting: ${ wants_no_message_posting }
     - wants_other_request: ${ wants_other_request }
     - other_request_see_attached: |
         % if wants_other_request:
