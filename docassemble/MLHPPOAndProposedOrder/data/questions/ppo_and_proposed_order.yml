@@ -255,11 +255,12 @@ code: |
       else:
         no_past_or_potential_sexual_assault_kickout
 
-  if ppo_type != "nondomestic_sexual_assault":
-    incidents.gather()
-    if ppo_type == "nondomestic" and len(incidents.complete_elements()) < 2:
-      separate_noncontinuous_incidents_kickout
-
+  if ppo_type == "nondomestic":
+    incidents.gather(minimum=2)
+    other_details
+  
+  if ppo_type == "domestic":
+    incidents.gather(minimum=1)
     other_details
 
   nav.set_section("review_what_you_want_in_ppo_info")
@@ -448,26 +449,29 @@ code: |
 ---
 code: |
   if married_choice and petitioner_respondent_relationship['married']:
-      petitioner_respondent_married = True
+    petitioner_respondent_married = True
   else:
     petitioner_respondent_married = False
 
-  if was_married_choice:
-    if petitioner_respondent_relationship['was_married']:
-      petitioner_respondent_prev_married = True
+  if was_married_choice and petitioner_respondent_relationship['was_married']:
+    petitioner_respondent_prev_married = True
+  else:
+   petitioner_respondent_prev_married = False
 
   if petitioner_respondent_relationship['have_child']:
     petitioner_respondent_have_child = True
+  else:
+    petitioner_respondent_have_child = False
 
   if petitioner_respondent_relationship['dating']:
     petitioner_respondent_dating = True
+  else:
+    petitioner_respondent_dating = False
 
-  if petitioner_respondent_relationship['live_together']:
+  if petitioner_respondent_relationship['live_together'] or (parent_choice and petitioner_respondent_relationship['parent']):
     petitioner_respondent_share_household = True
-
-  if parent_choice:
-    if petitioner_respondent_relationship['parent']:
-      petitioner_respondent_share_household = True
+  else:
+    petitioner_respondent_share_household = False
 
   set_petitioner_respondent_relationship = True
 ---
@@ -588,31 +592,43 @@ code: |
 code: |
   if no_stalking_choices['following']:
     stalking_includes_following_appearing_in_sight = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_following_appearing_in_sight = False
 
   if no_stalking_choices['communications']:
     stalking_includes_sending_communications = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_sending_communications = False
 
   if no_stalking_choices['approaching']:
     stalking_includes_approaching_confronting_in_public = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_approaching_confronting_in_public = False
 
   if no_stalking_choices['entering_property']:
     stalking_includes_being_on_petitioners_property = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_being_on_petitioners_property = False
 
   if no_stalking_choices['placing_object']:  
     stalking_includes_leaving_object = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_leaving_object = False
 
   if no_stalking_choices['appear_work_residence']:  
     stalking_includes_appearing_at_petitioners_work = True
-    wants_no_stalking = True
+  else:
+    stalking_includes_appearing_at_petitioners_work = False
 
   if no_stalking_choices['phone_contact']:  
     stalking_includes_phone_contact = True
+  else:
+    stalking_includes_phone_contact = False
+
+  if no_stalking_choices.any_true():
     wants_no_stalking = True
+  else:
+    wants_no_stalking = False
 
   set_stalking_options = True
 ---
@@ -791,6 +807,19 @@ code: |
 
   reset_signature_date = True
 ---
+code: |
+  if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
+  (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
+  (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland")):
+    if defined('relationship_to_respondent_exp'):
+      if any(petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+        undefine('relationship_to_respondent_exp')
+    else:
+      if all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+        relationship_to_respondent_exp
+  
+  reset_relationship_description = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -950,7 +979,7 @@ code: |
 ---
 code: |
   if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and len(incidents.complete_elements()) > 0:
-    nondomestic_subsequent_incident_intro
+    incidents[i].nondomestic_subsequent_incident_intro
   incidents[i].date
   incidents[i].location
   incidents[i].other_party_actions
@@ -989,11 +1018,11 @@ code: |
   set_parties_same_gender = True
 ---
 code: |
-  if not is_incapacitated_adult:
-    next_friends.clear()
-    next_friends.there_are_any = False
-  else:
+  if is_incapacitated_adult:
     next_friends.there_are_any = True
+  elif petitioner_is_minor:
+    if not petitioner_is_emancipated_minor:
+      next_friends.there_are_any = True
 
   reset_next_friend = True
 ---
@@ -1032,14 +1061,19 @@ code: |
 code: |
   if ppo_type == "domestic":
     if len(incidents.complete_elements()) < 1:
-      incidents.there_are_any = True
       minimum_incidents_explainer
+      incidents.gather(minimum=1)
   elif ppo_type == "nondomestic":
     if len(incidents.complete_elements()) < 2:
-      incidents.there_are_any = True
       minimum_incidents_explainer
+      incidents.gather(minimum=2)
 
   check_minimum_incident_number = True
+---
+undefine:
+  - minimum_incidents_explainer
+code: |
+  reset_minimum_incident_check = True
 ---
 code: |
   if defined('petitioner_and_respondent_living_together'):
@@ -1441,13 +1475,15 @@ fields:
 #################### Overridden AL Questions End #####################
 ---
 id: minimum incidents
+undefine:
+  - incidents.gathered
 question: |
   You will need to add incidents
 subquestion: |
   % if ppo_type == "domestic":
-  Because you are filing a domestic PPO, you will need to add **at least one previous incident** between yourself and ${ other_parties[0] }.
+  Because you are filing a domestic PPO, you need to include **at least one previous incident** between yourself and ${ other_parties[0] }.
   % elif ppo_type == "nondomestic":
-  Because you are filing a non-domestic PPO, you will need to add **at least two previous incidents** between yourself and ${ other_parties[0] }.
+  Because you are filing a non-domestic PPO, you need to include **at least two previous incidents** between yourself and ${ other_parties[0] }.
   % endif
 continue button field: minimum_incidents_explainer
 ---
@@ -2099,6 +2135,24 @@ fields:
     datatype: checkboxes
     code: |
       relationship_choices
+under: |
+  ${ collapse_template(what_if_no_domestic_relationship) }
+validation code: |
+  if petitioner_respondent_relationship.all_false():
+    validation_error("You cannot use this tool to prepare a domestic PPO petition unless you have one of these relationships with the respondent.", field='petitioner_respondent_relationship')
+---
+template: what_if_no_domestic_relationship
+subject: |
+  What if none of these options apply?
+content: |
+  If you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for a **domestic relationship** PPO. 
+  
+  You can go back or start over and chooose a different PPO type if 
+  
+  * someone is stalking or harassing you, or 
+  * someone has sexually assaulted you. 
+  
+  Read the article [Overview of Personal Protection Orders ](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn about different kinds of PPOs.
 ---
 id: relationship to respondent kickout
 question: |
@@ -3179,7 +3233,7 @@ id: nondomestic_subsequent_incident_intro
 question: |
   The following questions will apply to the **${ ordinal(i) }** most recent incident of stalking, harassing, or threatening behavior.
 
-continue button field: nondomestic_subsequent_incident_intro
+continue button field: incidents[i].nondomestic_subsequent_incident_intro
 ---
 id: other details
 question: |
