@@ -226,12 +226,13 @@ code: |
           respondent_other_children.target_number
           respondent_other_children.gather()
 
-  if pending_actions.there_are_any:
-    pending_actions.gather()
-  pending_actions_asked
-  if orders_judgments.there_are_any:
-    orders_judgments.gather()
-  orders_judgments_asked
+  if ppo_type != "nondomestic_sexual_assault":
+    if pending_actions.there_are_any:
+      pending_actions.gather()
+    pending_actions_asked
+    if orders_judgments.there_are_any:
+      orders_judgments.gather()
+    orders_judgments_asked
 
   nav.set_section("review_abuse_history_info")
   if ppo_type == "domestic":
@@ -248,12 +249,15 @@ code: |
 
   if ppo_type == "nondomestic_sexual_assault":
     sexual_assault_intro
+    if respondent_sexual_assault_conviction:
+      orders_judgments.gather(minimum=1)
+    elif orders_judgments.there_are_any:
+      orders_judgments.gather()
+    orders_judgments_asked
 
-    if not respondent_sexual_assault_conviction:
-      if fears_future_sexual_assault:
-        potential_sexual_assault_exp
-      else:
-        no_past_or_potential_sexual_assault_kickout
+    if pending_actions.there_are_any:
+      pending_actions.gather()
+    pending_actions_asked
 
   if ppo_type == "nondomestic":
     incidents.gather(minimum=2)
@@ -2160,7 +2164,7 @@ question: |
 subquestion: |
   We're sorry, but if you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for a domestic relationship *Personal Protection Order*.
 
-  There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
+  There are different forms available if you need protection from someone who is stalking or harassing you, or from someone who has sexually assaulted you. Read the article [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn if there is a different kind of protection order for you.
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
@@ -2894,65 +2898,95 @@ subquestion: |
 continue button field: sexual_assault_intro
 ---
 id: respondent sexual assault conviction, no orders listed yet
-if: orders_judgments_re_parties_yes == False
+# if: orders_judgments_re_parties_yes == False
 question: |
   Sexual assault convictions
 fields:
   - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
     datatype: yesnoradio
   - note: |
-      Tap **${ MLH_back_button_label }** twice to go back to the "Court orders and judgments" screen and add information about this conviction.
+      Make sure you add information about this conviction.
     show if:
       variable: respondent_sexual_assault_conviction
       is: True
-validation code: |
-  if respondent_sexual_assault_conviction:
-    validation_error("Tap Undo twice to go back to the Court orders and judgments screen and add information about this conviction.")
----
-id: respondent sexual assault conviction, yes orders listed
-if: orders_judgments_re_parties_yes == True
-question: |
-  Sexual assault convictions
-fields:
-  - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
-    datatype: yesnoradio
-  - Did you list the sexual assault conviction when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
-    datatype: yesnoradio
-    label above field: True
-    show if:
-      variable: respondent_sexual_assault_conviction
-      is: True
-  - note: |
-      ${ collapse_template(orders_judgments_list_template) }
-    show if:
-      variable: respondent_sexual_assault_conviction
-      is: True
-  - note: |
-      Tap **${ MLH_back_button_label }** twice to go back to the "Other court orders and judgments" screen and add information about this conviction.
-    show if:
-      variable: orders_judgments_include_sa_conviction
-      is: False
-validation code: |
-  if respondent_sexual_assault_conviction and not orders_judgments_include_sa_conviction:
-    validation_error("Tap Undo twice to go back to the Other court orders and judgments screen and add information about this conviction.")
----
-id: fear of future sexual assault
-question: |
-  Fear of future sexual assault
-fields:
   - Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?: fears_future_sexual_assault
     datatype: yesnoradio
-    label above field: True
----
-id: potential sexual assault explained
-question: |
-  Fear of future sexual assault explanation
-subquestion: |
-  ${ collapse_template(fears_future_sexual_assault_explained) }
-fields:
+    show if: 
+      variable: respondent_sexual_assault_conviction
+      is: False
   - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
     input type: area
-    label above field: True
+    show if:
+      variable: fears_future_sexual_assault
+      is: True
+  - note: |
+      ${ collapse_template(fears_future_sexual_assault_explained) }
+    show if:
+      variable: fears_future_sexual_assault
+      is: True
+  - note: |
+        We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
+
+        There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn if there is a different kind of protection order for you.
+
+        If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+    show if:
+      variable: fears_future_sexual_assault
+      is: False
+validation code: |
+  if not respondent_sexual_assault_conviction and not fears_future_sexual_assault:
+    validation_error("You can't continue unless one of these things is true.")
+# ---
+# id: respondent sexual assault conviction, yes orders listed
+# if: orders_judgments_re_parties_yes == True
+# question: |
+#   Sexual assault convictions
+# fields:
+#   - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
+#     datatype: yesnoradio
+#   - Did you list the sexual assault conviction when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
+#     datatype: yesnoradio
+#     label above field: True
+#     show if:
+#       variable: respondent_sexual_assault_conviction
+#       is: True
+#   - note: |
+#       ${ collapse_template(orders_judgments_list_template) }
+#     show if:
+#       variable: respondent_sexual_assault_conviction
+#       is: True
+#   - note: |
+#       Tap **Continue** and enter information about this conviction.
+#     show if:
+#       variable: orders_judgments_include_sa_conviction
+#       is: False
+#   - Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?: fears_future_sexual_assault
+#     datatype: yesnoradio
+#     show if: 
+#       variable: respondent_sexual_assault_conviction
+#       is: False
+#   - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+#     input type: area
+#     show if:
+#       variable: fears_future_sexual_assault
+#       is: True
+#   - note: |
+#       ${ collapse_template(fears_future_sexual_assault_explained) }
+#     show if:
+#       variable: fears_future_sexual_assault
+#       is: True
+#   - note: |
+#         We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
+# 
+#         There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn if there is a different kind of protection order for you.
+# 
+#         If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+#     show if:
+#       variable: fears_future_sexual_assault
+#       is: False
+# validation code: |
+#   if not respondent_sexual_assault_conviction and not fears_future_sexual_assault:
+#     validation_error("You can't continue unless one of these things is true.")
 ---
 template: fears_future_sexual_assault_explained
 subject: |
@@ -2962,16 +2996,29 @@ content: |
 
   If you have any documents you want to show the judge, such as police reports, medical records, photos, copies of letters, texts, or email messages, you can attach copies to your petition. However, this is not necessary. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
-id: no past or potential sexual assault kickout
-event: no_past_or_potential_sexual_assault_kickout
-question: |
-  You cannot continue using this tool
-subquestion: |
-  We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
-
-  There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/overview-personal-protection-orders) to learn if there is a different kind of protection order for you.
-
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+code: |
+  if respondent_sexual_assault_conviction == True:
+    if len(orders_judgments.complete_elements()) == 0:
+      reset_SA_conviction_gather_first
+    elif orders_judgments_include_sa_conviction == False:
+      reset_SA_conviction_gather_subsequent
+  
+  SA_convictions_check = True
+---
+only sets: reset_SA_conviction_gather_first
+undefine:
+  - orders_judgments.gathered
+code: |
+  orders_judgments.target_number = 1
+  reset_SA_conviction_gather_first = True
+---
+only sets: reset_SA_conviction_gather_subsequent
+undefine:
+  - orders_judgments.gathered
+code: |
+  orders_judgments.there_is_another = True
+  
+  reset_SA_conviction_gather_subsequent = True
 ---
 template: stalking_harassing_explained
 subject: |
