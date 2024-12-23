@@ -911,21 +911,7 @@ edit:
   - phone_number
 confirm: True
 ---
-# table: children.table
-# rows: children
-# columns:
-#   - Name: |
-#       row_item.name_full()
-#   - Birthdate: |
-#       row_item.birthdate
-# edit:
-#   - name.first
-#   - lives_with
-#   - parties_married_when_born
-#   - has_order_in_effect
-# confirm: True
----
-event: |-
+continue button field: |-
   children.revisit
 id: |-
   revisit children
@@ -940,8 +926,6 @@ columns:
       row_item.name if hasattr(row_item, 'name') else ''
   - 'DOB': |-
       row_item.birthdate if hasattr(row_item, 'birthdate') else ''
-  - 'Lives with': |-
-      row_item.lives_with if hasattr(row_item, 'lives_with') else ''
 rows: |-
   children
 table: |-
@@ -951,6 +935,7 @@ edit:
   - lives_with
   - parties_married_when_born
   - has_order_in_effect
+  - complete
 ---
 table: petitioner_other_children.table
 rows: petitioner_other_children
