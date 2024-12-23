@@ -720,7 +720,10 @@ review:
       **Do you want the judge to order ${ other_parties[0] } to not have access to information in your child’s records that shows your (or your child’s) home address, phone number, or work address?**
 
       ${ word(yesno(wants_no_access_to_personal_info_records)) }
-  - Edit: no_mental_distress_or_control_choices
+  - Edit: 
+      - no_mental_distress_or_control_choices
+      - recompute:
+        - set_mental_distress_control_options
     button: |-
       **I want the judge to order ${ other_parties[0] } to not intentionally cause me mental distress or try to control me through the following behaviors:**
       % if no_mental_distress_or_control_choices.all_false():

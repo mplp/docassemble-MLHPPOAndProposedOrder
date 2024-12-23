@@ -693,15 +693,23 @@ code: |
 code: |
   if no_mental_distress_or_control_choices['harming_animal']:
     intentional_mental_distress_includes_animal_harm = True
-    wants_no_intentional_mental_distress_or_control = True
+  else:
+    intentional_mental_distress_includes_animal_harm = False
 
   if no_mental_distress_or_control_choices['removing_animal']:
     intentional_mental_distress_includes_removing_animal = True
-    wants_no_intentional_mental_distress_or_control = True
+  else:
+    intentional_mental_distress_includes_removing_animal = False
 
   if no_mental_distress_or_control_choices['keeping_animal']:
     intentional_mental_distress_includes_retaining_animal = True
+  else:
+    intentional_mental_distress_includes_retaining_animal = False
+  
+  if any(no_mental_distress_or_control_choices.get(key) for key in ['harming_animal', 'removing_animal', 'keeping_animal']):
     wants_no_intentional_mental_distress_or_control = True
+  else:
+    wants_no_intentional_mental_distress_or_control = False
 
   set_mental_distress_control_options = True
 ---
