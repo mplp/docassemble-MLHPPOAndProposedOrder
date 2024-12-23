@@ -541,19 +541,6 @@ code: |
     orders_judgments_re_parties_no = True
 
   orders_judgments_asked = True
-# ---
-# code: |
-#   if not orders_judgments.there_are_any:
-#     orders_judgments.clear()
-#     orders_judgments.there_are_any = False
-#     orders_judgments_re_parties_yes = False
-#     orders_judgments_re_parties_no = True
-#   else:
-#     orders_judgments.there_are_any = True
-#     orders_judgments_re_parties_yes = True
-#     orders_judgments_re_parties_no = False
-# 
-#   update_orders_judgments = True
 ---
 code: |
   if orders_judgments[i].court_name and orders_judgments[i].court_county:
@@ -2940,7 +2927,6 @@ subquestion: |
 continue button field: sexual_assault_intro
 ---
 id: respondent sexual assault conviction, no orders listed yet
-# if: orders_judgments_re_parties_yes == False
 question: |
   Sexual assault convictions
 fields:

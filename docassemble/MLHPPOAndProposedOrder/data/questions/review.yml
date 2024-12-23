@@ -436,22 +436,6 @@ review:
   - raw html: |
       ${ next_accordion('<h2 class="h5">Court Orders and Judgments</h2>') }
     show if: defined('orders_judgments.there_are_any')
-#   - Edit: 
-#       - orders_judgments.there_are_any
-#       - recompute:
-#         - orders_judgments_asked
-#     button: |
-#       % if ppo_type == "nondomestic_sexual_assault":
-#       **Are there any convictions, court orders, or judgments regarding you and ${ other_parties[0] }?**
-#       % else:
-#       **Are there any court orders or judgments regarding you and ${ other_parties[0] }?**
-#       % endif
-# 
-#       % if orders_judgments.there_are_any:
-#       Yes
-#       % elif not orders_judgments.there_are_any:
-#       No
-#       % endif
   - note: |
       % if ppo_type == "nondomestic_sexual_assault":
       Convictions, court orders, or judgments regarding you and ${ other_parties[0] }:
