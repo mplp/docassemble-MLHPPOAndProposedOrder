@@ -408,46 +408,20 @@ review:
       % endif
     show if: pending_actions.there_are_any
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Court Orders and Judgments</h2>') }
-    show if: defined('orders_judgments.there_are_any')
-  - Edit: 
-      - orders_judgments.there_are_any
-      - recompute:
-        - update_orders_judgments
-    button: |
-      **Are there any pending court orders or judgments regarding you and ${ other_parties[0] }?**
-
-      % if orders_judgments.there_are_any:
-      Yes
-      % elif not orders_judgments.there_are_any:
-      No
-      % endif
-  - Edit:
-      - orders_judgments.revisit
-    button: |
-      % if len(orders_judgments.complete_elements()) > 0:
-      % for item in orders_judgments:
-
-      **Pending Order/Judgment \#${ loop.index+1 }**
-
-      * Docket: ${ item.docket_number }
-      * Court: ${ item.court_name }
-      * County: ${ item.court_county }
-      * State: ${ item.court_state }
-      * Judge: ${ item.judge }
-
-
-      % endfor
-      % else:
-      You have not listed any orders or judgments yet.
-      % endif
-    show if: orders_judgments.there_are_any
-  - raw html: |
       ${ next_accordion('<h2 class="h5">Sexual Assault History</h2>') }
     show if: defined('respondent_sexual_assault_conviction')
-  - Edit: respondent_sexual_assault_conviction
+  - Edit: 
+      - respondent_sexual_assault_conviction
+      - recompute:
+        - reset_SA_convictions_check
+        - SA_convictions_check
+        - reset_minimum_convictions_check
+        - check_minimum_convictions_number
+        - orders_judgments_asked
     button: |
-      **Was ${ other_parties[0] } convicted of sexual assault against you?**  ${ word(yesno(respondent_sexual_assault_conviction)) }
+      **Was ${ other_parties[0] } convicted of sexual assault against you?**  
+      
+      ${ word(yesno(respondent_sexual_assault_conviction)) }
       
       % if not respondent_sexual_assault_conviction:
       **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
@@ -459,6 +433,59 @@ review:
       ${ potential_sexual_assault_exp }
 
       % endif
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Court Orders and Judgments</h2>') }
+    show if: defined('orders_judgments.there_are_any')
+#   - Edit: 
+#       - orders_judgments.there_are_any
+#       - recompute:
+#         - orders_judgments_asked
+#     button: |
+#       % if ppo_type == "nondomestic_sexual_assault":
+#       **Are there any convictions, court orders, or judgments regarding you and ${ other_parties[0] }?**
+#       % else:
+#       **Are there any court orders or judgments regarding you and ${ other_parties[0] }?**
+#       % endif
+# 
+#       % if orders_judgments.there_are_any:
+#       Yes
+#       % elif not orders_judgments.there_are_any:
+#       No
+#       % endif
+  - note: |
+      % if ppo_type == "nondomestic_sexual_assault":
+      Convictions, court orders, or judgments regarding you and ${ other_parties[0] }:
+      % else:
+      Court orders or judgments regarding you and ${ other_parties[0] }:
+      % endif
+  - Edit:
+      - orders_judgments.revisit
+      - recompute:
+        - reset_minimum_convictions_check
+        - check_minimum_convictions_number
+        - orders_judgments_asked
+    button: |
+      % if len(orders_judgments.complete_elements()) > 0:
+      % for item in orders_judgments:
+
+      **Order/Judgment \#${ loop.index+1 }**
+
+      * Docket: ${ item.docket_number }
+      * Court: ${ item.court_name }
+      * County: ${ item.court_county }
+      * State: ${ item.court_state }
+      * Judge: ${ item.judge }
+
+
+      % endfor
+      % else:
+      % if ppo_type == "nondomestic_sexual_assault":
+      You have not listed any convictions, orders, or judgments yet.
+      % else:
+      You have not listed any orders or judgments yet.
+      % endif
+      % endif
+    show if: orders_judgments.there_are_any or not orders_judgments.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Past Incidents</h2>') }
     show if: len(incidents.complete_elements()) > 0

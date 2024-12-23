@@ -535,11 +535,25 @@ code: |
 code: |
   if len(orders_judgments.complete_elements()) > 0:
     orders_judgments_re_parties_yes = True
+    orders_judgments_re_parties_no = False
   else:
     orders_judgments_re_parties_yes = False
     orders_judgments_re_parties_no = True
 
   orders_judgments_asked = True
+# ---
+# code: |
+#   if not orders_judgments.there_are_any:
+#     orders_judgments.clear()
+#     orders_judgments.there_are_any = False
+#     orders_judgments_re_parties_yes = False
+#     orders_judgments_re_parties_no = True
+#   else:
+#     orders_judgments.there_are_any = True
+#     orders_judgments_re_parties_yes = True
+#     orders_judgments_re_parties_no = False
+# 
+#   update_orders_judgments = True
 ---
 code: |
   if orders_judgments[i].court_name and orders_judgments[i].court_county:
@@ -1048,19 +1062,6 @@ code: |
     pending_actions_between_parties_no = False
 
   update_pending_actions = True
----
-code: |
-  if not orders_judgments.there_are_any:
-    orders_judgments.clear()
-    orders_judgments.there_are_any = False
-    orders_judgments_re_parties_yes = False
-    orders_judgments_re_parties_no = True
-  else:
-    orders_judgments.there_are_any = True
-    orders_judgments_re_parties_yes = True
-    orders_judgments_re_parties_no = False
-
-  update_orders_judgments = True
 ---
 code: |
   if ppo_type == "domestic":
@@ -2807,6 +2808,18 @@ fields:
   - Enter the case number: orders_judgments[i].docket_number
     required: False
 ---
+id: orders_judgments docket number sexual assault conviction
+if: ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction == True
+sets:
+  - orders_judgments[0].docket_number
+question: |
+  Sexual assault conviction case number
+subquestion: |
+  Leave blank if unknown.
+fields:
+  - Enter the case number for the sexual assault conviction: orders_judgments[0].docket_number
+    required: False
+---
 id: orders_judgments court and county
 question: |
   Enter the name of the court and county where the case was filed, if known
@@ -2816,6 +2829,22 @@ fields:
   - Court county: orders_judgments[i].court_county
     required: False
   - Court state: orders_judgments[i].court_state
+    required: False
+    code: |
+      states_list()
+---
+id: orders_judgments court and county sexual assault conviction
+if: ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction == True
+question: |
+  Court and county of sexual assault conviction
+subquestion: |
+  Enter the name of the court and county where the sexual assault case was filed, if known.
+fields:
+  - Court name: orders_judgments[0].court_name
+    required: False
+  - Court county: orders_judgments[0].court_county
+    required: False
+  - Court state: orders_judgments[0].court_state
     required: False
     code: |
       states_list()
@@ -2836,6 +2865,19 @@ subquestion: |
   % endif
 fields:
   - Are there any more court orders or judgments entered between you and ${ other_parties[0].name }?: orders_judgments.there_is_another
+    datatype: yesnoradio
+    label above field: True
+---
+id: orders_judgments there_is_another yes sexual assault conviction
+if: ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction == True
+question: |
+  Other convictions, court orders, or judgments
+subquestion: |
+  % if len(orders_judgments.complete_elements()) > 0:
+  ${ collapse_template(orders_judgments_list_template) }
+  % endif
+fields:
+  - Are there any more convictions, court orders, or judgments entered between you and ${ other_parties[0].name }?: orders_judgments.there_is_another
     datatype: yesnoradio
     label above field: True
 ---
@@ -2936,57 +2978,6 @@ fields:
 validation code: |
   if not respondent_sexual_assault_conviction and not fears_future_sexual_assault:
     validation_error("You can't continue unless one of these things is true.")
-# ---
-# id: respondent sexual assault conviction, yes orders listed
-# if: orders_judgments_re_parties_yes == True
-# question: |
-#   Sexual assault convictions
-# fields:
-#   - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
-#     datatype: yesnoradio
-#   - Did you list the sexual assault conviction when asked about orders or judgments between you and ${ other_parties[0].name }?: orders_judgments_include_sa_conviction
-#     datatype: yesnoradio
-#     label above field: True
-#     show if:
-#       variable: respondent_sexual_assault_conviction
-#       is: True
-#   - note: |
-#       ${ collapse_template(orders_judgments_list_template) }
-#     show if:
-#       variable: respondent_sexual_assault_conviction
-#       is: True
-#   - note: |
-#       Tap **Continue** and enter information about this conviction.
-#     show if:
-#       variable: orders_judgments_include_sa_conviction
-#       is: False
-#   - Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?: fears_future_sexual_assault
-#     datatype: yesnoradio
-#     show if: 
-#       variable: respondent_sexual_assault_conviction
-#       is: False
-#   - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
-#     input type: area
-#     show if:
-#       variable: fears_future_sexual_assault
-#       is: True
-#   - note: |
-#       ${ collapse_template(fears_future_sexual_assault_explained) }
-#     show if:
-#       variable: fears_future_sexual_assault
-#       is: True
-#   - note: |
-#         We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
-# 
-#         There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn if there is a different kind of protection order for you.
-# 
-#         If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
-#     show if:
-#       variable: fears_future_sexual_assault
-#       is: False
-# validation code: |
-#   if not respondent_sexual_assault_conviction and not fears_future_sexual_assault:
-#     validation_error("You can't continue unless one of these things is true.")
 ---
 template: fears_future_sexual_assault_explained
 subject: |
@@ -2996,29 +2987,55 @@ content: |
 
   If you have any documents you want to show the judge, such as police reports, medical records, photos, copies of letters, texts, or email messages, you can attach copies to your petition. However, this is not necessary. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
+undefine:
+  - sexual_assault_conviction_required
 code: |
-  if respondent_sexual_assault_conviction == True:
-    if len(orders_judgments.complete_elements()) == 0:
-      reset_SA_conviction_gather_first
-    elif orders_judgments_include_sa_conviction == False:
-      reset_SA_conviction_gather_subsequent
+  reset_SA_convictions_check = True
+---
+id: sexual assault conviction required warning
+continue button field: sexual_assault_conviction_required
+question: |
+  You must list ${ other_parties[0].name }'s conviction for sexual assault
+subquestion: |
+  You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments. 
+
+  % if len(orders_judgments.complete_elements()) > 0:
+  ${ collapse_template(orders_judgments_list_template) }
   
+  If you need to add a conviction:
+  
+  * tap **${MLH_continue_button_label}** below, and 
+  * tap **Court Orders and Judgments** on the next screen.
+  % endif
+---
+code: |
+  if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction:
+    if len(orders_judgments.complete_elements()) < 1:
+      minimum_convictions_explainer
+      orders_judgments.gather(minimum=1)
+
+  check_minimum_convictions_number = True
+---
+code: |
+  if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction:
+    if len(orders_judgments.complete_elements()) >= 1:
+      sexual_assault_conviction_required
+
   SA_convictions_check = True
 ---
-only sets: reset_SA_conviction_gather_first
 undefine:
-  - orders_judgments.gathered
+  - minimum_convictions_explainer
 code: |
-  orders_judgments.target_number = 1
-  reset_SA_conviction_gather_first = True
+  reset_minimum_convictions_check = True
 ---
-only sets: reset_SA_conviction_gather_subsequent
+id: minimum convictions
 undefine:
   - orders_judgments.gathered
-code: |
-  orders_judgments.there_is_another = True
-  
-  reset_SA_conviction_gather_subsequent = True
+question: |
+  You need to add a conviction
+subquestion: |
+  You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments. 
+continue button field: minimum_convictions_explainer
 ---
 template: stalking_harassing_explained
 subject: |
@@ -4035,7 +4052,7 @@ subquestion: |
 
   **Important:** Read the **Instructions** document for what to do next. 
 
-  To get a copy of your forms or instructions, tap **Continue**. 
+  To get a copy of your forms or instructions, tap **${MLH_continue_button_label}**. 
 
   Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on the court's copy of your forms.
 under: |
