@@ -408,27 +408,51 @@ review:
       % endif
     show if: pending_actions.there_are_any
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Pending Orders & Judgments</h2>') }
-    show if: defined('orders_judgments.there_are_any')
+      ${ next_accordion('<h2 class="h5">Sexual Assault History</h2>') }
+    show if: defined('respondent_sexual_assault_conviction')
   - Edit: 
-      - orders_judgments.there_are_any
+      - respondent_sexual_assault_conviction
       - recompute:
-        - update_orders_judgments
+        - reset_SA_convictions_check
+        - SA_convictions_check
+        - reset_minimum_convictions_check
+        - check_minimum_convictions_number
+        - orders_judgments_asked
     button: |
-      **Are there any pending court orders or judgments regarding you and ${ other_parties[0] }?**
+      **Was ${ other_parties[0] } convicted of sexual assault against you?**  
+      
+      ${ word(yesno(respondent_sexual_assault_conviction)) }
+      
+      % if not respondent_sexual_assault_conviction:
+      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
 
-      % if orders_judgments.there_are_any:
-      Yes
-      % elif not orders_judgments.there_are_any:
-      No
+      ${ word(yesno(fears_future_sexual_assault)) }
+
+      **Explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0] }:**
+
+      ${ potential_sexual_assault_exp }
+
+      % endif
+  - raw html: |
+      ${ next_accordion('<h2 class="h5">Court Orders and Judgments</h2>') }
+    show if: defined('orders_judgments.there_are_any')
+  - note: |
+      % if ppo_type == "nondomestic_sexual_assault":
+      Convictions, court orders, or judgments regarding you and ${ other_parties[0] }:
+      % else:
+      Court orders or judgments regarding you and ${ other_parties[0] }:
       % endif
   - Edit:
       - orders_judgments.revisit
+      - recompute:
+        - reset_minimum_convictions_check
+        - check_minimum_convictions_number
+        - orders_judgments_asked
     button: |
       % if len(orders_judgments.complete_elements()) > 0:
       % for item in orders_judgments:
 
-      **Pending Order/Judgment \#${ loop.index+1 }**
+      **Order/Judgment \#${ loop.index+1 }**
 
       * Docket: ${ item.docket_number }
       * Court: ${ item.court_name }
@@ -439,36 +463,13 @@ review:
 
       % endfor
       % else:
+      % if ppo_type == "nondomestic_sexual_assault":
+      You have not listed any convictions, orders, or judgments yet.
+      % else:
       You have not listed any orders or judgments yet.
       % endif
-    show if: orders_judgments.there_are_any
-  - raw html: |
-      ${ next_accordion('<h2 class="h5">Sexual Assault History</h2>') }
-    show if: defined('respondent_sexual_assault_conviction')
-  - Edit: respondent_sexual_assault_conviction
-    button: |
-      **Was ${ other_parties[0] } convicted of sexual assault against you?**
-
-      ${ word(yesno(respondent_sexual_assault_conviction)) }
-  - Edit: orders_judgments_include_sa_conviction
-    button: |
-      **Did you list the case where ${ other_parties[0] } was convicted of sexual assault against you when asked about past orders or judgments?**
-
-      ${ word(yesno(orders_judgments_include_sa_conviction)) }
-    show if: respondent_sexual_assault_conviction
-  - Edit: fears_future_sexual_assault
-    button: |
-      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
-
-      ${ word(yesno(fears_future_sexual_assault)) }
-    show if: not respondent_sexual_assault_conviction
-  - Edit: potential_sexual_assault_exp
-    button: |
-      **Explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0] }:**
-
-      ${ potential_sexual_assault_exp }
-
-    show if: fears_future_sexual_assault
+      % endif
+    show if: orders_judgments.there_are_any or not orders_judgments.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Past Incidents</h2>') }
     show if: len(incidents.complete_elements()) > 0
