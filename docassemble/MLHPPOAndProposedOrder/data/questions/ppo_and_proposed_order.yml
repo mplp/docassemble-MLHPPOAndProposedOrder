@@ -213,11 +213,8 @@ code: |
       if petitioner_respondent_relationship['have_child']:
         children.target_number
         children.gather()
-      if len(children.complete_elements()) > 1:
-        if custody_parenting_time_provisions_same:
-          desired_parenting_time_changes
-          if desired_parenting_time_changes == "no_change_except_exchange":
-            exchange_location
+        if desired_parenting_time_changes == "no_change_except_exchange":
+          exchange_location
       if petitioner_has_other_children:
         petitioner_other_children.target_number
         petitioner_other_children.gather()
@@ -878,27 +875,30 @@ code: |
           if children[i].paternity == "by_court_order" or children[i].paternity == "paternity_case_pending":
             children[i].paternity_case_number
             children[i].paternity_case_court_name
-      if children[i].has_order_in_effect:
-        children[i].custody_case_number
-        children[i].custody_case_court
-        children[i].physical_custody_by_order
-        if children[i].parenting_time_order == "one_parent_supervised":
-          children[i].who_has_supervised_time
-          children[i].who_supervises_parenting_time
-        elif children[i].parenting_time_order == "one_parent_no_parenting_time":
-          children[i].parent_without_parenting_time
-  if i < 1:
-    if children.target_number > 1:
-      custody_parenting_time_provisions_same
-    children[i].desired_parenting_time_changes
-    if children[i].desired_parenting_time_changes == "no_change_except_exchange":
-      children[i].exchange_location
-  else:
-    if not custody_parenting_time_provisions_same:
-      children[i].desired_parenting_time_changes
-      if children[i].desired_parenting_time_changes == "no_change_except_exchange":
-        children[i].exchange_location
-
+      if i < 1:
+        if children[i].has_order_in_effect:
+          children[i].custody_case_number
+          children[i].custody_case_court
+          children[i].physical_custody_by_order
+          if children[i].parenting_time_order == "one_parent_supervised":
+            children[i].who_has_supervised_time
+            children[i].who_supervises_parenting_time
+          elif children[i].parenting_time_order == "one_parent_no_parenting_time":
+            children[i].parent_without_parenting_time
+        if children.target_number > 1:
+          custody_parenting_time_provisions_same
+      else:
+        if not custody_parenting_time_provisions_same:
+          if children[i].has_order_in_effect:
+            children[i].custody_case_number
+            children[i].custody_case_court
+            children[i].physical_custody_by_order
+            if children[i].parenting_time_order == "one_parent_supervised":
+              children[i].who_has_supervised_time
+              children[i].who_supervises_parenting_time
+            elif children[i].parenting_time_order == "one_parent_no_parenting_time":
+              children[i].parent_without_parenting_time
+  
   children[i].complete = True
 ---
 code: |
@@ -2679,25 +2679,25 @@ fields:
   - Case number: children[i].paternity_case_number
   - Name of Court: children[i].paternity_case_court_name
 ---
-id: desired parenting time change for individual child
+if: len(children.complete_elements) == 1
+id: desired parenting time change one child
 question: |
-  Parenting time changes for ${ children[i] }
+  Parenting time changes for ${ children[0].familiar }
 fields:
-  - Select the option below that best describes what you want to happen with parenting time: children[i].desired_parenting_time_changes
+  - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
     datatype: radio
-    label above field: True
     choices:
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
-      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[i] } should take place at a neutral place.: no_change_except_exchange
-      - I think that the safety of ${ children[i] } is at risk. I would like all parenting time between ${ other_parties[0] } and ${ children[i] } suspended.: suspend_respondent_time
+      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[0].familiar } should take place at a neutral place.: no_change_except_exchange
+      - I think that ${ children[0].familiar }'s safety is at risk. I would like all parenting time between ${ other_parties[0] } and ${ children[0].familiar } suspended.: suspend_respondent_time
 ---
-id: desired parenting time change for all common children
+if: len(children.complete_elements) > 1
+id: desired parenting time change multiple children
 question: |
   Parenting time changes for all common children with ${ other_parties[0] }
 fields:
   - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
     datatype: radio
-    label above field: True
     choices:
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of the children should take place at a neutral place.: no_change_except_exchange
