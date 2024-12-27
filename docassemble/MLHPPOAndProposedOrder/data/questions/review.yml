@@ -95,7 +95,7 @@ review:
         **${ item }**
 
         % if knows_respondents_birthdate:
-        **Age:** ${ item. }[BR]
+        **Age:** ${ item.age_in_years() }[BR]
         (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % else:
         **Est. Age:** ${ item.estimated_age }[BR]
@@ -917,8 +917,9 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
-  - Age: |
-      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
+# just commenting out for now since age editing still in flux
+#  - Age: |
+#      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
 edit:
   - name.first
   - address.address
