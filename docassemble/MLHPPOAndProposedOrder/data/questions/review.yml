@@ -71,17 +71,11 @@ review:
 
       ${ word(yesno(petitioner_lives_in_michigan)) }
   - Edit: 
-      - next_friends.revisit
+      - next_friends[0].name.first
       - recompute:
         - reset_next_friend
     button: |-
-      % if len(next_friends.complete_elements()) > 0:
-      % for item in next_friends:
-      **Next Friend:**  ${ item }
-      % endfor
-      % else:
-      *You have not named anyone as your Next Friend yet.*
-      % endif
+      **Next Friend:**  ${ next_friends[0] }
     show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
@@ -891,15 +885,6 @@ edit:
   - name.first
   - address.address
 delete buttons: False
----
-table: next_friends.table
-rows: next_friends
-columns:
-  - Name: |
-      row_item.name_full()
-edit:
-  - name.first
-confirm: True
 ---
 id: other parties revisit
 question: |
