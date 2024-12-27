@@ -71,17 +71,11 @@ review:
 
       ${ word(yesno(petitioner_lives_in_michigan)) }
   - Edit: 
-      - next_friends.revisit
+      - next_friends[0].name.first
       - recompute:
         - reset_next_friend
     button: |-
-      % if len(next_friends.complete_elements()) > 0:
-      % for item in next_friends:
-      **Next Friend:**  ${ item }
-      % endfor
-      % else:
-      *You have not named anyone as your Next Friend yet.*
-      % endif
+      **Next Friend:**  ${ next_friends[0] }
     show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
@@ -871,6 +865,13 @@ subject: |
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
 ---
+id: users revisit
+question: |
+  Edit your answers about yourself
+subquestion: |
+  ${ users.table }
+continue button field: users.revisit
+---
 table: users.table
 rows: users
 columns:
@@ -883,16 +884,14 @@ columns:
 edit:
   - name.first
   - address.address
-confirm: True
+delete buttons: False
 ---
-table: next_friends.table
-rows: next_friends
-columns:
-  - Name: |
-      row_item.name_full()
-edit:
-  - name.first
-confirm: True
+id: other parties revisit
+question: |
+  Edit your answers about the person you need protection from (the respondent)
+subquestion: |
+  ${ other_parties.table }
+continue button field: other_parties.revisit
 ---
 table: other_parties.table
 rows: other_parties
@@ -903,13 +902,14 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
-  - Age: |
-      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
+# just commenting out for now since age editing still in flux
+#  - Age: |
+#      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
 edit:
   - name.first
   - address.address
   - phone_number
-confirm: True
+delete buttons: False
 ---
 continue button field: |-
   children.revisit
