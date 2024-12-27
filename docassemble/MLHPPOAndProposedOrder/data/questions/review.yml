@@ -95,7 +95,7 @@ review:
         **${ item }**
 
         % if knows_respondents_birthdate:
-        **Age:** ${ item.age_in_years() }[BR]
+        **Age:** ${ item. }[BR]
         (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % else:
         **Est. Age:** ${ item.estimated_age }[BR]
@@ -871,6 +871,13 @@ subject: |
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
 ---
+id: users revisit
+question: |
+  Edit your answers about yourself
+subquestion: |
+  ${ users.table }
+continue button field: users.revisit
+---
 table: users.table
 rows: users
 columns:
@@ -883,7 +890,7 @@ columns:
 edit:
   - name.first
   - address.address
-confirm: True
+delete buttons: False
 ---
 table: next_friends.table
 rows: next_friends
@@ -893,6 +900,13 @@ columns:
 edit:
   - name.first
 confirm: True
+---
+id: other parties revisit
+question: |
+  Edit your answers about the person you need protection from (the respondent)
+subquestion: |
+  ${ other_parties.table }
+continue button field: other_parties.revisit
 ---
 table: other_parties.table
 rows: other_parties
@@ -909,7 +923,7 @@ edit:
   - name.first
   - address.address
   - phone_number
-confirm: True
+delete buttons: False
 ---
 continue button field: |-
   children.revisit
