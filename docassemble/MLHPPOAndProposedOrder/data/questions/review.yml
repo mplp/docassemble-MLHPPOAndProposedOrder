@@ -802,15 +802,38 @@ review:
     show if: exhibit_attachment.exhibits.has_exhibits
   - raw html: |
       ${ next_accordion('<h2 class="h5">Electronic Signature</h2>') }
-    show if: defined('MLH_esign')
+    show if: (defined('MLH_esign') or defined('next_friend_agrees_to_sign')) and ETC_county_status != "required"
   - Edit:
       - MLH_esign
       - recompute:
-        - reset_signature_date
+        - signature_date
     button: |
       **Do you want to add your electronic signature?**
 
       ${ word(yesno(MLH_esign)) }
+    show if: ETC_county_status != "required" and (not is_incapacitated_adult and (not petitioner_is_minor or petitioner_is_emancipated_minor))
+  - Edit:
+      - next_friend_agrees_to_sign
+      - recompute:
+        - signature_date
+    button: |
+      **Does the next friend, ${ next_friends[0] }, agree to add their electronic signature?**
+
+      ${ word(yesno(next_friend_agrees_to_sign)) }
+    show if: ETC_county_status != "required" and (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor and petitioner_under_fourteen ))
+  - Edit:
+      - fourteen_plus_agrees_to_sign
+      - recompute:
+        - signature_date
+    button: |
+      **Does ${ users[0] } agree to add their electronic signature to the *Request for Next Friend***?
+
+      ${ word(yesno(fourteen_plus_agrees_to_sign)) }
+      
+      **Does the next friend, ${ next_friends[0] }, agree to add their electronic signature to the other forms?**
+
+      ${ word(yesno(next_friend_agrees_to_sign)) }
+    show if: ETC_county_status != "required" and (petitioner_is_minor and not petitioner_is_emancipated_minor and not petitioner_under_fourteen )
   - raw html: |
       ${ end_accordion() }
     show if: is_incapacitated_adult or not is_incapacitated_adult

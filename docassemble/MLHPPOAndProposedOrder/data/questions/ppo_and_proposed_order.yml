@@ -815,12 +815,6 @@ code: |
 #   check_oakland_respondent_contact_info = True
 ---
 code: |
-  if not MLH_esign:
-    undefine('signature_date')
-
-  reset_signature_date = True
----
-code: |
   if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
   (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
   (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland")):
@@ -1813,7 +1807,7 @@ subquestion: |
 
   This tool can put "**/s/ ${ users[0] }**" and "**/s/ ${ next_friends[0] }**" where you would sign your names so you do not have to sign the forms by hand. The court will accept these electronic signatures.
 fields:
-  - Does ${ users[0] }, agree to add their electronic signature to the *Request for Next Friend* now?: fourteen_plus_agrees_to_sign
+  - Does ${ users[0] } agree to add their electronic signature to the *Request for Next Friend* now?: fourteen_plus_agrees_to_sign
     datatype: yesnoradio
   - Does the next friend, ${ next_friends[0] }, agree to add their electronic signature to the other forms now?: next_friend_agrees_to_sign
     datatype: yesnoradio
@@ -4507,7 +4501,7 @@ attachments:
     - signature_date_requestor: |
         % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
         ${ signature_date }
-        % elif is_incapacitated_adult or (petitioner_is_minor and petitioner_under_fourteen) and next_friend_agrees_to_sign:
+        % elif (is_incapacitated_adult or (petitioner_is_minor and petitioner_under_fourteen)) and next_friend_agrees_to_sign:
         ${ signature_date }
         % else:
         ${ '' }
