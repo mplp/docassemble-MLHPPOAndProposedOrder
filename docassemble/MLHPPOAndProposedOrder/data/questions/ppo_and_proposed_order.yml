@@ -2595,30 +2595,9 @@ fields:
     datatype: yesnoradio
     label above field: True
 ---
-id: parenting time exchange location for individual child
-question: |
-  Location of parenting time exchanges for ${ children[i] }
-fields:
-  - Where do you want parenting time exchanges (pick-ups and drop-offs) to take place?: children[i].exchange_location
-    datatype: radio
-    choices:
-      - Police Department: police
-      - Other: other
-    label above field: True
-  - Enter the name of the police department where you would like to have parenting time exchanges: children[i].exchange_police_department_location
-    show if:
-      variable: children[i].exchange_location
-      is: "police"
-    label above field: True
-  - Enter the location where you would like parenting time exchanges to take place: children[i].exchange_other_location
-    show if:
-      variable: children[i].exchange_location
-      is: "other"
-    label above field: True
----
 id: parenting time exchange location for all children
 question: |
-  Location of parenting time exchanges for all children in common with ${ other_parties[0] }
+  Location of parenting time exchanges
 fields:
   - Where do you want parenting time exchanges (pick-ups and drop-offs) to take place?: exchange_location
     datatype: radio
@@ -2669,6 +2648,7 @@ fields:
       - Paternity was established by court order (also called an *Order of Filiation*): by_court_order
       - Paternity has been established by an *Acknowledgment of Parentage*: by_acknowledgment_of_parentage
       - A paternity case has been filed and is pending (there is no court order yet): paternity_case_pending
+      - None of the above: paternity_not_established
 ---
 id: paternity case info
 question: |
@@ -2679,19 +2659,19 @@ fields:
   - Case number: children[i].paternity_case_number
   - Name of Court: children[i].paternity_case_court_name
 ---
-if: len(children.complete_elements) == 1
+if: len(children.complete_elements()) == 1
 id: desired parenting time change one child
 question: |
-  Parenting time changes for ${ children[0].familiar }
+  Parenting time changes for ${ children[0].familiar() }
 fields:
   - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
     datatype: radio
     choices:
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
-      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[0].familiar } should take place at a neutral place.: no_change_except_exchange
-      - I think that ${ children[0].familiar }'s safety is at risk. I would like all parenting time between ${ other_parties[0] } and ${ children[0].familiar } suspended.: suspend_respondent_time
+      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[0].familiar() } should take place at a neutral place.: no_change_except_exchange
+      - I think that ${ children[0].familiar() }'s safety is at risk. I would like all parenting time between ${ other_parties[0] } and ${ children[0].familiar() } suspended.: suspend_respondent_time
 ---
-if: len(children.complete_elements) > 1
+if: len(children.complete_elements()) > 1
 id: desired parenting time change multiple children
 question: |
   Parenting time changes for all common children with ${ other_parties[0] }
