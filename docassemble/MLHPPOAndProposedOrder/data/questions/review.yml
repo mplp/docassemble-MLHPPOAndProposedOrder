@@ -557,6 +557,7 @@ review:
       - wants_no_harming_petitioner
       - recompute:
         - check_ppo_harm_protectees_list
+        - check_wants_no_harming_people
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound you?**
 
@@ -565,6 +566,7 @@ review:
       - ppo_harm_protectees.there_are_any
       - recompute:
         - check_ppo_harm_protectees_list
+        - check_wants_no_harming_people
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not assault, attack, beat, molest, or wound another person?**
 
