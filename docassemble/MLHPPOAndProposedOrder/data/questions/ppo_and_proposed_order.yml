@@ -814,11 +814,6 @@ code: |
 
 #   check_oakland_respondent_contact_info = True
 ---
-# code: |
-#   reconsider('signature_date')
-# 
-#   reset_signature_date = True
----
 code: |
   if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
   (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
