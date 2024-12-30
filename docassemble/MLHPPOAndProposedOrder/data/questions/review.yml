@@ -826,7 +826,7 @@ review:
       - recompute:
         - signature_date
     button: |
-      **Does ${ users[0] } agree to add their electronic signature to the *Request for Next Friend**?
+      **Does ${ users[0] } agree to add their electronic signature to the *Request for Next Friend***?
 
       ${ word(yesno(fourteen_plus_agrees_to_sign)) }
       
