@@ -678,6 +678,7 @@ review:
       - wants_no_threatening_petitioner
       - recompute:
         - check_ppo_threat_protectees_list
+        - check_wants_no_threatening_others
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure you?**
 
@@ -686,6 +687,7 @@ review:
       - ppo_threat_protectees.there_are_any
       - recompute:
         - check_ppo_threat_protectees_list
+        - check_wants_no_threatening_others
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to kill or physically injure another person?**
 

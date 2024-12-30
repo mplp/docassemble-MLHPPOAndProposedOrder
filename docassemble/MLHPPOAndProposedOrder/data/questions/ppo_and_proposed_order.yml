@@ -640,6 +640,8 @@ code: |
 code: |
   if wants_no_threatening_petitioner or ppo_threat_protectees.there_are_any:
     wants_no_threatening_others = True
+  else:
+    wants_no_threatening_others = False
   check_wants_no_threatening_others = True
 ---
 code: |
