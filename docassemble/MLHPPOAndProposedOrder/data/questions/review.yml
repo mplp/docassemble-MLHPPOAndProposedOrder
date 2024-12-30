@@ -576,6 +576,7 @@ review:
       - ppo_harm_protectees.revisit
       - recompute:
         - check_ppo_harm_protectees_list
+        - check_wants_no_harming_people
     button: |
       % if len(ppo_harm_protectees.complete_elements()) > 0:
       **I want the following people to be protected from being assaulted, attacked, beaten, molested, or wounded:**
@@ -600,6 +601,7 @@ review:
       - wants_no_sexual_assault_threats
       - recompute:
         - check_ppo_sexual_assault_threat_protectees_list
+        - check_wants_no_sexual_assault_threatening_others
     button: |
       **Do you want the judge to order ${ other_parties[0] } not to threaten to sexually assault, kill, or physically injure you?**
 
@@ -608,6 +610,7 @@ review:
       - ppo_sexual_assault_threat_protectees.there_are_any
       - recompute:
         - check_ppo_sexual_assault_threat_protectees_list
+        - check_wants_no_sexual_assault_threatening_others
     button: |
       **Do you want the judge to order ${ other_parties[0] } to not threaten to sexually assault, kill, or physically injure another person?**
 
@@ -617,6 +620,7 @@ review:
       - ppo_sexual_assault_threat_protectees.revisit
       - recompute:
         - check_ppo_sexual_assault_threat_protectees_list
+        - check_wants_no_sexual_assault_threatening_others
     button: |
       % if len(ppo_sexual_assault_threat_protectees.complete_elements()) > 0:
       **I want the following people to be protected from threats of sexually assault, death, or physically injury:**
@@ -699,6 +703,7 @@ review:
       - ppo_threat_protectees.revisit
       - recompute:
         - check_ppo_threat_protectees_list
+        - check_wants_no_threatening_others
     button: |
       % if len(ppo_threat_protectees.complete_elements()) > 0:
       **I want the following people to be protected from threats of death or physical injury:**
