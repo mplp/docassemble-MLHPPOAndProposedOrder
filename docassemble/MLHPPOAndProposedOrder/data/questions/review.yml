@@ -799,14 +799,13 @@ review:
   - note: |
       **Uploaded Documents**
 
-      ${ exhibit_attachment.exhibits.add_action() }
-
       % if exhibit_attachment.exhibits.there_are_any:
       ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
       % else:
       You have not uploaded any documents yet.
       % endif
 
+      ${ exhibit_attachment.exhibits.add_action() }
     css class: bg-secondary-subtle
     show if: exhibit_attachment.exhibits.has_exhibits
   - raw html: |
