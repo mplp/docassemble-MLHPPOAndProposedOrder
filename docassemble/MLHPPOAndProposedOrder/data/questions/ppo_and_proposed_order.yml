@@ -2929,6 +2929,7 @@ subquestion: |
 continue button field: stalking_harassing_intro
 ---
 id: sexual assault intro
+progress: 60
 question: |
   The following questions are about what ${ other_parties[0].name } has done to you
 subquestion: |
@@ -3052,6 +3053,7 @@ content: |
   Your answers to these questions will create the statement of facts to go with your *Petition for Personal Protection Order*. This is important because it helps the judge understand what ${ other_parties[0].name } has done to you and why you need protection.
 ---
 id: abuse history intro 2
+progress: 50
 question: |
   ${ other_parties[0].name } will receive a copy of the petition and statement of facts, and they will also be put in the court file
 subquestion: |
@@ -3341,6 +3343,7 @@ content: |
   - ${ other_parties[0].name } is involved in criminal activity, such as being a gang member or dealing drugs.
 ---
 id: relief requested intro
+progress: 70
 question: |
   Next, you will be asking the judge to forbid ${ other_parties[0].name } from doing certain things that make you unsafe or afraid
 subquestion: |
@@ -3855,6 +3858,7 @@ fields:
 ---
 id: ETC review and download docs DownloadScreen
 continue button field: ETC_review_docs_screen
+progress: 99
 continue button label: "E-mail your forms to the court"
 question: |
   Review your forms
@@ -4068,6 +4072,7 @@ under: |
   It may **take a few minutes** to get to the next screen. You do not need to refresh.
 ---
 id: email to court success screen
+progress: 100
 prevent going back: True
 event: ETC_success
 question: |
@@ -4113,6 +4118,7 @@ code: |
 # if no ETC
 id: download screen
 event: personal_protection_order_download
+progress: 100
 question: |
   All done!
 subquestion: |
