@@ -268,15 +268,41 @@ review:
         % if item.parties_married_when_born:
 
         * Paternity established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born
-        % elif (not item.parties_married_when_born) and item.paternity == "by_court_order":
+        % else:
+        % if parties_same_gender:
+        % if item.was_adopted:
+
+        * ${ item.familiar() } was adopted (Case \#${ item.adoption_case_number } - ${ item.adoption_case_court })
+        % else:
+        % if item.legal_parent == "petitioner":
+
+        * You are ${ item.familiar() }'s legal parent
+        % elif item.legal_parent == "respondent":
+
+        * ${ other_parties[0] } is ${ item.familiar() }'s legal parent
+        % endif
+        % endif
+        % else:
+        % if item.paternity == "by_court_order":
 
         * Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
-        % elif (not item.parties_married_when_born) and item.paternity == "by_acknowledgment_of_parentage":
+        % elif item.paternity == "by_acknowledgment_of_parentage":
         
         * Paternity established by *Acknowledgment of Parentage*
-        % elif (not item.parties_married_when_born) and item.paternity == "paternity_case_pending":
+        % elif item.paternity == "paternity_case_pending":
         
         * Paternity case still pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif item.paternity == "by_court_order":
+
+        * Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif item.paternity == "by_acknowledgment_of_parentage":
+        
+        * Paternity established by *Acknowledgment of Parentage*
+        % elif item.paternity == "paternity_case_pending":
+        
+        * Paternity case still pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % endif
+        % endif
         % endif
         % if item.has_order_in_effect:
 
@@ -304,6 +330,7 @@ review:
 
         * Custody: ${ users[0] } and ${ other_parties[0] } share custody
         % endif
+        % if defined('custody_parenting_time_provisions_same'):
         % if not custody_parenting_time_provisions_same:
         % if item.desired_parenting_time_changes == "no_change":
 
@@ -314,6 +341,7 @@ review:
         % elif item.desired_parenting_time_changes == "suspend_respondent_time":
 
         * Desired parenting time change: ${ other_parties }'s parenting time should be suspended
+        % endif
         % endif
         % endif
         % endif
@@ -936,6 +964,7 @@ edit:
   - parties_married_when_born
   - has_order_in_effect
   - complete
+  - reset_child_info
 ---
 table: petitioner_other_children.table
 rows: petitioner_other_children
