@@ -39,6 +39,20 @@ review:
 
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: 
+      - users[0].gender
+      - recompute:
+        - set_parties_same_gender
+        - reset_gender_related_questions
+    button: |-
+      **What is your gender?**
+      % if users[0].gender == "M":
+
+      Male
+      % elif users[0].gender == "F":
+
+      Female
+      % endif
   - Edit: user_alias.there_are_any
     button: |-
       **Do you have any aliases?**
@@ -100,7 +114,11 @@ review:
         
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
-  - Edit: other_parties[0].gender
+  - Edit: 
+      - other_parties[0].gender
+      - recompute:
+        - set_parties_same_gender
+        - reset_gender_related_questions
     button: |-
       **What is the Respondent's gender?**
       % if other_parties[0].gender == "M":

@@ -1010,12 +1010,31 @@ code: |
   ppo_sexual_assault_threat_protectees[i].complete = True
 ---
 code: |
-  if (users[0].gender == "M" and other_parties[0].gender == "M") or (users[0].gender == "F" and other_parties[0].gender == "F"):
-    parties_same_gender = True
-  else:
-    parties_same_gender = False
+  if defined('users[0].gender') and defined('other_parties[0].gender'):
+    if (users[0].gender == "M" and other_parties[0].gender == "M") or (users[0].gender == "F" and other_parties[0].gender == "F"):
+      parties_same_gender = True
+    else:
+      parties_same_gender = False
 
   set_parties_same_gender = True
+---
+code: |
+  if defined('users[0].gender') and defined('other_parties[0].gender'):
+    if len(children.complete_elements()) > 0:
+      for child in children:
+        if not child.parties_married_when_born:
+          if parties_same_gender:
+            undefine('child.paternity')
+            undefine('child.paternity_case_number')
+            undefine('child.paternity_case_court_name')
+          else:
+            undefine('child.was_adopted')
+            undefine('child.adoption_case_number')
+            undefine('child.adoption_case_court')
+            undefine('child.legal_parent')
+          reconsider('child.complete')
+
+  reset_gender_related_questions = True
 ---
 code: |
   if is_incapacitated_adult:
