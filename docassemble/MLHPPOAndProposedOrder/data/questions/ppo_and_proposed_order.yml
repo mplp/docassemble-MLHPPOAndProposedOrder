@@ -5401,9 +5401,12 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
-    - fears_future_sexual_assault: ${ fears_future_sexual_assault }
+    - fears_future_sexual_assault: |
+        % if not respondent_sexual_assault_conviction:
+        ${ fears_future_sexual_assault }
+        % endif
     - potential_sexual_assault_see_attached: |
-        % if potential_sexual_assault_exp:
+        % if not respondent_sexual_assault_conviction:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
@@ -5519,9 +5522,12 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
-    - fears_future_sexual_assault: ${ fears_future_sexual_assault }
+    - fears_future_sexual_assault: |
+        % if not respondent_sexual_assault_conviction:
+        ${ fears_future_sexual_assault }
+        % endif
     - potential_sexual_assault_see_attached: |
-        % if potential_sexual_assault_exp:
+        % if not respondent_sexual_assault_conviction:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
