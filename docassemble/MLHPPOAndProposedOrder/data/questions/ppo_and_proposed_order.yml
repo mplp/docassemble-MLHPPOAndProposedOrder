@@ -177,8 +177,6 @@ code: |
     if county_choice == "Oakland":
       if user_alias.there_are_any:
         user_alias.gather()
-    if county_choice == "Oakland" and ppo_type == "domestic":
-      user.gender
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
@@ -198,9 +196,6 @@ code: |
   if respondent_is_minor:
     if (not respondent_is_emancipated_minor):
       other_parties_parents.gather()
-
-  if ppo_type == "domestic" and county_choice == "Oakland":
-    set_parties_same_gender
 
   respondent_carries_firearm_for_work_asked
 
@@ -1023,14 +1018,6 @@ code: |
 code: |
   ppo_sexual_assault_threat_protectees[i].name.first
   ppo_sexual_assault_threat_protectees[i].complete = True
----
-code: |
-  if (users[0].gender == "M" and other_parties[0].gender == "M") or (users[0].gender == "F" and other_parties[0].gender == "F"):
-    parties_same_gender = True
-  else:
-    parties_same_gender = False
-
-  set_parties_same_gender = True
 ---
 code: |
   if is_incapacitated_adult:
