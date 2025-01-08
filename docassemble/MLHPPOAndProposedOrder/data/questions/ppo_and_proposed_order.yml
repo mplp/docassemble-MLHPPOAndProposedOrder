@@ -861,17 +861,15 @@ code: |
     if petitioner_respondent_relationship['have_child']:
       children[i].lives_with
       if not children[i].parties_married_when_born:
-        if parties_same_gender:
-          if children[i].was_adopted:
-            children[i].adoption_case_number
-            children[i].adoption_case_court
-          else:
-            children[i].legal_parent
-        else:
-          children[i].paternity
-          if children[i].paternity == "by_court_order" or children[i].paternity == "paternity_case_pending":
-            children[i].paternity_case_number
-            children[i].paternity_case_court_name
+        children[i].paternity
+        if children[i].paternity == "by_court_order" or children[i].paternity == "paternity_case_pending":
+          children[i].paternity_case_number
+        elif children[i].paternity == "by_adoption":
+          children[i].adoption_case_number
+        elif children[i].paternity == "out_of_state":
+          children[i].state_of_paternity
+        elif children[i].paternity == "paternity_not_established":
+          children[i].legal_parent
       if i < 1:
         if children[i].has_order_in_effect:
           children[i].custody_case_number
@@ -1556,52 +1554,6 @@ content: |
   % else:
   You have not listed any aliases yet.
   % endif
----
-id: petitioner gender
-question: |
-  What is your gender?
-fields:
-  - Choose one: users[i].gender
-    datatype: radio
-    choices:
-      - Male: M
-      - Female: F
----
-id: children parentage established through adoption
-question: |
-  Adoption
-subquestion: |
-  ${ collapse_template(adoption_explained) }
-fields:
-  - Was legal parentage for ${ children[i] } established through a second parent adoption or other type of adoption: children[i].was_adopted
-    datatype: yesnoradio
-    label above field: True
----
-template: adoption_explained
-subject: |
-  More Information
-content: |
-  In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
-  In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
----
-id: children legal parent
-question: |
-  ${ children[i] }'s legal parent
-fields:
-  - Which party is ${ children[i] }'s legal parent: children[i].legal_parent
-    datatype: radio
-    choices:
-      - I am: petitioner
-      - ${ other_parties[0] } is: respondent
----
-id: children adoption case info
-question: |
-  ${ children[i] }'s adoption case information
-subquestion: |
-  Enter the case number and the name of the Court for that adoption case.
-fields:
-  - Case number: children[i].adoption_case_number
-  - Name of Court: children[i].adoption_case_court
 ---
 id: intro_screen FirstScreen
 question: |
@@ -2628,25 +2580,70 @@ fields:
 ---
 id: child paternity
 question: |
-  ${ children[i] }'s paternity
+  ${ children[i] }'s paternity/legal parentage
+subquestion: |
+  Usually, a child's mother (or the parent who gave birth to the child) is a legal parent automatically. The child's father (or the second parent) must establish legal paternity/parentage in some way.
 fields:
-  - Select the answer that applies to ${ children[i].familiar() }. If the father's paternity has not been established, select **None of the above**: children[i].paternity
+  - Has the father (or second parent's) paternity/parentage been legally established?: children[i].paternity
+    datatype: radio
+    choices:
+      - "Yes, in Michigan": MI_paternity
+      - "Yes, in another state": out_of_state
+      - No: paternity_not_established
+    
+  - Select the answer that applies to ${ children[i].familiar() }. If paternity/parentage has not been legally established for the father (or second parent), select **None of the above**: children[i].paternity_how
     datatype: radio
     label above field: True
     choices:
-      - Paternity was established by court order (also called an *Order of Filiation*): by_court_order
-      - Paternity has been established by an *Acknowledgment of Parentage*: by_acknowledgment_of_parentage
-      - A paternity case has been filed and is pending (there is no court order yet): paternity_case_pending
+      - Paternity/parentage was established by an "*Acknowledgment of Parentage*" (also called an "Affidavit of Parentage") in **Michigan**: by_acknowledgment_of_parentage
+      - Paternity/parentage was established by court order ("*Order of Filiation*") in **Michigan**: by_court_order
+      - "Parentage was established by a second parent adoption or other adoption (example: confirmatory adoption) in **Michigan**": by_adoption
+      - A paternity/parentage case has been filed and is pending in **Michigan** (there is no court order yet): paternity_case_pending
+      - Paternity/parentage was established under the laws of **another state or country**: out_of_state
       - None of the above: paternity_not_established
+under: |
+  ${ collapse_template(adoption_explained) }
 ---
 id: paternity case info
 question: |
-  ${ children[i] }'s paternity case details
+  ${ children[i] }'s paternity/parentage case details
 subquestion: |
   Enter the case number and the name of the Court for ${ children[i].familiar() }'s case.
 fields:
   - Case number: children[i].paternity_case_number
   - Name of Court: children[i].paternity_case_court_name
+---
+id: other state paternity
+question: |
+  ${ children[i] }'s paternity/parentage
+fields:
+  - State or Country where paternity/parntage was established: children[i].state_of_paternity
+---
+template: adoption_explained
+subject: |
+  More Information
+content: |
+  In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
+  In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
+---
+id: children legal parent
+question: |
+  ${ children[i] }'s legal parent
+fields:
+  - Which party is ${ children[i] }'s legal parent: children[i].legal_parent
+    datatype: radio
+    choices:
+      - I am: petitioner
+      - ${ other_parties[0] } is: respondent
+---
+id: children adoption case info
+question: |
+  ${ children[i] }'s adoption case information
+subquestion: |
+  Enter the case number and the name of the Court for that adoption case.
+fields:
+  - Case number: children[i].adoption_case_number
+  - Name of Court: children[i].adoption_case_court
 ---
 if: len(children.complete_elements()) == 1
 id: desired parenting time change one child
