@@ -41,9 +41,6 @@ review:
       % endfor
   - Edit: 
       - users[0].gender
-      - recompute:
-        - set_parties_same_gender
-        - reset_gender_related_questions
     button: |-
       **What is your gender?**
       % if users[0].gender == "M":
@@ -116,9 +113,6 @@ review:
       % endfor
   - Edit: 
       - other_parties[0].gender
-      - recompute:
-        - set_parties_same_gender
-        - reset_gender_related_questions
     button: |-
       **What is the Respondent's gender?**
       % if other_parties[0].gender == "M":

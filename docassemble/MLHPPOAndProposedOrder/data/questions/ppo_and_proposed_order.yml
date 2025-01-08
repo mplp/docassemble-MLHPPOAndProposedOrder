@@ -1019,24 +1019,6 @@ code: |
   set_parties_same_gender = True
 ---
 code: |
-  if defined('users[0].gender') and defined('other_parties[0].gender'):
-    if len(children.complete_elements()) > 0:
-      for child in children:
-        if not child.parties_married_when_born:
-          if parties_same_gender:
-            undefine('child.paternity')
-            undefine('child.paternity_case_number')
-            undefine('child.paternity_case_court_name')
-          else:
-            undefine('child.was_adopted')
-            undefine('child.adoption_case_number')
-            undefine('child.adoption_case_court')
-            undefine('child.legal_parent')
-          reconsider('child.complete')
-
-  reset_gender_related_questions = True
----
-code: |
   if is_incapacitated_adult:
     next_friends.there_are_any = True
   elif petitioner_is_minor:
