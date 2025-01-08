@@ -374,9 +374,9 @@ review:
         **${ item }**
 
         % if item.knows_other_child_birthdate:
-        DOB: ${ item.birthdate }
+        * DOB: ${ item.birthdate }
         % else:
-        Est. Age: ${ item.estimated_age }
+        * Est. Age: ${ item.estimated_age }
         % endif
 
       % endfor
@@ -414,9 +414,9 @@ review:
         **${ item }**
 
         % if item.knows_other_child_birthdate:
-        DOB: ${ item.birthdate }
+        * DOB: ${ item.birthdate }
         % else:
-        Est. Age: ${ item.estimated_age }
+        * Est. Age: ${ item.estimated_age }
         % endif
 
       % endfor
