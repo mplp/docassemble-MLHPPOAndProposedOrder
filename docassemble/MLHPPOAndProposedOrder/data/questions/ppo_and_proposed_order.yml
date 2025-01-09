@@ -1010,13 +1010,10 @@ code: |
   ppo_sexual_assault_threat_protectees[i].complete = True
 ---
 code: |
-  if defined('users[0].gender') and defined('other_parties[0].gender'):
-    if (users[0].gender == "M" and other_parties[0].gender == "M") or (users[0].gender == "F" and other_parties[0].gender == "F"):
-      parties_same_gender = True
-    else:
-      parties_same_gender = False
-
-  set_parties_same_gender = True
+  if (users[0].gender == "M" and other_parties[0].gender == "M") or (users[0].gender == "F" and other_parties[0].gender == "F"):
+    parties_same_gender = True
+  else:
+    parties_same_gender = False
 ---
 code: |
   if is_incapacitated_adult:

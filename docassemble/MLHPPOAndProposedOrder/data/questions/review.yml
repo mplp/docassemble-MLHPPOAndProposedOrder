@@ -39,17 +39,6 @@ review:
 
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
-  - Edit: 
-      - users[0].gender
-    button: |-
-      **What is your gender?**
-      % if users[0].gender == "M":
-
-      Male
-      % elif users[0].gender == "F":
-
-      Female
-      % endif
   - Edit: user_alias.there_are_any
     button: |-
       **Do you have any aliases?**
@@ -274,24 +263,9 @@ review:
         % if item.parties_married_when_born:
 
         * Paternity established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born
-        % else:
-        % if parties_same_gender:
-        % if item.was_adopted:
+        % elif item.was_adopted:
 
         * ${ item.familiar() } was adopted (Case \#${ item.adoption_case_number } - ${ item.adoption_case_court })
-        % else:
-        % if item.legal_parent == "petitioner":
-
-        * You are ${ item.familiar() }'s legal parent
-        % elif item.legal_parent == "respondent":
-
-        * ${ other_parties[0] } is ${ item.familiar() }'s legal parent
-        % endif
-        % endif
-        % else:
-        % if item.paternity == "by_court_order":
-
-        * Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
         % elif item.paternity == "by_acknowledgment_of_parentage":
         
         * Paternity established by *Acknowledgment of Parentage*
@@ -301,14 +275,12 @@ review:
         % elif item.paternity == "by_court_order":
 
         * Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
-        % elif item.paternity == "by_acknowledgment_of_parentage":
-        
-        * Paternity established by *Acknowledgment of Parentage*
-        % elif item.paternity == "paternity_case_pending":
-        
-        * Paternity case still pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
-        % endif
-        % endif
+        % elif item.legal_parent == "petitioner":
+
+        * You are ${ item.familiar() }'s legal parent
+        % elif item.legal_parent == "respondent":
+
+        * ${ other_parties[0] } is ${ item.familiar() }'s legal parent
         % endif
         % if item.has_order_in_effect:
 
