@@ -1014,6 +1014,8 @@ code: |
     parties_same_gender = True
   else:
     parties_same_gender = False
+
+  set_parties_same_gender = True
 ---
 code: |
   if is_incapacitated_adult:
