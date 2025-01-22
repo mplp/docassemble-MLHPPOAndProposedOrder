@@ -832,6 +832,29 @@ code: |
   
   reset_relationship_description = True
 ---
+code: |
+  if county_choice != "Oakland":
+    undefine('wants_confidential_contact_details')
+  else:
+    if not defined('wants_confidential_contact_details'):
+      wants_confidential_contact_details
+
+  reset_confidential_contact_details = True
+---
+code: |
+  if county_choice != "Oakland":
+    undefine('user_alias.there_are_any') 
+    undefine('user_alias')
+    undefine('other_party_alias.there_are_any') 
+    undefine('other_party_alias')
+  else:
+    if user_alias.there_are_any:
+      user_alias.gather()
+    if other_party_alias.there_are_any:
+      other_party_alias.gather()
+
+  reset_aliases = True
+---
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties

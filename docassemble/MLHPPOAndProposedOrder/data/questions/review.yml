@@ -412,6 +412,8 @@ review:
       - recompute:
           - court_index
           - the_court
+          - reset_confidential_contact_details
+          - reset_aliases
     button: |
       **Court you will file in**: 
       
