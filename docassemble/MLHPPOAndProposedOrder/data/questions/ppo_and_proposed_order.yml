@@ -1659,28 +1659,41 @@ fields:
   - Case number: children[i].adoption_case_number
   - Name of Court: children[i].adoption_case_court
 ---
-id: intro_screen FirstScreen
+id: MLH intro landing FirstScreen
 question: |
-  Welcome to Michigan Legal Help's Do-It-Yourself Personal Protection Order (PPO) tool
+  ${ MLH_interview_short_title }
 subquestion: |
-  This tool will help you prepare the forms you will need to ask the court for a PPO.
+  Welcome to the ${ MLH_interview_short_title } (PPO) tool. This tool will help you prepare the forms you will need to ask the court for a PPO.
 
-  A PPO is one tool to help you stay safe. You may also want to talk to an advocate from a domestic violence and/or sexual assault agency, who can help you make a safety plan. A safety plan is a list of ideas to help increase your safety that is individualized for you.
+  ${ collapse_template(process_info) }
+  
+  A PPO is one tool to help you stay safe. You may also want to talk to an advocate from a domestic violence and/or sexual assault agency, who can help you make a {safety plan}.
 
   ${ collapse_template(respondent_more_help_explained) }
-continue button field: MLH_intro_screen
+continue button field: MLH_intro_landing
+terms:
+  safety plan: |
+    A safety plan is a list of ideas to help increase your safety that is individualized for you.
 ---
 template: respondent_more_help_explained
 subject: |
   Where can I find more help?
 content: |
-  A domestic violence and/or sexual assault agency provides free and confidential support services to victims of domestic violence and/or sexual assault. To find an agency in your area, you can return to our website and use the [Guide to Legal Help](https://michiganlegalhelp.org/guide-to-legal-help), or search under [Community Services](https://michiganlegalhelp.org/organizations-and-courts/community-services). You can also call the [National Domestic Violence Hotline](https://www.thehotline.org/) at 1-800-799-SAFE or 1-800-787-3224 TTY.
+  A domestic violence and/or sexual assault agency provides free and confidential support services to victims of domestic violence and/or sexual assault. To find an agency in your area, you can use the [Guide to Legal Help](https://michiganlegalhelp.org/guide-to-legal-help), or search under [Community Services](https://michiganlegalhelp.org/organizations-and-courts/community-services). You can also contact the [National Domestic Violence Hotline](https://www.thehotline.org/) at 1-800-799-SAFE or 1-800-787-3224 TTY.
+---
+template: process_info
+subject: |
+  How does this work?
+content: |
+  Your personalized ${ MLH_form_type } will be ready after you answer all the questions. This will probably take about **${ MLH_time_min } to ${ MLH_time_max } minutes**. 
+
+  You will also get instructions for how to use the forms to ask the court for a PPO. To learn more about getting a PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders).
 ---
 id: intro roles
 question: |
-  Using this tool
+  Labels for people in a Protection Order case
 subquestion: |
-  We are going to ask questions about you and the Respondent, who is the person you want to be protected from. On the court forms, you are known as the Petitioner, the person filing the petition.
+  We are going to ask questions about you and the Respondent, who is the person you want to be protected from. On the court forms, you are the Petitioner, the person filing the petition.
 
   If you are under 18 years old and are not emancipated, you need a "next friend" to file your petition for you. You can still use this tool to prepare your forms.
 
