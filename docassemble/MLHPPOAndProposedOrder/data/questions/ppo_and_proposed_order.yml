@@ -183,13 +183,16 @@ code: |
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
-  if ((ppo_type == "nondomestic" or ppo_type == "domestic") and (county_choice == "Wayne" or county_choice == "Oakland")) or (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland"):
+  
+  if (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland")):
     if respondent_is_minor and (not respondent_is_emancipated_minor):
       if all(not petitioner_respondent_relationship.get(key) for key in ['have_child', 'dating']):
         relationship_to_respondent_exp
     else:
       if all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
         relationship_to_respondent_exp
+  elif (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland"):
+    relationship_to_respondent_exp
 
   if county_choice == "Oakland":
     if other_party_alias.there_are_any:
@@ -1548,7 +1551,7 @@ subquestion: |
 
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
-  - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
+  - Describe your relationship with ${ other_parties[0] }:: relationship_to_respondent_exp
     datatype: area
 ---
 id: petitioner alias there_are_any
