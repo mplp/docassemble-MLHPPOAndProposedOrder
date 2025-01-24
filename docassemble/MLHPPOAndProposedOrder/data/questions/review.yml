@@ -476,7 +476,7 @@ review:
       % endif
 
       % if not petitioner_is_minor or not obscene_material_conviction:
-      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
+      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threatened sexual assault against you?**
 
       ${ word(yesno(fears_future_sexual_assault)) }
 
