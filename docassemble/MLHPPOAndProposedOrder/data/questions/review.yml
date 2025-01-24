@@ -486,6 +486,7 @@ review:
       % else:
       Court orders or judgments regarding you and ${ other_parties[0] }:
       % endif
+    show if: defined('orders_judgments.there_are_any')
   - Edit:
       - orders_judgments.revisit
       - recompute:
@@ -508,9 +509,9 @@ review:
       % endfor
       % else:
       % if ppo_type == "nondomestic_sexual_assault":
-      You have not listed any convictions, orders, or judgments yet. Tap **Edit** to add one.
+      No convictions, orders, or judgments. Tap **Edit** to add one.
       % else:
-      You have not listed any orders or judgments yet. Tap **Edit** to add one.
+      No orders or judgments. Tap **Edit** to add one.
       % endif
       % endif
     show if: orders_judgments.there_are_any or not orders_judgments.there_are_any
