@@ -2846,7 +2846,7 @@ fields:
     required: False
 ---
 id: orders_judgments docket number sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   obscene_material_conviction)
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction)
 sets:
   - orders_judgments[0].docket_number
 question: |
@@ -2918,7 +2918,7 @@ fields:
     label above field: True
 ---
 id: orders_judgments there_is_another yes conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   obscene_material_conviction)
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction)
 question: |
   Other convictions, court orders, or judgments
 subquestion: |
@@ -3104,7 +3104,7 @@ validation code: |
   if not respondent_sexual_assault_conviction and not obscene_material_conviction and not fears_future_sexual_assault and not obscene_material_provided:
     validation_error("You can't continue unless one of these things is true.")
 ---
-# runs respondent_sexual_assault_conviction and also cleans up previous answers or extraneous answers hidden by the show-if logic
+# runs respondent_sexual_assault_conviction, cleans up previous or extraneous answers, and defines unused options to simplify attachment logic
 code: |
   if respondent_sexual_assault_conviction:
     obscene_material_conviction = False
