@@ -462,20 +462,40 @@ review:
         - reset_minimum_convictions_check
         - check_minimum_convictions_number
         - orders_judgments_asked
+        - set_SA_basis
     button: |
       **Was ${ other_parties[0] } convicted of sexual assault against you?**  
       
       ${ word(yesno(respondent_sexual_assault_conviction)) }
       
       % if not respondent_sexual_assault_conviction:
+      % if petitioner_is_minor:
+      **Was ${ other_parties[0] } convicted of giving obscene material to you?** 
+
+      ${ word(yesno(obscene_material_conviction)) }
+      % endif
+
+      % if not petitioner_is_minor or not obscene_material_conviction:
       **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
 
       ${ word(yesno(fears_future_sexual_assault)) }
 
+      % if fears_future_sexual_assault:
       **Explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0] }:**
 
       ${ potential_sexual_assault_exp }
+      % endif
 
+      % if not fears_future_sexual_assault:
+      **Did ${ other_parties[0] } give you obscene material?** 
+
+      ${ word(yesno(obscene_material_provided)) }
+
+      **Explain what happened:**
+      ${ obscene_material_exp }
+
+      % endif
+      % endif
       % endif
   - raw html: |
       ${ next_accordion('<h2 class="h5">Court Orders and Judgments</h2>') }

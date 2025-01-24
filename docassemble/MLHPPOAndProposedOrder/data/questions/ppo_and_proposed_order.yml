@@ -249,7 +249,8 @@ code: |
 
   if ppo_type == "nondomestic_sexual_assault":
     sexual_assault_intro
-    if respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction):
+    set_SA_basis
+    if respondent_sexual_assault_conviction or obscene_material_conviction:
       orders_judgments.gather(minimum=1)
     elif orders_judgments.there_are_any:
       orders_judgments.gather()
@@ -2845,7 +2846,7 @@ fields:
     required: False
 ---
 id: orders_judgments docket number sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   obscene_material_conviction)
 sets:
   - orders_judgments[0].docket_number
 question: |
@@ -2874,7 +2875,7 @@ fields:
       states_list()
 ---
 id: orders_judgments court and county sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction)
 question: |
   % if respondent_sexual_assault_conviction:
   Court and county of sexual assault conviction
@@ -2917,7 +2918,7 @@ fields:
     label above field: True
 ---
 id: orders_judgments there_is_another yes conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   obscene_material_conviction)
 question: |
   Other convictions, court orders, or judgments
 subquestion: |
@@ -3103,6 +3104,20 @@ validation code: |
   if not respondent_sexual_assault_conviction and not obscene_material_conviction and not fears_future_sexual_assault and not obscene_material_provided:
     validation_error("You can't continue unless one of these things is true.")
 ---
+# runs respondent_sexual_assault_conviction and also cleans up previous answers or extraneous answers hidden by the show-if logic
+code: |
+  if respondent_sexual_assault_conviction:
+    obscene_material_conviction = False
+    fears_future_sexual_assault = False
+    obscene_material_provided = False
+  elif obscene_material_conviction:
+    fears_future_sexual_assault = False
+    obscene_material_provided = False
+  elif fears_future_sexual_assault:
+    obscene_material_provided = False
+
+  set_SA_basis = True
+---
 template: fears_future_sexual_assault_explained
 subject: |
   More information about how to answer this question.
@@ -3112,16 +3127,24 @@ content: |
   If you have any documents you want to show the judge, such as police reports, medical records, photos, copies of letters, texts, or email messages, you can attach copies to your petition. However, this is not necessary. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
 undefine:
-  - sexual_assault_conviction_required
+  - conviction_required
 code: |
   reset_SA_convictions_check = True
 ---
-id: sexual assault conviction required warning
-continue button field: sexual_assault_conviction_required
+id: conviction required warning
+continue button field: conviction_required
 question: |
+  % if respondent_sexual_assault_conviction:
   You must list ${ other_parties[0].name }'s conviction for sexual assault
+  % else:
+  You must list ${ other_parties[0].name }'s obscene material conviction
+  % endif
 subquestion: |
+  % if respondent_sexual_assault_conviction:
   You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments. 
+  % else:
+  You said ${ other_parties[0].name } was convicted of giving you obscene material. You **must include this conviction** in your list of Court Orders and Judgments. 
+  % endif
 
   % if len(orders_judgments.complete_elements()) > 0:
   ${ collapse_template(orders_judgments_list_template) }
@@ -3133,7 +3156,7 @@ subquestion: |
   % endif
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction:
+  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction):
     if len(orders_judgments.complete_elements()) < 1:
       minimum_convictions_explainer
       orders_judgments.gather(minimum=1)
@@ -3141,9 +3164,9 @@ code: |
   check_minimum_convictions_number = True
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction:
+  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction):
     if len(orders_judgments.complete_elements()) >= 1:
-      sexual_assault_conviction_required
+      conviction_required
 
   SA_convictions_check = True
 ---
@@ -3158,7 +3181,11 @@ undefine:
 question: |
   You need to add a conviction
 subquestion: |
-  You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments. 
+  % if respondent_sexual_assault_conviction:
+  You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments.
+  % else:
+  You said ${ other_parties[0].name } was convicted of giving you obscene material. You **must include this conviction** in your list of Court Orders and Judgments.
+  % endif
 continue button field: minimum_convictions_explainer
 ---
 template: stalking_harassing_explained
@@ -4512,7 +4539,7 @@ code: |
     cc_395_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or respondent_sexual_assault_conviction == False):
+  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or fears_future_sexual_assault or obscene_material_provided):
     cc_395_statement.enabled = True
   else:
     cc_395_statement.enabled = False
@@ -5548,12 +5575,15 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
-    - fears_future_sexual_assault: |
-        % if not respondent_sexual_assault_conviction:
-        ${ fears_future_sexual_assault }
-        % endif
+    - obscene_material_conviction: ${ obscene_material_conviction }
+    - fears_future_sexual_assault: ${ fears_future_sexual_assault }
     - potential_sexual_assault_see_attached: |
-        % if not respondent_sexual_assault_conviction:
+        % if fears_future_sexual_assault:
+        Please see attached "Statement of Facts".
+        % endif
+    - obscene_material_provided: ${ obscene_material_provided }
+    - obscene_material_see_attached: |
+        % if obscene_material_provided:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
@@ -5669,12 +5699,15 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
-    - fears_future_sexual_assault: |
-        % if not respondent_sexual_assault_conviction:
-        ${ fears_future_sexual_assault }
-        % endif
+    - obscene_material_conviction: ${ obscene_material_conviction }
+    - fears_future_sexual_assault: ${ fears_future_sexual_assault }
     - potential_sexual_assault_see_attached: |
-        % if not respondent_sexual_assault_conviction:
+        % if fears_future_sexual_assault:
+        Please see attached "Statement of Facts".
+        % endif
+    - obscene_material_provided: ${ obscene_material_provided }
+    - obscene_material_see_attached: |
+        % if obscene_material_provided:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
