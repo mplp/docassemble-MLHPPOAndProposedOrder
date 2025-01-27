@@ -249,8 +249,7 @@ code: |
 
   if ppo_type == "nondomestic_sexual_assault":
     sexual_assault_intro
-    set_SA_basis
-    if respondent_sexual_assault_conviction or obscene_material_conviction:
+    if respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction):
       orders_judgments.gather(minimum=1)
     elif orders_judgments.there_are_any:
       orders_judgments.gather()
@@ -2846,7 +2845,7 @@ fields:
     required: False
 ---
 id: orders_judgments docket number sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction)
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
 sets:
   - orders_judgments[0].docket_number
 question: |
@@ -2875,7 +2874,7 @@ fields:
       states_list()
 ---
 id: orders_judgments court and county sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction)
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
 question: |
   % if respondent_sexual_assault_conviction:
   Court and county of sexual assault conviction
@@ -2918,7 +2917,7 @@ fields:
     label above field: True
 ---
 id: orders_judgments there_is_another yes conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction)
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
 question: |
   Other convictions, court orders, or judgments
 subquestion: |
@@ -3104,20 +3103,6 @@ validation code: |
   if not respondent_sexual_assault_conviction and not obscene_material_conviction and not fears_future_sexual_assault and not obscene_material_provided:
     validation_error("You can't continue unless one of these things is true.")
 ---
-# runs respondent_sexual_assault_conviction, cleans up previous or extraneous answers, and defines unused options to simplify attachment logic
-code: |
-  if respondent_sexual_assault_conviction:
-    obscene_material_conviction = False
-    fears_future_sexual_assault = False
-    obscene_material_provided = False
-  elif obscene_material_conviction:
-    fears_future_sexual_assault = False
-    obscene_material_provided = False
-  elif fears_future_sexual_assault:
-    obscene_material_provided = False
-
-  set_SA_basis = True
----
 template: fears_future_sexual_assault_explained
 subject: |
   More information about how to answer this question.
@@ -3156,7 +3141,7 @@ subquestion: |
   % endif
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction):
+  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction)):
     if len(orders_judgments.complete_elements()) < 1:
       minimum_convictions_explainer
       orders_judgments.gather(minimum=1)
@@ -3164,7 +3149,7 @@ code: |
   check_minimum_convictions_number = True
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or obscene_material_conviction):
+  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction)):
     if len(orders_judgments.complete_elements()) >= 1:
       conviction_required
 
@@ -4539,7 +4524,7 @@ code: |
     cc_395_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or fears_future_sexual_assault or obscene_material_provided):
+  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or (not respondent_sexual_assault_conviction and ((not petitioner_is_minor or not obscene_material_conviction) and fears_future_sexual_assault) or (petitioner_is_minor and not obscene_material_conviction and obscene_material_provided))):
     cc_395_statement.enabled = True
   else:
     cc_395_statement.enabled = False
@@ -5575,15 +5560,24 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
-    - obscene_material_conviction: ${ obscene_material_conviction }
-    - fears_future_sexual_assault: ${ fears_future_sexual_assault }
+    - obscene_material_conviction: |
+        % if not respondent_sexual_assault_conviction and petitioner_is_minor:
+        ${ obscene_material_conviction }
+        % endif
+    - fears_future_sexual_assault: |
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction):
+        ${ fears_future_sexual_assault }
+        % endif
     - potential_sexual_assault_see_attached: |
-        % if fears_future_sexual_assault:
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction) and fears_future_sexual_assault:
         Please see attached "Statement of Facts".
         % endif
-    - obscene_material_provided: ${ obscene_material_provided }
+    - obscene_material_provided: |
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction:
+        ${ obscene_material_provided }
+        % endif
     - obscene_material_see_attached: |
-        % if obscene_material_provided:
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction and obscene_material_provided:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
@@ -5699,15 +5693,24 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
-    - obscene_material_conviction: ${ obscene_material_conviction }
-    - fears_future_sexual_assault: ${ fears_future_sexual_assault }
+    - obscene_material_conviction: |
+        % if not respondent_sexual_assault_conviction and petitioner_is_minor:
+        ${ obscene_material_conviction }
+        % endif
+    - fears_future_sexual_assault: |
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction):
+        ${ fears_future_sexual_assault }
+        % endif
     - potential_sexual_assault_see_attached: |
-        % if fears_future_sexual_assault:
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction) and fears_future_sexual_assault:
         Please see attached "Statement of Facts".
         % endif
-    - obscene_material_provided: ${ obscene_material_provided }
+    - obscene_material_provided: |
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction:
+        ${ obscene_material_provided }
+        % endif
     - obscene_material_see_attached: |
-        % if obscene_material_provided:
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction and obscene_material_provided:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }

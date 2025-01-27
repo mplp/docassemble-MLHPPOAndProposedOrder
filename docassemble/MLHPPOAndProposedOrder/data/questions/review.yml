@@ -462,7 +462,6 @@ review:
         - reset_minimum_convictions_check
         - check_minimum_convictions_number
         - orders_judgments_asked
-        - set_SA_basis
     button: |
       **Was ${ other_parties[0] } convicted of sexual assault against you?**  
       
