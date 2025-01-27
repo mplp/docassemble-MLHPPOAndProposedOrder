@@ -4542,6 +4542,13 @@ attachments:
         ${ other_parties[0].address_block() }
         ${ other_parties[0].phone_number }
     - pursuant_to: |
+        % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor) and \
+        (((not petitioner_under_fourteen) and fourteen_plus_agrees_to_sign) or (petitioner_under_fourteen and next_friend_agrees_to_sign))):
+        ${ MLH_esign_tag }
+        % else:
+        ${ '' }
+        % endif
+    - pursuant_to_next_friend: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
         ${ MLH_esign_tag }
         % else:
