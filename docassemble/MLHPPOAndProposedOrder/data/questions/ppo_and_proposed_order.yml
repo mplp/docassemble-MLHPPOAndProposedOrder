@@ -230,8 +230,7 @@ code: |
     if pending_actions.there_are_any:
       pending_actions.gather()
     pending_actions_asked
-    if orders_judgments.there_are_any:
-      orders_judgments.gather()
+    orders_judgments.gather()
     orders_judgments_asked
 
   nav.set_section("review_abuse_history_info")
@@ -251,7 +250,7 @@ code: |
     sexual_assault_intro
     if respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction):
       orders_judgments.gather(minimum=1)
-    elif orders_judgments.there_are_any:
+    else:
       orders_judgments.gather()
     orders_judgments_asked
 
