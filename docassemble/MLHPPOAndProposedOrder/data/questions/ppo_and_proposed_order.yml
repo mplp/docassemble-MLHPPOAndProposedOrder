@@ -3947,7 +3947,7 @@ subject: |
 content: |
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
-  This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **E-mail your forms to the court** button below.
+  This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **I want to file now by e-mail** button below.
 ---
 continue button field: ETC_review_exhibits
 id: exhibit review for ETC optional counties
