@@ -5862,8 +5862,7 @@ attachments:
     - trial_court: ${ the_court.number }
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_phone_number: ${ the_court.phone }
-    - trial_court_address_on_one_line: ${ trial_court.address.on_one_line() }
-    - trial_court_phone_number: ${ trial_court.phone_number }
+    - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
 ---
 attachments:
   name: Contact Information Sheet
