@@ -249,7 +249,7 @@ code: |
 
   if ppo_type == "nondomestic_sexual_assault":
     sexual_assault_intro
-    if respondent_sexual_assault_conviction:
+    if respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction):
       orders_judgments.gather(minimum=1)
     elif orders_judgments.there_are_any:
       orders_judgments.gather()
@@ -2853,15 +2853,19 @@ fields:
     required: False
 ---
 id: orders_judgments docket number sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction == True
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
 sets:
   - orders_judgments[0].docket_number
 question: |
+  % if respondent_sexual_assault_conviction:
   Sexual assault conviction case number
+  % else:
+  Obscene materials conviction case number
+  % endif
 subquestion: |
   Leave blank if unknown.
 fields:
-  - Enter the case number for the sexual assault conviction: orders_judgments[0].docket_number
+  - Enter the case number for the conviction: orders_judgments[0].docket_number
     required: False
 ---
 id: orders_judgments court and county
@@ -2878,11 +2882,19 @@ fields:
       states_list()
 ---
 id: orders_judgments court and county sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction == True
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
 question: |
+  % if respondent_sexual_assault_conviction:
   Court and county of sexual assault conviction
+  % else:
+  Court and county of obscene materials conviction
+  % endif
 subquestion: |
+  % if respondent_sexual_assault_conviction:
   Enter the name of the court and county where the sexual assault case was filed, if known.
+  % else:
+  Enter the name of the court and county where the obscene materials case was filed, if known.
+  % endif
 fields:
   - Court name: orders_judgments[0].court_name
     required: False
@@ -2912,8 +2924,8 @@ fields:
     datatype: yesnoradio
     label above field: True
 ---
-id: orders_judgments there_is_another yes sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction == True
+id: orders_judgments there_is_another yes conviction
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
 question: |
   Other convictions, court orders, or judgments
 subquestion: |
@@ -2984,9 +2996,10 @@ subquestion: |
 
 continue button field: sexual_assault_intro
 ---
-id: respondent sexual assault conviction, no orders listed yet
+id: respondent sexual assault basis, adult petitioner
+if: not petitioner_is_minor
 question: |
-  Sexual assault convictions
+  Past convictions or other reasons for a PPO
 fields:
   - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
     datatype: yesnoradio
@@ -3011,16 +3024,91 @@ fields:
       variable: fears_future_sexual_assault
       is: True
   - note: |
-        We're sorry, but you may not use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
+        We're sorry, you cannot use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
 
-        There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Return to the Michigan Legal Help website and read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn if there is a different kind of protection order for you.
+        There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn more.
 
-        If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, you can return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+        If you made a mistake:
+        
+        * change your answer above, or
+        * start over and choose a different PPO type.
+        
+        Otherwise, return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
     show if:
       variable: fears_future_sexual_assault
       is: False
 validation code: |
   if not respondent_sexual_assault_conviction and not fears_future_sexual_assault:
+    validation_error("You can't continue unless one of these things is true.")
+---
+id: respondent sexual assault basis, minor petitioner
+if: petitioner_is_minor
+question: |
+  Past convictions or other reasons for a PPO
+fields:
+  - Was ${ other_parties[0].name } convicted of sexual assault against you?: respondent_sexual_assault_conviction
+    datatype: yesnoradio
+  - note: |
+      Make sure you add information about this conviction.
+    show if:
+      variable: respondent_sexual_assault_conviction
+      is: True
+  - Was ${ other_parties[0].name } convicted of giving obscene material to you?: obscene_material_conviction
+    datatype: yesnoradio
+    show if: 
+      variable: respondent_sexual_assault_conviction
+      is: False
+  - note: |
+      Make sure you add information about this conviction.
+    show if:
+      variable: obscene_material_conviction
+      is: True
+  - Do you fear that you could be sexually assaulted because ${ other_parties[0].name } has sexually assaulted you or threatened you with sexual assault?: fears_future_sexual_assault
+    datatype: yesnoradio
+    show if: 
+      variable: obscene_material_conviction
+      is: False
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+    input type: area
+    show if:
+      variable: fears_future_sexual_assault
+      is: True
+  - Did ${ other_parties[0].name } give you obscene material?: obscene_material_provided
+    datatype: yesnoradio
+    show if: 
+      variable: fears_future_sexual_assault
+      is: False
+  - Please explain what happened: obscene_material_exp
+    input type: area
+    show if:
+      variable: obscene_material_provided
+      is: True
+  - note: |
+      ${ collapse_template(fears_future_sexual_assault_explained) }
+    show if:
+      variable: fears_future_sexual_assault
+      is: True
+  - note: |
+      ${ collapse_template(fears_future_sexual_assault_explained) }
+    show if:
+      variable: obscene_material_provided
+      is: True
+  - note: |
+        We're sorry, you cannot use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
+
+        There are different forms available if you need protection from someone who is stalking or harassing you, or from someone with whom you have or had a domestic relationship. Read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn more.
+
+        If you made a mistake:
+        
+        * change your answer above, or
+        * start over and choose a different PPO type.
+        
+        Otherwise, return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal information or resources.
+    show if:
+      variable: obscene_material_provided
+      is: False
+validation code: |
+  if not respondent_sexual_assault_conviction and not obscene_material_conviction and not fears_future_sexual_assault and not obscene_material_provided:
     validation_error("You can't continue unless one of these things is true.")
 ---
 template: fears_future_sexual_assault_explained
@@ -3032,16 +3120,24 @@ content: |
   If you have any documents you want to show the judge, such as police reports, medical records, photos, copies of letters, texts, or email messages, you can attach copies to your petition. However, this is not necessary. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
 undefine:
-  - sexual_assault_conviction_required
+  - conviction_required
 code: |
   reset_SA_convictions_check = True
 ---
-id: sexual assault conviction required warning
-continue button field: sexual_assault_conviction_required
+id: conviction required warning
+continue button field: conviction_required
 question: |
+  % if respondent_sexual_assault_conviction:
   You must list ${ other_parties[0].name }'s conviction for sexual assault
+  % else:
+  You must list ${ other_parties[0].name }'s obscene material conviction
+  % endif
 subquestion: |
+  % if respondent_sexual_assault_conviction:
   You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments. 
+  % else:
+  You said ${ other_parties[0].name } was convicted of giving you obscene material. You **must include this conviction** in your list of Court Orders and Judgments. 
+  % endif
 
   % if len(orders_judgments.complete_elements()) > 0:
   ${ collapse_template(orders_judgments_list_template) }
@@ -3053,7 +3149,7 @@ subquestion: |
   % endif
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction:
+  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction)):
     if len(orders_judgments.complete_elements()) < 1:
       minimum_convictions_explainer
       orders_judgments.gather(minimum=1)
@@ -3061,9 +3157,9 @@ code: |
   check_minimum_convictions_number = True
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction:
+  if ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction)):
     if len(orders_judgments.complete_elements()) >= 1:
-      sexual_assault_conviction_required
+      conviction_required
 
   SA_convictions_check = True
 ---
@@ -3078,7 +3174,11 @@ undefine:
 question: |
   You need to add a conviction
 subquestion: |
-  You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments. 
+  % if respondent_sexual_assault_conviction:
+  You said ${ other_parties[0].name } was convicted of sexual assault against you. You **must include this conviction** in your list of Court Orders and Judgments.
+  % else:
+  You said ${ other_parties[0].name } was convicted of giving you obscene material. You **must include this conviction** in your list of Court Orders and Judgments.
+  % endif
 continue button field: minimum_convictions_explainer
 ---
 template: stalking_harassing_explained
@@ -4442,7 +4542,7 @@ code: |
     cc_395_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or respondent_sexual_assault_conviction == False):
+  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or (not respondent_sexual_assault_conviction and ((not petitioner_is_minor or not obscene_material_conviction) and fears_future_sexual_assault) or (petitioner_is_minor and not obscene_material_conviction and obscene_material_provided))):
     cc_395_statement.enabled = True
   else:
     cc_395_statement.enabled = False
@@ -5478,12 +5578,24 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
+    - obscene_material_conviction: |
+        % if not respondent_sexual_assault_conviction and petitioner_is_minor:
+        ${ obscene_material_conviction }
+        % endif
     - fears_future_sexual_assault: |
-        % if not respondent_sexual_assault_conviction:
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction):
         ${ fears_future_sexual_assault }
         % endif
     - potential_sexual_assault_see_attached: |
-        % if not respondent_sexual_assault_conviction:
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction) and fears_future_sexual_assault:
+        Please see attached "Statement of Facts".
+        % endif
+    - obscene_material_provided: |
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction:
+        ${ obscene_material_provided }
+        % endif
+    - obscene_material_see_attached: |
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction and obscene_material_provided:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
@@ -5599,12 +5711,24 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - has_next_friend_petitioning: ${ has_next_friend_petitioning }
     - respondent_sexual_assault_conviction: ${ respondent_sexual_assault_conviction }
+    - obscene_material_conviction: |
+        % if not respondent_sexual_assault_conviction and petitioner_is_minor:
+        ${ obscene_material_conviction }
+        % endif
     - fears_future_sexual_assault: |
-        % if not respondent_sexual_assault_conviction:
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction):
         ${ fears_future_sexual_assault }
         % endif
     - potential_sexual_assault_see_attached: |
-        % if not respondent_sexual_assault_conviction:
+        % if not respondent_sexual_assault_conviction and (not petitioner_is_minor or not obscene_material_conviction) and fears_future_sexual_assault:
+        Please see attached "Statement of Facts".
+        % endif
+    - obscene_material_provided: |
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction:
+        ${ obscene_material_provided }
+        % endif
+    - obscene_material_see_attached: |
+        % if not respondent_sexual_assault_conviction and not fears_future_sexual_assault and petitioner_is_minor and not obscene_material_conviction and obscene_material_provided:
         Please see attached "Statement of Facts".
         % endif
     - wants_no_sexual_assault_threatening_others: ${ wants_no_sexual_assault_threatening_others }
