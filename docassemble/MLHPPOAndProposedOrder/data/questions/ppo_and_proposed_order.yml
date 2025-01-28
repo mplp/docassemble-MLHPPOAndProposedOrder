@@ -860,7 +860,7 @@ code: |
   if ppo_type == "domestic":
     if petitioner_respondent_relationship['have_child']:
       children[i].lives_with
-      if not children[i].parties_married_when_born:
+      if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
         children[i].paternity
       if i < 1:
         if children[i].has_order_in_effect:
@@ -1376,6 +1376,49 @@ fields:
   - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?: children[i].parties_married_when_born
     datatype: yesnoradio
     label above field: True
+  - Did you and ${ other_parties[0] } **adopt ${ children[i].familiar() } together**? Only answer yes if neither of you gave birth to the child and you both adopted.: children[i].unmarried_adoption
+    datatype: yesnoradio
+    show if: 
+      variable: children[i].parties_married_when_born
+      is: False
+  - Case number: children[i].adoption_case_number
+    show if: 
+      variable: children[i].unmarried_adoption
+      is: True
+  - Name of Court: children[i].adoption_case_court
+    show if: 
+      variable: children[i].unmarried_adoption
+      is: True
+  - Select the answer that applies to you: children[i].married_parents_detail
+    datatype: radio
+    choices:
+      - ${ other_parties[0] } and I are both biological parents of ${ children[i].familiar() }.: marital_child
+      - ${ other_parties[0] } and I both adopted ${ children[i].familiar() }.: married_adoption
+      - Other: conceived_outside_marriage
+    show if: 
+      variable: children[i].parties_married_when_born
+      is: True
+  - Case number: children[i].adoption_case_number
+    show if: 
+      variable: children[i].married_parents_detail
+      is: married_adoption
+  - Name of Court: children[i].adoption_case_court
+    show if: 
+      variable: children[i].married_parents_detail
+      is: married_adoption
+  - Which one applies to you?: how_conceived
+    datatype: radio
+    choices:
+      - ${ other_parties[0] } or I conceived the child through assisted reproductive technology.: assisted
+      - ${ other_parties[0] } or I conceived the child through sex with someone who was not the other spouse.: extramarital
+    show if:
+      variable: children[i].married_parents_detail
+      is: conceived_outside_marriage
+  - note: |
+      In Michigan, when a married person gives birth to a child, that person's spouse is automatically the other legal parent. If a third party is the other biological parent, that third party does not have any legal rights of parentage unless a judge signs a court order revoking the parentage of the spouse and steps are taken to establish the legal parentage of the third party. If you want to learn more, visit [Revoking Paternity](https://michiganlegalhelp.org/resources/revoking-paternity). 
+    show if:
+      variable: how_conceived
+      is: extramarital
 ---
 id: custody or parenting time order
 question: |
@@ -2572,29 +2615,50 @@ fields:
 ---
 id: child paternity
 question: |
-  ${ children[i] }'s paternity/legal parentage
+  ${ children[i] }'s legal parent(s)
 subquestion: |
-  ${ children[i].familiar() }'s mother (or the parent who gave birth to ${ children[i].familiar() }) is their legal parent. ${ children[i].familiar() }'s father (or the second parent) may also be their legal parent if paternity/parentage was established.
+  ${ children[i].familiar() }'s mother (or the parent who gave birth to ${ children[i].familiar() }) is their legal parent. ${ children[i].familiar() }'s father (or second parent) is also their legal parent if paternity/parentage was established.
 fields:
   - Has the father's (or second parent's) paternity/parentage been legally established?: children[i].paternity
     datatype: radio
     choices:
-      - "Yes, in Michigan": MI_paternity
-      - "Yes, in another state or country": out_of_state
-      - A Michigan paternity/parentage case has been filed and is pending (there is no court order yet): paternity_case_pending
+      - Yes: paternity_established
+      - A paternity/parentage or adoption case has been filed and is pending. (There is no court order yet.): paternity_pending
       - "No, paternity/parentage has not been established.": paternity_not_established
-  - State or country where paternity/parentage was established: children[i].state_of_paternity
+  - Where was paternity/parentage established?: paternity_established_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
     show if:
       variable: children[i].paternity
-      is: out_of_state
-  - Case number of the paternity/parentage case.: children[i].paternity_case_number
-    show if: 
+      is: paternity_established
+  - Where was the case filed?: paternity_pending_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
+    show if:
       variable: children[i].paternity
-      is: paternity_case_pending
+      is: paternity_pending
+  - State or country where paternity/parentage was established: children[i].state_of_paternity
+    show if:
+      variable: paternity_established_where
+      is: out_of_state
+  - State or country where paternity/parentage is pending: children[i].state_of_paternity
+    show if:
+      variable: paternity_pending_where
+      is: out_of_state
+  - Case number: children[i].paternity_case_number
+    show if: 
+      variable: paternity_pending_where
+      is: Michigan
   - Name of Court: children[i].paternity_case_court_name
     show if: 
-      variable: children[i].paternity
-      is: paternity_case_pending
+      variable: paternity_pending_where
+      is: Michigan
   - Who is ${ children[i] }'s legal parent?: children[i].legal_parent
     datatype: radio
     choices:
@@ -2610,14 +2674,14 @@ fields:
       is: paternity_not_established
   - "Paternity/parentage of ${ children[i].familiar() } was established by:": children[i].paternity_how
     show if:
-      variable: children[i].paternity
-      is: MI_paternity
+      variable: paternity_established_where
+      is: Michigan
     datatype: radio
     choices:
-      - an "*Acknowledgment of Parentage*" (also called an "Affidavit of Parentage"): by_acknowledgment_of_parentage
+      - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
       - a court order ("*Order of Filiation*"): by_court_order
-      - "a second parent adoption or other adoption (example: confirmatory adoption)": by_adoption
-  - Case number of the paternity/parentage case.: children[i].paternity_case_number
+      - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
+  - Case number: children[i].paternity_case_number
     show if:
       variable: children[i].paternity_how
       is: by_court_order
@@ -2625,7 +2689,7 @@ fields:
     show if:
       variable: children[i].paternity_how
       is: by_court_order
-  - Case number of the adoption case: children[i].adoption_case_number
+  - Case number: children[i].adoption_case_number
     show if: 
       variable: children[i].paternity_how
       is: by_adoption
