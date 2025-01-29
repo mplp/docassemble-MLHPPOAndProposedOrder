@@ -63,7 +63,9 @@ content: |
 objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - user_alias: ALPeopleList.using(complete_attribute="complete")
+  - user_alias_list: DAList.using(auto_gather=False)
   - other_party_alias: ALPeopleList.using(complete_attribute="complete")
+  - other_party_alias_list: DAList.using(auto_gather=False)
   - next_friends: ALPeopleList.using(complete_attribute="complete")
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
@@ -179,6 +181,7 @@ code: |
         user_alias.gather()
     if county_choice == "Oakland" and ppo_type == "domestic":
       user.gender
+  check_user_alias_list
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
@@ -197,6 +200,7 @@ code: |
   if county_choice == "Oakland":
     if other_party_alias.there_are_any:
       other_party_alias.gather()
+  check_other_party_alias_list
 
   if respondent_is_minor:
     if (not respondent_is_emancipated_minor):
@@ -580,21 +584,55 @@ code: |
 
   if wants_no_harming_petitioner:
     if users[0] not in ppo_harm_protectees_list_temp:
-      ppo_harm_protectees_list_temp.append(users[0])
+      ppo_harm_protectees_list_temp.append(users[0].name_full())
   else:
     if users[0] in ppo_harm_protectees_list_temp:
-      ppo_harm_protectees_list_temp.remove(users[0])
+      ppo_harm_protectees_list_temp.remove(users[0].name_full())
 
   if ppo_harm_protectees.there_are_any:
     for protectee in ppo_harm_protectees:
       if protectee not in ppo_harm_protectees_list_temp:
-        ppo_harm_protectees_list_temp.append(protectee)
+        ppo_harm_protectees_list_temp.append(protectee.name_full())
   
   ppo_harm_protectees_list.clear()
 
   ppo_harm_protectees_list = DAList(elements=ppo_harm_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_harm_protectees_list = True
+---
+code: |
+  if defined('user_alias_list_temp'):
+    user_alias_list_temp.clear()
+  else:
+    user_alias_list_temp = []
+
+  if user_alias.there_are_any:
+    for alias in user_alias:
+      if alias not in user_alias_list_temp:
+        user_alias_list_temp.append(alias.name_full())
+  
+  user_alias_list.clear()
+
+  user_alias_list = DAList(elements=user_alias_list_temp, auto_gather=False, gathered=True)
+
+  check_user_alias_list = True
+---
+code: |
+  if defined('other_party_alias_list_temp'):
+    other_party_alias_list_temp.clear()
+  else:
+    other_party_alias_list_temp = []
+
+  if other_party_alias.there_are_any:
+    for alias in other_party_alias:
+      if alias not in other_party_alias_list_temp:
+        other_party_alias_list_temp.append(alias.name_full())
+  
+  other_party_alias_list.clear()
+
+  other_party_alias_list = DAList(elements=other_party_alias_list_temp, auto_gather=False, gathered=True)
+
+  check_other_party_alias_list = True
 ---
 code: |
   if no_stalking_choices['following']:
@@ -662,15 +700,15 @@ code: |
 
   if wants_no_threatening_petitioner:
     if users[0] not in ppo_threat_protectees_list_temp:
-      ppo_threat_protectees_list_temp.append(users[0])
+      ppo_threat_protectees_list_temp.append(users[0].name_full())
   else:
     if users[0] in ppo_threat_protectees_list_temp:
-      ppo_threat_protectees_list_temp.remove(users[0])
+      ppo_threat_protectees_list_temp.remove(users[0].name_full())
 
   if ppo_threat_protectees.there_are_any:
     for protectee in ppo_threat_protectees:
       if protectee not in ppo_threat_protectees_list_temp:
-        ppo_threat_protectees_list_temp.append(protectee)
+        ppo_threat_protectees_list_temp.append(protectee.name_full())
   
   ppo_threat_protectees_list.clear()
   
@@ -686,15 +724,15 @@ code: |
 
   if wants_no_sexual_assault_threats:
     if users[0] not in ppo_sexual_assault_threat_protectees_list_temp:
-      ppo_sexual_assault_threat_protectees_list_temp.append(users[0])
+      ppo_sexual_assault_threat_protectees_list_temp.append(users[0].name_full())
   else:
     if users[0] in ppo_sexual_assault_threat_protectees_list_temp:
-      ppo_sexual_assault_threat_protectees_list_temp.remove(users[0])
+      ppo_sexual_assault_threat_protectees_list_temp.remove(users[0].name_full())
 
   if ppo_sexual_assault_threat_protectees.there_are_any:
     for protectee in ppo_sexual_assault_threat_protectees:
       if protectee not in ppo_sexual_assault_threat_protectees_list_temp: 
-        ppo_sexual_assault_threat_protectees_list_temp.append(protectee)
+        ppo_sexual_assault_threat_protectees_list_temp.append(protectee.name_full())
 
   ppo_sexual_assault_threat_protectees_list.clear()
   
@@ -1550,7 +1588,7 @@ subquestion: |
 
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
-  - Describe your relationship with ${ other_parties[0] }:: relationship_to_respondent_exp
+  - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
     datatype: area
 ---
 id: petitioner alias there_are_any
