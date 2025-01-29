@@ -2625,7 +2625,7 @@ fields:
       - Yes: paternity_established
       - A paternity/parentage or adoption case has been filed and is pending. (There is no court order yet.): paternity_pending
       - "No, paternity/parentage has not been established.": paternity_not_established
-  - Where was paternity/parentage established?: paternity_established_where
+  - Where was paternity/parentage established?: children[i].paternity_established_where
     label above field: False
     datatype: radio
     choices:
@@ -2634,7 +2634,7 @@ fields:
     show if:
       variable: children[i].paternity
       is: paternity_established
-  - Where was the case filed?: paternity_pending_where
+  - Where was the case filed?: children[i].paternity_pending_where
     label above field: False
     datatype: radio
     choices:
@@ -2642,22 +2642,22 @@ fields:
       - In another state or country: out_of_state
     show if:
       variable: children[i].paternity
-      is: paternity_pending
+      is: children[i].paternity_pending
   - State or country where paternity/parentage was established: children[i].state_of_paternity
     show if:
-      variable: paternity_established_where
+      variable: children[i].paternity_established_where
       is: out_of_state
   - State or country where paternity/parentage is pending: children[i].state_of_paternity
     show if:
-      variable: paternity_pending_where
+      variable: children[i].paternity_pending_where
       is: out_of_state
   - Case number: children[i].paternity_case_number
     show if: 
-      variable: paternity_pending_where
+      variable: children[i].paternity_pending_where
       is: Michigan
   - Name of Court: children[i].paternity_case_court_name
     show if: 
-      variable: paternity_pending_where
+      variable: children[i].paternity_pending_where
       is: Michigan
   - Who is ${ children[i] }'s legal parent?: children[i].legal_parent
     datatype: radio
@@ -2674,7 +2674,7 @@ fields:
       is: paternity_not_established
   - "Paternity/parentage of ${ children[i].familiar() } was established by:": children[i].paternity_how
     show if:
-      variable: paternity_established_where
+      variable: children[i].paternity_established_where
       is: Michigan
     datatype: radio
     choices:

@@ -220,25 +220,48 @@ review:
     button: |-
       % for item in children:
 
-        **${ item }**
-
-        DOB: ${ item.birthdate }
-        % if item.lives_with:
+        **${ item }**, DOB: ${ item.birthdate }
 
         Lives with: ${ item.lives_with }
-        % endif
         % if item.parties_married_when_born:
-
-        Paternity established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born
-        % elif (not item.parties_married_when_born) and item.paternity == "by_court_order":
-
-        Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
-        % elif (not item.parties_married_when_born) and item.paternity == "by_acknowledgment_of_parentage":
+        % if item.married_parents_detail == "marital_child" or item.married_parents_detail == "conceived_outside_marriage" :
         
-        Paternity established by *Acknowledgment of Parentage*
-        % elif (not item.parties_married_when_born) and item.paternity == "paternity_case_pending":
-        
-        Paternity case still pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        Parentage established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born.
+        % elif item.married_parents_detail == "married_adoption":
+
+        ${ users[0] } and ${ other_parties[0] adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        % endif
+        % elif item.unmarried_adoption:
+      
+        ${ users[0] } and ${ other_parties[0] adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        % elif item.paternity == "paternity_established" and item.paternity_established_where == "Michigan":
+        % if item.paternity_how == "by_acknowledgment_of_parentage":
+
+        Parentage established in Michigan by *Acknowledgment of Parentage*
+        % elif item.paternity_how == "by_court_order":
+      
+        Parentage established by Michigan court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif item.paternity_how == "by_adoption":
+
+        Parentage established by adoption. Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        % endif
+        % elif item.paternity == "paternity_established" and item.paternity_established_where == "out_of_state":
+
+        Partentage was was established in: children[i].state_of_paternity
+        % elif item.paternity == "paternity_pending" and item.paternity_pending_where == "Michigan":
+
+        Michigan Parentage case pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif item.paternity == "paternity_pending" and item.paternity_pending_where == "out_of_state":
+
+        Parentage case pending in: item.state_of_paternity
+        % elif item.paternity == "paternity_not_established":
+        % if children[i].legal_parent == "petitioner":
+
+        **${ users[0] }** is ${ children[i] }'s legal parent. ${ other_parties[0] } is not a legal parent.
+        % else:
+
+        **${ other_parties[0] }** is ${ children[i] }'s legal parent. ${ users[0] } is not a legal parent.
+        % endif
         % endif
         % if item.has_order_in_effect:
 
