@@ -221,85 +221,54 @@ review:
       % for item in children:
 
         **${ item }**, DOB: ${ item.birthdate }
+        % if item.lives_with == "petitioner":
 
-        Lives with: ${ item.lives_with }
+        * Lives with: ${ users[0] }
+        % elif item.lives_with == "respondent":
+
+        * Lives with: ${ other_parties[0] }
+        % elif item.lives_with == "someone_else":
+
+        * Lives with: Someone other than ${ users[0] } or ${ other_parties[0] }.
+        % endif
         % if item.parties_married_when_born:
         % if item.married_parents_detail == "marital_child" or item.married_parents_detail == "conceived_outside_marriage" :
         
-        Parentage established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born.
+        * Parentage established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born.
         % elif item.married_parents_detail == "married_adoption":
 
-        ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        * ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
         % endif
         % elif item.unmarried_adoption:
       
-        ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        * ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
         % elif item.paternity == "paternity_established" and item.paternity_established_where == "Michigan":
         % if item.paternity_how == "by_acknowledgment_of_parentage":
 
-        Parentage established in Michigan by *Acknowledgment of Parentage*
+        * Parentage established in Michigan by *Acknowledgment of Parentage*
         % elif item.paternity_how == "by_court_order":
       
-        Parentage established by Michigan court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        * Parentage established by Michigan court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
         % elif item.paternity_how == "by_adoption":
 
-        Parentage established by adoption. Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        * Parentage established by adoption. Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
         % endif
         % elif item.paternity == "paternity_established" and item.paternity_established_where == "out_of_state":
 
-        Partentage was was established in: children[i].state_of_paternity
+        * Partentage was was established in: ${ item.state_of_paternity }
         % elif item.paternity == "paternity_pending" and item.paternity_pending_where == "Michigan":
 
-        Michigan Parentage case pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        * Michigan Parentage case pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
         % elif item.paternity == "paternity_pending" and item.paternity_pending_where == "out_of_state":
 
-        Parentage case pending in: item.state_of_paternity
+        * Parentage case pending in: item.state_of_paternity
         % elif item.paternity == "paternity_not_established":
-        % if children[i].legal_parent == "petitioner":
+        % if item.legal_parent == "petitioner":
 
-        **${ users[0] }** is ${ children[i] }'s legal parent. ${ other_parties[0] } is not a legal parent.
+        * ${ users[0] } is ${ item.familiar() }'s legal parent. ${ other_parties[0] } is not a legal parent.
         % else:
 
-        **${ other_parties[0] }** is ${ children[i] }'s legal parent. ${ users[0] } is not a legal parent.
-        % endif
-        % endif
-        % if item.has_order_in_effect:
-
-        Custody/parenting time order in effect (Case \#${ item.custody_case_number } - ${ item.custody_case_court })
-        % if item.parenting_time_order == "reasonable_parenting_time":
-
-        Parenting time order only says there will be "reasonable parenting time"
-        % elif item.parenting_time_order == "specific_times":
-
-        Parenting time order lists specific days and times
-        % elif item.parenting_time_order == "one_parent_supervised":
-
-        Parenting time order says ${ users[0] if item.who_has_supervised_time == "petitioner" else other_parties[0] } will be supervised by ${ item.who_supervises_parenting_time }
-        % elif item.parenting_time_order == "one_parent_no_parenting_time":
-
-        Parenting time order says ${ users[0] if item.parent_without_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
-        % endif
-        % if item.physical_custody_by_order == 'sole_petitioner':
-
-        Custody: ${ users[0] } has sole custody
-        % elif item.physical_custody_by_order == 'sole_respondent':
-
-        Custody: ${ other_parties[0] } has sole custody
-        % elif item.physical_custody_by_order == 'joint_custody':
-
-        Custody: ${ users[0] } and ${ other_parties[0] } share custody
-        % endif
-        % if not custody_parenting_time_provisions_same:
-        % if item.desired_parenting_time_changes == "no_change":
-
-        Desired parenting time changes: None
-        % elif item.desired_parenting_time_changes == "no_change_except_exchange":
-
-        Desired parenting time change: No change to parenting time, but exchange should take place at ${ item.exchange_police_department_location if item.exchange_location == "police" else item.exchange_other_location }
-        % elif item.desired_parenting_time_changes == "suspend_respondent_time":
-
-        Desired parenting time change: ${ other_parties }'s parenting time should be suspended
-        % endif
+        * ${ other_parties[0] } is ${ item.familiar() }'s legal parent. ${ users[0] } is not a legal parent.
         % endif
         % endif
 
@@ -963,7 +932,7 @@ edit:
   - name.first
   - lives_with
   - parties_married_when_born
-  - has_order_in_effect
+  - paternity
 confirm: True
 ---
 table: petitioner_other_children.table

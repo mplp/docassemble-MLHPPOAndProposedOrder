@@ -889,6 +889,13 @@ code: |
   children[i].complete = True
 ---
 code: |
+  children[i].lives_with
+  if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
+    children[i].paternity
+
+  children[i].reset_parentage_and_home = True
+---
+code: |
   petitioner_other_children[i].name.first
   if petitioner_other_children[i].knows_other_child_birthdate:
     petitioner_other_children[i].birthdate
@@ -2613,6 +2620,7 @@ fields:
     - Me: petitioner
     - ${ other_parties[0] }: respondent
 ---
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption
 id: child paternity
 question: |
   ${ children[i] }'s legal parent(s)
@@ -2642,7 +2650,7 @@ fields:
       - In another state or country: out_of_state
     show if:
       variable: children[i].paternity
-      is: children[i].paternity_pending
+      is: paternity_pending
   - State or country where paternity/parentage was established: children[i].state_of_paternity
     show if:
       variable: children[i].paternity_established_where
