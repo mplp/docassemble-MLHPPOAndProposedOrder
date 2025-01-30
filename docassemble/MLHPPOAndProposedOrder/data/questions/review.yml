@@ -229,11 +229,11 @@ review:
         Parentage established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born.
         % elif item.married_parents_detail == "married_adoption":
 
-        ${ users[0] } and ${ other_parties[0] adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
         % endif
         % elif item.unmarried_adoption:
       
-        ${ users[0] } and ${ other_parties[0] adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
         % elif item.paternity == "paternity_established" and item.paternity_established_where == "Michigan":
         % if item.paternity_how == "by_acknowledgment_of_parentage":
 

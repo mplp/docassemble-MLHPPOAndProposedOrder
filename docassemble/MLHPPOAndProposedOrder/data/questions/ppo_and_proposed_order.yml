@@ -1406,7 +1406,7 @@ fields:
     show if: 
       variable: children[i].married_parents_detail
       is: married_adoption
-  - Which one applies to you?: how_conceived
+  - Which one applies to you?: children[i].how_conceived
     datatype: radio
     choices:
       - ${ other_parties[0] } or I conceived the child through assisted reproductive technology.: assisted
@@ -1417,7 +1417,7 @@ fields:
   - note: |
       In Michigan, when a married person gives birth to a child, that person's spouse is automatically the other legal parent. If a third party is the other biological parent, that third party does not have any legal rights of parentage unless a judge signs a court order revoking the parentage of the spouse and steps are taken to establish the legal parentage of the third party. If you want to learn more, visit [Revoking Paternity](https://michiganlegalhelp.org/resources/revoking-paternity). 
     show if:
-      variable: how_conceived
+      variable: children[i].how_conceived
       is: extramarital
 ---
 id: custody or parenting time order
