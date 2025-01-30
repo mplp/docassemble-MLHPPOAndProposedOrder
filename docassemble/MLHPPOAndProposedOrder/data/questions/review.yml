@@ -273,6 +273,90 @@ review:
         % endif
 
       % endfor
+  - Edit: 
+      - custody_parenting_time_provisions_same
+      - desired_parenting_time_changes
+      - follow up:
+        - exchange_location
+      - recompute:
+          - reset_custody_order_info
+    button: |-
+      **Custody and Parenting Time**
+      % if children.target_number == 1 or custody_parenting_time_provisions_same:
+      % if children[0].has_order_in_effect:
+
+      Custody/parenting time order in effect (Case \#${ children[0].custody_case_number } - ${ children[0].custody_case_court })
+      % if children[0].parenting_time_order == "reasonable_parenting_time":
+      
+      * Parenting time order says there will be "reasonable parenting time"
+      % elif children[0].parenting_time_order == "specific_times":
+      
+      * Parenting time order lists specific days and times
+      % elif children[0].parenting_time_order == "one_parent_supervised":
+      
+      * Parenting time order says ${ users[0] if children[0].who_has_supervised_time == "petitioner" else other_parties[0] } will be supervised by ${ children[0].who_supervises_parenting_time }
+      % elif children[0].parenting_time_order == "one_parent_no_parenting_time":
+      
+      * Parenting time order says ${ users[0] if children[0].parent_without_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
+      % endif
+      % if children[0].physical_custody_by_order == 'sole_petitioner':
+      * Custody: ${ users[0] } has sole custody
+      % elif children[0].physical_custody_by_order == 'sole_respondent':
+      * Custody: ${ other_parties[0] } has sole custody
+      % elif children[0].physical_custody_by_order == 'joint_custody':
+      * Custody: ${ users[0] } and ${ other_parties[0] } share custody
+      % endif
+      % else:
+
+      There is no custody/parenting time order in place.
+
+      % endif
+      % elif children.target_number > 1 and not custody_parenting_time_provisions_same:
+      % for item in children:
+        % if item.has_order_in_effect:
+
+        There is a custody/parenting time order for **${ item.familiar() }** (Case \#${ item.custody_case_number } - ${ item.custody_case_court })
+        % if item.parenting_time_order == "reasonable_parenting_time":
+
+        * Parenting time order only says there will be "reasonable parenting time"
+        % elif item.parenting_time_order == "specific_times":
+
+        * Parenting time order lists specific days and times
+        % elif item.parenting_time_order == "one_parent_supervised":
+
+        * Parenting time order says ${ users[0] if item.who_has_supervised_time == "petitioner" else other_parties[0] } will be supervised by ${ item.who_supervises_parenting_time }
+        % elif item.parenting_time_order == "one_parent_no_parenting_time":
+
+        * Parenting time order says ${ users[0] if item.parent_without_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
+        % endif
+        % if item.physical_custody_by_order == 'sole_petitioner':
+
+        * Custody: ${ users[0] } has sole custody
+        % elif item.physical_custody_by_order == 'sole_respondent':
+
+        * Custody: ${ other_parties[0] } has sole custody
+        % elif item.physical_custody_by_order == 'joint_custody':
+
+        * Custody: ${ users[0] } and ${ other_parties[0] } share custody
+        % endif
+        % else:
+
+        There is no custody/parenting time order for **${ item.familiar() }**
+        % endif
+      % endfor 
+      % endif
+
+      **Desired Parenting Time Changes**
+      % if desired_parenting_time_changes == "no_change":
+      
+      You don't want parenting time changes.
+      % elif desired_parenting_time_changes == "no_change_except_exchange":
+      
+      You want parenting time to stay the same. But you want the exchange to take place at ${ exchange_police_department_location if exchange_location == "police" else exchange_other_location }
+      % elif desired_parenting_time_changes == "suspend_respondent_time":
+      
+      You want ${ other_parties }'s parenting time to be suspended
+      % endif
   - note: |
       % if defined('petitioner_has_other_children'):
       <hr>
@@ -933,6 +1017,7 @@ edit:
   - lives_with
   - parties_married_when_born
   - paternity
+  - custody_parenting_time_provisions_same
 confirm: True
 ---
 table: petitioner_other_children.table

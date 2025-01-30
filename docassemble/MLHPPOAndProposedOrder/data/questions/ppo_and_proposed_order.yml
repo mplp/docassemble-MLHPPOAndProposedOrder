@@ -889,11 +889,30 @@ code: |
   children[i].complete = True
 ---
 code: |
-  children[i].lives_with
-  if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
-    children[i].paternity
+  if children.target_number > 1:
+    if not custody_parenting_time_provisions_same:
+      for child in children:
+        if child.has_order_in_effect:
+          child.custody_case_number
+          child.custody_case_court
+          child.physical_custody_by_order
+          if child.parenting_time_order == "one_parent_supervised":
+            child.who_has_supervised_time
+            child.who_supervises_parenting_time
+          elif child.parenting_time_order == "one_parent_no_parenting_time":
+            child.parent_without_parenting_time
+  if children.target_number == 1 or custody_parenting_time_provisions_same:
+    if children[0].has_order_in_effect:
+      children[0].custody_case_number
+      children[0].custody_case_court
+      children[0].physical_custody_by_order
+      if children[0].parenting_time_order == "one_parent_supervised":
+        children[0].who_has_supervised_time
+        children[0].who_supervises_parenting_time
+      elif children[0].parenting_time_order == "one_parent_no_parenting_time":
+        children[0].parent_without_parenting_time
 
-  children[i].reset_parentage_and_home = True
+  reset_custody_order_info = True
 ---
 code: |
   petitioner_other_children[i].name.first
@@ -2571,6 +2590,7 @@ fields:
       - One of us does not have any parenting time with the child.: one_parent_no_parenting_time
 ---
 id: are custody and parenting time same for all children
+if: children.target_number > 1
 question: |
   Provisions for other children
 fields:
@@ -2578,6 +2598,7 @@ fields:
     datatype: yesnoradio
     label above field: True
 ---
+if: desired_parenting_time_changes == "no_change_except_exchange"
 id: parenting time exchange location for all children
 question: |
   Location of parenting time exchanges
