@@ -88,6 +88,7 @@ objects:
 id: interview_order_ppo_and_proposed_order
 mandatory: True
 code: |
+  enable_custody_review_screen
   snapshot_start
   nav.set_section('review_full')
   nav.set_section("signpost_intro")
@@ -857,62 +858,35 @@ code: |
 ---
 code: |
   children[i].name.first
-  if ppo_type == "domestic":
-    if petitioner_respondent_relationship['have_child']:
-      children[i].lives_with
-      if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
-        children[i].paternity
-      if i < 1:
-        if children[i].has_order_in_effect:
-          children[i].custody_case_number
-          children[i].custody_case_court
-          children[i].physical_custody_by_order
-          if children[i].parenting_time_order == "one_parent_supervised":
-            children[i].who_has_supervised_time
-            children[i].who_supervises_parenting_time
-          elif children[i].parenting_time_order == "one_parent_no_parenting_time":
-            children[i].parent_without_parenting_time
-        if children.target_number > 1:
-          custody_parenting_time_provisions_same
-      else:
-        if not custody_parenting_time_provisions_same:
-          if children[i].has_order_in_effect:
-            children[i].custody_case_number
-            children[i].custody_case_court
-            children[i].physical_custody_by_order
-            if children[i].parenting_time_order == "one_parent_supervised":
-              children[i].who_has_supervised_time
-              children[i].who_supervises_parenting_time
-            elif children[i].parenting_time_order == "one_parent_no_parenting_time":
-              children[i].parent_without_parenting_time
+  children[i].lives_with
+  if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
+    children[i].paternity
+  if i < 1:
+    if children[i].has_order_in_effect:
+      children[i].custody_case_number
+      children[i].physical_custody_by_order
+      if children[i].parenting_time_order == "one_parent_supervised":
+        children[i].who_has_supervised_time
+      elif children[i].parenting_time_order == "one_parent_no_parenting_time":
+        children[i].parent_without_parenting_time
+    if children.target_number > 1:
+      custody_parenting_time_provisions_same
+  else:
+    if not custody_parenting_time_provisions_same:
+      if children[i].has_order_in_effect:
+        children[i].custody_case_number
+        children[i].physical_custody_by_order
+        if children[i].parenting_time_order == "one_parent_supervised":
+          children[i].who_has_supervised_time
+        elif children[i].parenting_time_order == "one_parent_no_parenting_time":
+          children[i].parent_without_parenting_time
   
   children[i].complete = True
 ---
 code: |
-  if children.target_number > 1:
-    if not custody_parenting_time_provisions_same:
-      for child in children:
-        if child.has_order_in_effect:
-          child.custody_case_number
-          child.custody_case_court
-          child.physical_custody_by_order
-          if child.parenting_time_order == "one_parent_supervised":
-            child.who_has_supervised_time
-            child.who_supervises_parenting_time
-          elif child.parenting_time_order == "one_parent_no_parenting_time":
-            child.parent_without_parenting_time
-  if children.target_number == 1 or custody_parenting_time_provisions_same:
-    if children[0].has_order_in_effect:
-      children[0].custody_case_number
-      children[0].custody_case_court
-      children[0].physical_custody_by_order
-      if children[0].parenting_time_order == "one_parent_supervised":
-        children[0].who_has_supervised_time
-        children[0].who_supervises_parenting_time
-      elif children[0].parenting_time_order == "one_parent_no_parenting_time":
-        children[0].parent_without_parenting_time
-
-  reset_custody_order_info = True
+  special_custody_review_screen
+  
+  enable_custody_review_screen = True
 ---
 code: |
   petitioner_other_children[i].name.first
@@ -2555,6 +2529,7 @@ fields:
     label above field: True
 ---
 id: custody and parenting time order
+if: children[i].has_order_in_effect
 question: |
   Custody and parenting time order for ${ children[i] }
 subquestion: |
@@ -2567,6 +2542,7 @@ fields:
     label above field: True
 ---
 id: who has physical custody
+if: children[i].has_order_in_effect
 question: |
   Who has physical custody over ${ children[i] }?
 fields:
@@ -2578,6 +2554,7 @@ fields:
       - I and ${ other_parties[0] } have joint physical custody: joint_custody
 ---
 id: what does the court order say about parenting time
+if: children[i].has_order_in_effect
 question: |
   What does the court order for ${ children[i] } say about parenting time?
 fields:
@@ -2621,6 +2598,7 @@ fields:
     label above field: True
 ---
 id: who has supervised parenting time
+if: children[i].has_order_in_effect and children[i].parenting_time_order == "one_parent_supervised"
 question: |
   Supervised parenting time for ${ children[i] }
 fields:
@@ -2632,6 +2610,7 @@ fields:
   - Who is parenting time supervised by: children[i].who_supervises_parenting_time
 ---
 id: who does not have parenting time
+if: children[i].has_order_in_effect and children[i].parenting_time_order == "one_parent_no_parenting_time"
 question: |
   Supervised parenting time for ${ children[i] }
 fields:
