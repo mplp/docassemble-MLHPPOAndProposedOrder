@@ -88,7 +88,6 @@ objects:
 id: interview_order_ppo_and_proposed_order
 mandatory: True
 code: |
-  enable_custody_review_screen
   snapshot_start
   nav.set_section('review_full')
   nav.set_section("signpost_intro")
@@ -205,6 +204,7 @@ code: |
       if has_minor_children_in_common:
         common_children_kickout
     else:
+      enable_custody_review_screen
       domestic_ppo_children_intro
       if petitioner_respondent_relationship['have_child']:
         children.target_number
@@ -884,7 +884,21 @@ code: |
   children[i].complete = True
 ---
 code: |
-  special_custody_review_screen
+  if children.target_number > 1 and not custody_parenting_time_provisions_same:
+    for child in children:
+      if child.has_order_in_effect:
+        child.custody_case_number
+        child.physical_custody_by_order
+        if child.parenting_time_order == "one_parent_supervised":
+          child.who_has_supervised_time
+        elif child.parenting_time_order == "one_parent_no_parenting_time":
+          child.parent_without_parenting_time
+      
+  gather_other_custody_info = True
+---
+only sets: enable_custody_review_screen
+code: |
+  special_custody_review_screen = True
   
   enable_custody_review_screen = True
 ---

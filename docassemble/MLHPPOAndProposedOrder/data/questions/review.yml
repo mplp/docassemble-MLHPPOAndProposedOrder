@@ -215,8 +215,9 @@ review:
       ${ word(yesno(respondent_lives_in_michigan)) }
   - raw html: |
       ${ next_accordion('<h2 class="h5">Children</h2>') }
-    show if: (len(children.complete_elements()) > 0) or (len(petitioner_other_children.complete_elements()) > 0) or (len(respondent_other_children.complete_elements()) > 0)
+    show if: county_choice == "Oakland" and ppo_type == "domestic"
   - Edit: children.revisit
+    show if: petitioner_respondent_have_child
     button: |-
       % for item in children:
 
@@ -274,7 +275,6 @@ review:
 
       % endfor
   - Edit: 
-      - custody_parenting_time_provisions_same
       - children[0].has_order_in_effect
       - follow up:
         - children[0].custody_case_number
@@ -282,10 +282,13 @@ review:
         - children[0].parenting_time_order
         - children[0].who_has_supervised_time
         - children[0].parent_without_parenting_time
+        - custody_parenting_time_provisions_same
+      - recompute:
+          - gather_other_custody_info
       - desired_parenting_time_changes
       - follow up:
         - exchange_location
-    show if: children.target_number == 1 or custody_parenting_time_provisions_same
+    show if: petitioner_respondent_have_child and (children.target_number == 1 or custody_parenting_time_provisions_same)
     button: |-
       **Custody and Parenting Time**
       % if children[0].has_order_in_effect:
@@ -333,7 +336,7 @@ review:
       - desired_parenting_time_changes
       - follow up:
         - exchange_location
-    show if: children.target_number > 1 and not custody_parenting_time_provisions_same
+    show if: petitioner_respondent_have_child and children.target_number > 1 and not custody_parenting_time_provisions_same
     button: |-
       **Custody and Parenting Time**
       % for item in children:
@@ -1043,15 +1046,6 @@ edit:
   - custody_parenting_time_provisions_same
 confirm: True
 ---
-id: children revisit
-question: |
-  Edit your answers about the children
-subquestion: |
-  ${ children.table }
-
-  ${ children.add_action() }
-continue button field: children.revisit
----
 table: petitioner_other_children.table
 rows: petitioner_other_children
 columns:
@@ -1170,7 +1164,6 @@ id: personal protection order review screen
 question: |
   Edit Current Custody and Parenting Time Information
 subquestion: |
-    - note: |
-        ${ children.edit_custody }
+  ${ children.edit_custody }
 continue button field: special_custody_review_screen
 ---
