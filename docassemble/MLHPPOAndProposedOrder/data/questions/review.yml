@@ -215,7 +215,7 @@ review:
       ${ word(yesno(respondent_lives_in_michigan)) }
   - raw html: |
       ${ next_accordion('<h2 class="h5">Children</h2>') }
-    show if: county_choice == "Oakland" and ppo_type == "domestic"
+    show if: (petitioner_respondent_have_child and (len(children.complete_elements()) > 0)) or defined('petitioner_has_other_children')
   - Edit: children.revisit
     show if: petitioner_respondent_have_child
     button: |-
