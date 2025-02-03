@@ -1083,49 +1083,6 @@ code: |
 
   check_parties_living_together = True
 ---
-code: |
-  if children[i].parties_married_when_born:
-    if parties_same_gender:
-      undefine('children[i].was_adopted')
-      undefine('children[i].adoption_case_number')
-      undefine('children[i].adoption_case_court')
-      undefine('children[i].legal_parent')
-  else:
-    if parties_same_gender:
-      if children[i].was_adopted:
-        undefine('children[i].legal_parent')
-      else:
-        undefine('children[i].adoption_case_number')
-        undefine('children[i].adoption_case_court')
-    else:
-      if not (children[i].paternity == "by_court_order" or children[i].paternity == "paternity_case_pending"):
-        undefine('children[i].paternity_case_number')
-        undefine('children[i].paternity_case_court_name')
-  if children[i].has_order_in_effect:
-    if children[i].parenting_time_order != "one_parent_supervised":
-      undefine('children[i].who_has_supervised_time')
-      undefine('children[i].who_supervises_parenting_time')
-    if children[i].parenting_time_order != "one_parent_no_parenting_time":
-      undefine('children[i].parent_without_parenting_time') 
-  else:
-    undefine('children[i].custody_case_number')
-    undefine('children[i].custody_case_court')
-    undefine('children[i].physical_custody_by_order')
-    undefine('children[i].parenting_time_order')
-    undefine('children[i].who_has_supervised_time')
-    undefine('children[i].who_supervises_parenting_time')
-    undefine('children[i].parent_without_parenting_time')
-
-  if i < 1:
-    if children[i].desired_parenting_time_changes != "no_change_except_exchange":
-      undefine('children[i].exchange_location')
-  else:
-    if not custody_parenting_time_provisions_same:
-      if children[i].desired_parenting_time_changes != "no_change_except_exchange":
-        undefine('children[i].exchange_location')  
-
-  children[i].reset_child_info = True
----
 #################### Overridden AL Questions Start #####################
 ---
 id: your name
