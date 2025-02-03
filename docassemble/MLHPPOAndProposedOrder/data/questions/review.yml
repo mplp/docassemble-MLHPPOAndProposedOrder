@@ -71,17 +71,11 @@ review:
 
       ${ word(yesno(petitioner_lives_in_michigan)) }
   - Edit: 
-      - next_friends.revisit
+      - next_friends[0].name.first
       - recompute:
         - reset_next_friend
     button: |-
-      % if len(next_friends.complete_elements()) > 0:
-      % for item in next_friends:
-      **Next Friend:**  ${ item }
-      % endfor
-      % else:
-      *You have not named anyone as your Next Friend yet.*
-      % endif
+      **Next Friend:**  ${ next_friends[0] }
     show if: next_friends.there_are_any
   - raw html: |
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
@@ -101,53 +95,83 @@ review:
         **Est. Age:** ${ item.estimated_age }[BR]
         (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
         % endif
-        % if item.race:
-
-        **Race:** ${ item.race }
-        % endif
-        % if item.gender:
-
-        **Gender:** ${ item.gender }
-        % endif
-        % if item.height:
-
-        **Height:** ${ item.height }
-        % endif
-        % if item.weight:
-
-        **Weight:** ${ item.weight }
-        % endif
-        % if item.hair_color:
-
-        **Hair Color:** ${ item.hair_color }
-        % endif
-        % if item.eye_color:
-
-        **Eye Color:** ${ item.eye_color }
-        % endif
-        % if item.license_number:
-
-        **License Number:** ${ item.license_number }
-        % endif
-        % if item.other_identifying_info:
-
-        **Other Identifying Info:** ${ item.other_identifying_info }
-        % endif
-        % if item.carries_gun_for_work == "unknown":
-
-        **Carries gun for work?:** Unknown
-        % elif item.carries_gun_for_work == "no":
-
-        **Carries gun for work?:** No
-        % elif item.carries_gun_for_work == "yes":
-
-        **Carries gun for work?:** Yes
-        % endif
 
         **Address:** ${ item.address.on_one_line() }
         
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: 
+      - other_parties[0].gender
+    button: |-
+      **What is the Respondent's gender?**
+      % if other_parties[0].gender == "M":
+
+      Male
+      % elif other_parties[0].gender == "F":
+
+      Female
+      % endif
+  - Edit: other_parties[0].race
+    button: |-
+      **What is the Respondent's race?**
+
+      ${ other_parties[0].race }
+  - Edit: other_parties[0].height_feet
+    button: |-
+      **What is the Respondent's height?**
+
+      ${ other_parties[0].height }
+  - Edit: other_parties[0].weight
+    button: |-
+      **What is the Respondent's weight?**
+
+      ${ other_parties[0].weight } lbs
+  - Edit: other_parties[0].hair_color
+    button: |-
+      **What is the Respondent's hair color?**
+
+      ${ other_parties[0].hair_color }
+  - Edit: other_parties[0].eye_color
+    button: |-
+      **What is the Respondent's eye color?**
+
+      ${ other_parties[0].eye_color }
+  - Edit: other_parties[0].license_number
+    button: |-
+      **What is the Respondent's license number?**
+      % if other_parties[0].license_number:
+
+      ${ other_parties[0].license_number }
+      % else:
+
+      *You have not entered a license number yet.*
+      % endif
+    show if: defined('other_parties[0].license_number')
+  - Edit: other_parties[0].other_identifying_info
+    button: |-
+      **Do you have any other identifying information for the Respondent?**
+      % if other_parties[0].other_identifying_info:
+
+      ${ other_parties[0].other_identifying_info }
+      % else:
+
+      *You have not entered any other identifying information yet.*
+      % endif
+    show if: defined('other_parties[0].other_identifying_info')
+  - Edit: other_parties[0].carries_gun_for_work
+    button: |-
+      **Does the Respondent carry a gun for work?**
+        % if other_parties[0].carries_gun_for_work == "unknown":
+
+        I don't know
+        % elif other_parties[0].carries_gun_for_work == "no":
+
+        No
+        % elif other_parties[0].carries_gun_for_work == "yes":
+
+        Yes
+        % endif
+    show if: defined('other_parties[0].carries_gun_for_work')
   - Edit: 
       - petitioner_respondent_relationship
       - recompute:
@@ -404,9 +428,9 @@ review:
         **${ item }**
 
         % if item.knows_other_child_birthdate:
-        DOB: ${ item.birthdate }
+        * DOB: ${ item.birthdate }
         % else:
-        Est. Age: ${ item.estimated_age }
+        * Est. Age: ${ item.estimated_age }
         % endif
 
       % endfor
@@ -444,9 +468,9 @@ review:
         **${ item }**
 
         % if item.knows_other_child_birthdate:
-        DOB: ${ item.birthdate }
+        * DOB: ${ item.birthdate }
         % else:
-        Est. Age: ${ item.estimated_age }
+        * Est. Age: ${ item.estimated_age }
         % endif
 
       % endfor
@@ -526,14 +550,33 @@ review:
       ${ word(yesno(respondent_sexual_assault_conviction)) }
       
       % if not respondent_sexual_assault_conviction:
-      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threated sexual assault against you?**
+      % if petitioner_is_minor:
+      **Was ${ other_parties[0] } convicted of giving obscene material to you?** 
+
+      ${ word(yesno(obscene_material_conviction)) }
+      % endif
+
+      % if not petitioner_is_minor or not obscene_material_conviction:
+      **Do you fear that you could be sexually assaulted because ${ other_parties[0] } has either committed or threatened sexual assault against you?**
 
       ${ word(yesno(fears_future_sexual_assault)) }
 
+      % if fears_future_sexual_assault:
       **Explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0] }:**
 
       ${ potential_sexual_assault_exp }
+      % endif
 
+      % if not fears_future_sexual_assault:
+      **Did ${ other_parties[0] } give you obscene material?** 
+
+      ${ word(yesno(obscene_material_provided)) }
+
+      **Explain what happened:**
+      ${ obscene_material_exp }
+
+      % endif
+      % endif
       % endif
   - raw html: |
       ${ next_accordion('<h2 class="h5">Court Orders and Judgments</h2>') }
@@ -544,6 +587,7 @@ review:
       % else:
       Court orders or judgments regarding you and ${ other_parties[0] }:
       % endif
+    show if: defined('orders_judgments.there_are_any')
   - Edit:
       - orders_judgments.revisit
       - recompute:
@@ -566,9 +610,9 @@ review:
       % endfor
       % else:
       % if ppo_type == "nondomestic_sexual_assault":
-      You have not listed any convictions, orders, or judgments yet.
+      No convictions, orders, or judgments. Tap **Edit** to add one.
       % else:
-      You have not listed any orders or judgments yet.
+      No orders or judgments. Tap **Edit** to add one.
       % endif
       % endif
     show if: orders_judgments.there_are_any or not orders_judgments.there_are_any
@@ -885,6 +929,7 @@ review:
       **Do you want to request an ex parte order?**
 
       ${ word(yesno(wants_ex_parte_order)) }
+    show if: county_choice not in ["Ingham", "Jackson", "Wayne"]
   - raw html: |
       ${ next_accordion('<h2 class="h5">Uploaded Documents</h2>') }
     show if: defined('exhibit_attachment.exhibits.has_exhibits')
@@ -970,6 +1015,13 @@ subject: |
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
 ---
+id: users revisit
+question: |
+  Edit your answers about yourself
+subquestion: |
+  ${ users.table }
+continue button field: users.revisit
+---
 table: users.table
 rows: users
 columns:
@@ -982,16 +1034,14 @@ columns:
 edit:
   - name.first
   - address.address
-confirm: True
+delete buttons: False
 ---
-table: next_friends.table
-rows: next_friends
-columns:
-  - Name: |
-      row_item.name_full()
-edit:
-  - name.first
-confirm: True
+id: other parties revisit
+question: |
+  Edit your answers about the person you need protection from (the respondent)
+subquestion: |
+  ${ other_parties.table }
+continue button field: other_parties.revisit
 ---
 table: other_parties.table
 rows: other_parties
@@ -1002,48 +1052,41 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
-  - Age: |
-      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
-  - Race: |
-      row_item.race
-  - Gender: |
-      row_item.gender
-  - Height: |
-      row_item.height
-  - Weight: |
-      row_item.weight
-  - Hair Color: |
-      row_item.hair_color
-  - Eye Color: |
-      row_item.eye_color
-  - License Number: |
-      row_item.license_number if defined("row_item.license_number") else ""
+# just commenting out for now since age editing still in flux
+#  - Age: |
+#      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
 edit:
   - name.first
   - address.address
   - phone_number
-  - race
-  - gender
-  - height_feet
-  - weight
-  - hair_color
-  - eye_color
-  - license_number
-confirm: True
+delete buttons: False
 ---
-table: children.table
-rows: children
+continue button field: |-
+  children.revisit
+id: |-
+  revisit children
+question: |-
+  Edit answers about Children
+subquestion: |-
+  ${ children.table }
+  ${ children.add_action() }
+---
 columns:
-  - Name: |
-      row_item.name_full()
-  - Birthdate: |
-      row_item.birthdate
+  - 'Name': |-
+      row_item.name if hasattr(row_item, 'name') else ''
+  - 'DOB': |-
+      row_item.birthdate if hasattr(row_item, 'birthdate') else ''
+rows: |-
+  children
+table: |-
+  children.table
 edit:
   - name.first
   - lives_with
   - parties_married_when_born
   - paternity
   - custody_parenting_time_provisions_same
+  - complete
 confirm: True
 ---
 table: petitioner_other_children.table
