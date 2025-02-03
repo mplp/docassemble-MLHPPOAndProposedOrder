@@ -3466,7 +3466,7 @@ subject: |
 content: |
   Examples:
 
-  - ${ other_parties[0].name } tries to control you with her behavior. This can include many different types of things, such as: threatening to hurt you or your children; threatening to commit suicide; limiting your access to money; not letting you have or keep a job; controlling where you go or who you see and talk to; or putting you down, calling you names, or trying to make you feel like you are "crazy."
+  - ${ other_parties[0].name } tries to control you with their behavior. This can include many different types of things, such as: threatening to hurt you or your children; threatening to commit suicide; limiting your access to money; not letting you have or keep a job; controlling where you go or who you see and talk to; or putting you down, calling you names, or trying to make you feel like you are "crazy."
 
   - ${ other_parties[0].name } was violent in a previous relationship. Include information about other personal protection orders and past domestic violence convictions, if any.
 
