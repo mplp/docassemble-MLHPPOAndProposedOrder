@@ -177,8 +177,6 @@ code: |
     if county_choice == "Oakland":
       if user_alias.there_are_any:
         user_alias.gather()
-    if county_choice == "Oakland" and ppo_type == "domestic":
-      user.gender
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
@@ -202,9 +200,6 @@ code: |
     if (not respondent_is_emancipated_minor):
       other_parties_parents.gather()
 
-  if ppo_type == "domestic" and county_choice == "Oakland":
-    set_parties_same_gender
-
   respondent_carries_firearm_for_work_asked
 
   if county_choice == "Oakland":
@@ -212,6 +207,7 @@ code: |
       if has_minor_children_in_common:
         common_children_kickout
     else:
+      enable_custody_review_screen
       domestic_ppo_children_intro
       if petitioner_respondent_relationship['have_child']:
         children.target_number
@@ -864,46 +860,49 @@ code: |
 ---
 code: |
   children[i].name.first
-  if ppo_type == "domestic":
-    if petitioner_respondent_relationship['have_child']:
-      children[i].lives_with
-      if not children[i].parties_married_when_born:
-        if parties_same_gender:
-          if children[i].was_adopted:
-            children[i].adoption_case_number
-            children[i].adoption_case_court
-          else:
-            children[i].legal_parent
-        else:
-          children[i].paternity
-          if children[i].paternity == "by_court_order" or children[i].paternity == "paternity_case_pending":
-            children[i].paternity_case_number
-            children[i].paternity_case_court_name
-      if i < 1:
-        if children[i].has_order_in_effect:
-          children[i].custody_case_number
-          children[i].custody_case_court
-          children[i].physical_custody_by_order
-          if children[i].parenting_time_order == "one_parent_supervised":
-            children[i].who_has_supervised_time
-            children[i].who_supervises_parenting_time
-          elif children[i].parenting_time_order == "one_parent_no_parenting_time":
-            children[i].parent_without_parenting_time
-        if children.target_number > 1:
-          custody_parenting_time_provisions_same
-      else:
-        if not custody_parenting_time_provisions_same:
-          if children[i].has_order_in_effect:
-            children[i].custody_case_number
-            children[i].custody_case_court
-            children[i].physical_custody_by_order
-            if children[i].parenting_time_order == "one_parent_supervised":
-              children[i].who_has_supervised_time
-              children[i].who_supervises_parenting_time
-            elif children[i].parenting_time_order == "one_parent_no_parenting_time":
-              children[i].parent_without_parenting_time
+  children[i].lives_with
+  if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
+    children[i].paternity
+  if i < 1:
+    if children[i].has_order_in_effect:
+      children[i].custody_case_number
+      children[i].physical_custody_by_order
+      if children[i].parenting_time_order == "one_parent_supervised":
+        children[i].who_has_supervised_time
+      elif children[i].parenting_time_order == "one_parent_no_parenting_time":
+        children[i].parent_without_parenting_time
+    if children.target_number > 1:
+      custody_parenting_time_provisions_same
+  else:
+    if not custody_parenting_time_provisions_same:
+      if children[i].has_order_in_effect:
+        children[i].custody_case_number
+        children[i].physical_custody_by_order
+        if children[i].parenting_time_order == "one_parent_supervised":
+          children[i].who_has_supervised_time
+        elif children[i].parenting_time_order == "one_parent_no_parenting_time":
+          children[i].parent_without_parenting_time
   
   children[i].complete = True
+---
+code: |
+  if children.target_number > 1 and not custody_parenting_time_provisions_same:
+    for child in children:
+      if child.has_order_in_effect:
+        child.custody_case_number
+        child.physical_custody_by_order
+        if child.parenting_time_order == "one_parent_supervised":
+          child.who_has_supervised_time
+        elif child.parenting_time_order == "one_parent_no_parenting_time":
+          child.parent_without_parenting_time
+      
+  gather_other_custody_info = True
+---
+only sets: enable_custody_review_screen
+code: |
+  special_custody_review_screen = True
+  
+  enable_custody_review_screen = True
 ---
 code: |
   petitioner_other_children[i].name.first
@@ -1025,14 +1024,6 @@ code: |
 code: |
   ppo_sexual_assault_threat_protectees[i].name.first
   ppo_sexual_assault_threat_protectees[i].complete = True
----
-code: |
-  if (users[0].gender == "M" and other_parties[0].gender == "M") or (users[0].gender == "F" and other_parties[0].gender == "F"):
-    parties_same_gender = True
-  else:
-    parties_same_gender = False
-
-  set_parties_same_gender = True
 ---
 code: |
   if is_incapacitated_adult:
@@ -1444,6 +1435,49 @@ fields:
   - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?: children[i].parties_married_when_born
     datatype: yesnoradio
     label above field: True
+  - Did you and ${ other_parties[0] } **adopt ${ children[i].familiar() } together**? Only answer yes if neither of you gave birth to the child and you both adopted.: children[i].unmarried_adoption
+    datatype: yesnoradio
+    show if: 
+      variable: children[i].parties_married_when_born
+      is: False
+  - Case number: children[i].adoption_case_number
+    show if: 
+      variable: children[i].unmarried_adoption
+      is: True
+  - Name of Court: children[i].adoption_case_court
+    show if: 
+      variable: children[i].unmarried_adoption
+      is: True
+  - Select the answer that applies to you: children[i].married_parents_detail
+    datatype: radio
+    choices:
+      - ${ other_parties[0] } and I are both biological parents of ${ children[i].familiar() }.: marital_child
+      - ${ other_parties[0] } and I both adopted ${ children[i].familiar() }.: married_adoption
+      - Other: conceived_outside_marriage
+    show if: 
+      variable: children[i].parties_married_when_born
+      is: True
+  - Case number: children[i].adoption_case_number
+    show if: 
+      variable: children[i].married_parents_detail
+      is: married_adoption
+  - Name of Court: children[i].adoption_case_court
+    show if: 
+      variable: children[i].married_parents_detail
+      is: married_adoption
+  - Which one applies to you?: children[i].how_conceived
+    datatype: radio
+    choices:
+      - ${ other_parties[0] } or I conceived the child through assisted reproductive technology.: assisted
+      - ${ other_parties[0] } or I conceived the child through sex with someone who was not the other spouse.: extramarital
+    show if:
+      variable: children[i].married_parents_detail
+      is: conceived_outside_marriage
+  - note: |
+      In Michigan, when a married person gives birth to a child, that person's spouse is automatically the other legal parent. If a third party is the other biological parent, that third party does not have any legal rights of parentage unless a judge signs a court order revoking the parentage of the spouse and steps are taken to establish the legal parentage of the third party. If you want to learn more, visit [Revoking Paternity](https://michiganlegalhelp.org/resources/revoking-paternity). 
+    show if:
+      variable: children[i].how_conceived
+      is: extramarital
 ---
 id: custody or parenting time order
 question: |
@@ -1614,52 +1648,6 @@ content: |
   % else:
   You have not listed any aliases yet.
   % endif
----
-id: petitioner gender
-question: |
-  What is your gender?
-fields:
-  - Choose one: users[i].gender
-    datatype: radio
-    choices:
-      - Male: M
-      - Female: F
----
-id: children parentage established through adoption
-question: |
-  Adoption
-subquestion: |
-  ${ collapse_template(adoption_explained) }
-fields:
-  - Was legal parentage for ${ children[i] } established through a second parent adoption or other type of adoption: children[i].was_adopted
-    datatype: yesnoradio
-    label above field: True
----
-template: adoption_explained
-subject: |
-  More Information
-content: |
-  In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
-  In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
----
-id: children legal parent
-question: |
-  ${ children[i] }'s legal parent
-fields:
-  - Which party is ${ children[i] }'s legal parent: children[i].legal_parent
-    datatype: radio
-    choices:
-      - I am: petitioner
-      - ${ other_parties[0] } is: respondent
----
-id: children adoption case info
-question: |
-  ${ children[i] }'s adoption case information
-subquestion: |
-  Enter the case number and the name of the Court for that adoption case.
-fields:
-  - Case number: children[i].adoption_case_number
-  - Name of Court: children[i].adoption_case_court
 ---
 id: MLH intro landing FirstScreen
 question: |
@@ -2621,6 +2609,7 @@ fields:
     label above field: True
 ---
 id: custody and parenting time order
+if: children[i].has_order_in_effect
 question: |
   Custody and parenting time order for ${ children[i] }
 subquestion: |
@@ -2633,6 +2622,7 @@ fields:
     label above field: True
 ---
 id: who has physical custody
+if: children[i].has_order_in_effect
 question: |
   Who has physical custody over ${ children[i] }?
 fields:
@@ -2644,6 +2634,7 @@ fields:
       - I and ${ other_parties[0] } have joint physical custody: joint_custody
 ---
 id: what does the court order say about parenting time
+if: children[i].has_order_in_effect
 question: |
   What does the court order for ${ children[i] } say about parenting time?
 fields:
@@ -2656,6 +2647,7 @@ fields:
       - One of us does not have any parenting time with the child.: one_parent_no_parenting_time
 ---
 id: are custody and parenting time same for all children
+if: children.target_number > 1
 question: |
   Provisions for other children
 fields:
@@ -2663,6 +2655,7 @@ fields:
     datatype: yesnoradio
     label above field: True
 ---
+if: desired_parenting_time_changes == "no_change_except_exchange"
 id: parenting time exchange location for all children
 question: |
   Location of parenting time exchanges
@@ -2685,6 +2678,7 @@ fields:
     label above field: True
 ---
 id: who has supervised parenting time
+if: children[i].has_order_in_effect and children[i].parenting_time_order == "one_parent_supervised"
 question: |
   Supervised parenting time for ${ children[i] }
 fields:
@@ -2696,6 +2690,7 @@ fields:
   - Who is parenting time supervised by: children[i].who_supervises_parenting_time
 ---
 id: who does not have parenting time
+if: children[i].has_order_in_effect and children[i].parenting_time_order == "one_parent_no_parenting_time"
 question: |
   Supervised parenting time for ${ children[i] }
 fields:
@@ -2705,27 +2700,100 @@ fields:
     - Me: petitioner
     - ${ other_parties[0] }: respondent
 ---
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption
 id: child paternity
 question: |
-  ${ children[i] }'s paternity
-fields:
-  - Select the answer that applies to ${ children[i].familiar() }. If the father's paternity has not been established, select **None of the above**: children[i].paternity
-    datatype: radio
-    label above field: True
-    choices:
-      - Paternity was established by court order (also called an *Order of Filiation*): by_court_order
-      - Paternity has been established by an *Acknowledgment of Parentage*: by_acknowledgment_of_parentage
-      - A paternity case has been filed and is pending (there is no court order yet): paternity_case_pending
-      - None of the above: paternity_not_established
----
-id: paternity case info
-question: |
-  ${ children[i] }'s paternity case details
+  ${ children[i] }'s legal parent(s)
 subquestion: |
-  Enter the case number and the name of the Court for ${ children[i].familiar() }'s case.
+  ${ children[i].familiar() }'s mother (or the parent who gave birth to ${ children[i].familiar() }) is their legal parent. ${ children[i].familiar() }'s father (or second parent) is also their legal parent if paternity/parentage was established.
 fields:
+  - Has the father's (or second parent's) paternity/parentage been legally established?: children[i].paternity
+    datatype: radio
+    choices:
+      - Yes: paternity_established
+      - A paternity/parentage or adoption case has been filed and is pending. (There is no court order yet.): paternity_pending
+      - "No, paternity/parentage has not been established.": paternity_not_established
+  - Where was paternity/parentage established?: children[i].paternity_established_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
+    show if:
+      variable: children[i].paternity
+      is: paternity_established
+  - Where was the case filed?: children[i].paternity_pending_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
+    show if:
+      variable: children[i].paternity
+      is: paternity_pending
+  - State or country where paternity/parentage was established: children[i].state_of_paternity
+    show if:
+      variable: children[i].paternity_established_where
+      is: out_of_state
+  - State or country where paternity/parentage is pending: children[i].state_of_paternity
+    show if:
+      variable: children[i].paternity_pending_where
+      is: out_of_state
   - Case number: children[i].paternity_case_number
+    show if: 
+      variable: children[i].paternity_pending_where
+      is: Michigan
   - Name of Court: children[i].paternity_case_court_name
+    show if: 
+      variable: children[i].paternity_pending_where
+      is: Michigan
+  - Who is ${ children[i] }'s legal parent?: children[i].legal_parent
+    datatype: radio
+    choices:
+      - I am: petitioner
+      - ${ other_parties[0] } is: respondent
+    show if: 
+      variable: children[i].paternity
+      is: paternity_not_established
+  - note: |
+      The mother (or the parent who gave birth to the child) is usually a legal parent automatically.
+    show if:
+      variable: children[i].paternity
+      is: paternity_not_established
+  - "Paternity/parentage of ${ children[i].familiar() } was established by:": children[i].paternity_how
+    show if:
+      variable: children[i].paternity_established_where
+      is: Michigan
+    datatype: radio
+    choices:
+      - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
+      - a court order ("*Order of Filiation*"): by_court_order
+      - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
+  - Case number: children[i].paternity_case_number
+    show if:
+      variable: children[i].paternity_how
+      is: by_court_order
+  - Name of Court: children[i].paternity_case_court_name
+    show if:
+      variable: children[i].paternity_how
+      is: by_court_order
+  - Case number: children[i].adoption_case_number
+    show if: 
+      variable: children[i].paternity_how
+      is: by_adoption
+  - Name of Court: children[i].adoption_case_court
+    show if: 
+      variable: children[i].paternity_how
+      is: by_adoption
+under: |
+  ${ collapse_template(adoption_explained) }
+---
+template: adoption_explained
+subject: |
+  More Information
+content: |
+  In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
+  In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
 ---
 if: len(children.complete_elements()) == 1
 id: desired parenting time change one child
