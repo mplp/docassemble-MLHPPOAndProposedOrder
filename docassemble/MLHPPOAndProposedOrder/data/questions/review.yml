@@ -1073,6 +1073,7 @@ subquestion: |-
   ${ children.table }
   ${ children.add_action() }
 ---
+if: len(children.complete_elements()) > 1
 columns:
   - 'Name': |-
       row_item.name if hasattr(row_item, 'name') else ''
@@ -1089,6 +1090,25 @@ edit:
   - paternity
   - custody_parenting_time_provisions_same
 confirm: True
+---
+if: len(children.complete_elements()) == 1
+columns:
+  - 'Name': |-
+      row_item.name if hasattr(row_item, 'name') else ''
+  - 'DOB': |-
+      row_item.birthdate if hasattr(row_item, 'birthdate') else ''
+rows: |-
+  children
+table: |-
+  children.table
+edit:
+  - name.first
+  - lives_with
+  - parties_married_when_born
+  - paternity
+  - custody_parenting_time_provisions_same
+confirm: True
+delete buttons: False
 ---
 table: petitioner_other_children.table
 rows: petitioner_other_children
