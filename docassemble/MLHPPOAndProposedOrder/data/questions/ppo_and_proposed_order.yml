@@ -4677,7 +4677,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - pursuant_to: |
         % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
@@ -4811,7 +4812,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_height: ${ other_parties[0].height }
     - other_parties1_weight: ${ other_parties[0].weight }
@@ -4882,7 +4884,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_age: |
@@ -5068,7 +5071,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
     - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5375,7 +5379,8 @@ attachments:
     - other_parties1_name__5: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
@@ -5571,7 +5576,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5707,7 +5713,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
     - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5814,7 +5821,8 @@ attachments:
     - other_parties1_name__2: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -5863,7 +5871,8 @@ attachments:
     - other_parties1_name__2: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -6006,7 +6015,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -6110,7 +6120,8 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
-        ${ other_parties[0].address.block() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
     - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
