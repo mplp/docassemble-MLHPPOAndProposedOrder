@@ -215,11 +215,9 @@ code: |
         if desired_parenting_time_changes == "no_change_except_exchange":
           exchange_location
       if petitioner_has_other_children:
-        petitioner_other_children.target_number
         petitioner_other_children.gather()
       if respondent_has_other_children:
         if petitioner_knows_respondent_other_children_names:
-          respondent_other_children.target_number
           respondent_other_children.gather()
 
   if ppo_type != "nondomestic_sexual_assault":
@@ -1033,12 +1031,6 @@ code: |
       next_friends.there_are_any = True
 
   reset_next_friend = True
----
-code: |
-  if not petitioner_knows_respondent_other_children_names:
-    respondent_other_children.clear()
-
-  set_respondent_has_other_children = True
 ---
 code: |
   if not pending_actions.there_are_any:
@@ -2548,6 +2540,7 @@ fields:
     min: 1
     label above field: True
 ---
+if: respondent_has_other_children
 id: petitioner knows names of respondent's other children
 question: |
   Names of ${ other_parties[0] }'s other children

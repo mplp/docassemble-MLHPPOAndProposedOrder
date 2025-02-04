@@ -424,6 +424,7 @@ review:
       No
       %endif
   - Edit: petitioner_other_children.revisit
+    show if: petitioner_has_other_children
     button: |-
       % for item in petitioner_other_children:
 
@@ -441,20 +442,16 @@ review:
       <hr>
       <h2 class='h5'>Other Children Living with ${ other_parties[0] }</h2>
       % endif
-  - Edit: respondent_has_other_children
+  - Edit: 
+      - respondent_has_other_children
+      - follow up:
+        - petitioner_knows_respondent_other_children_names
     button: |
       **Does ${ other_parties[0] } have any children living in their home who are NOT your children?**
 
       % if respondent_has_other_children:
       Yes
-      % else:
-      No
-      %endif
-  - Edit:
-      - petitioner_knows_respondent_other_children_names
-      - recompute:
-          - set_respondent_has_other_children
-    button: |
+
       **Do you know the names of the other children living with ${ other_parties[0] }?**
 
       % if petitioner_knows_respondent_other_children_names:
@@ -462,8 +459,11 @@ review:
       % else:
       No
       %endif
-    show if: respondent_has_other_children
+      % else:
+      No
+      %endif
   - Edit: respondent_other_children.revisit
+    show if: respondent_has_other_children and petitioner_knows_respondent_other_children_names
     button: |-
       % for item in respondent_other_children:
 
@@ -1107,9 +1107,9 @@ edit:
   - parties_married_when_born
   - paternity
   - custody_parenting_time_provisions_same
-confirm: True
 delete buttons: False
 ---
+if: len(petitioner_other_children.complete_elements()) > 1
 table: petitioner_other_children.table
 rows: petitioner_other_children
 columns:
@@ -1122,6 +1122,20 @@ edit:
   - knows_other_child_birthdate
 confirm: True
 ---
+if: len(petitioner_other_children.complete_elements()) == 1
+table: petitioner_other_children.table
+rows: petitioner_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+delete buttons: False
+---
+if: len(respondent_other_children.complete_elements()) > 1
 table: respondent_other_children.table
 rows: respondent_other_children
 columns:
@@ -1133,6 +1147,19 @@ edit:
   - name.first
   - knows_other_child_birthdate
 confirm: True
+---
+if: len(respondent_other_children.complete_elements()) == 1
+table: respondent_other_children.table
+rows: respondent_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+delete buttons: False
 ---
 continue button field: pending_actions.revisit
 question: |
