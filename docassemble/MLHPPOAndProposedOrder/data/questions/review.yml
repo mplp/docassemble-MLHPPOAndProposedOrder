@@ -110,6 +110,9 @@ review:
       % elif other_parties[0].gender == "F":
 
       Female
+      % elif other_parties[0].gender == "X":
+
+      Nonbinary
       % endif
   - Edit: other_parties[0].race
     button: |-
