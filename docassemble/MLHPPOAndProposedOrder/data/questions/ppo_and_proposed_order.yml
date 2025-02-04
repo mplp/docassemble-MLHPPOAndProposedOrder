@@ -179,7 +179,7 @@ code: |
     if county_choice == "Oakland":
       if user_alias.there_are_any:
         user_alias.gather()
-  check_user_alias_list
+      check_user_alias_list
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
@@ -198,7 +198,7 @@ code: |
   if county_choice == "Oakland":
     if other_party_alias.there_are_any:
       other_party_alias.gather()
-  check_other_party_alias_list
+    check_other_party_alias_list
 
   if respondent_is_minor:
     if (not respondent_is_emancipated_minor):
