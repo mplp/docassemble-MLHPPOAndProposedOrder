@@ -63,7 +63,9 @@ content: |
 objects:
   - users: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - user_alias: ALPeopleList.using(complete_attribute="complete")
+  - user_alias_list: DAList.using(auto_gather=False)
   - other_party_alias: ALPeopleList.using(complete_attribute="complete")
+  - other_party_alias_list: DAList.using(auto_gather=False)
   - next_friends: ALPeopleList.using(complete_attribute="complete")
   - other_parties: ALPeopleList.using(auto_gather=True, complete_attribute="complete", target_number=1)
   - children: ALPeopleList.using(ask_number=True, complete_attribute="complete")
@@ -179,6 +181,7 @@ code: |
         user_alias.gather()
     if county_choice == "Oakland" and ppo_type == "domestic":
       user.gender
+  check_user_alias_list
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
@@ -197,6 +200,7 @@ code: |
   if county_choice == "Oakland":
     if other_party_alias.there_are_any:
       other_party_alias.gather()
+  check_other_party_alias_list
 
   if respondent_is_minor:
     if (not respondent_is_emancipated_minor):
@@ -580,21 +584,55 @@ code: |
 
   if wants_no_harming_petitioner:
     if users[0] not in ppo_harm_protectees_list_temp:
-      ppo_harm_protectees_list_temp.append(users[0])
+      ppo_harm_protectees_list_temp.append(users[0].name_full())
   else:
     if users[0] in ppo_harm_protectees_list_temp:
-      ppo_harm_protectees_list_temp.remove(users[0])
+      ppo_harm_protectees_list_temp.remove(users[0].name_full())
 
   if ppo_harm_protectees.there_are_any:
     for protectee in ppo_harm_protectees:
       if protectee not in ppo_harm_protectees_list_temp:
-        ppo_harm_protectees_list_temp.append(protectee)
+        ppo_harm_protectees_list_temp.append(protectee.name_full())
   
   ppo_harm_protectees_list.clear()
 
   ppo_harm_protectees_list = DAList(elements=ppo_harm_protectees_list_temp, auto_gather=False, gathered=True)
 
   check_ppo_harm_protectees_list = True
+---
+code: |
+  if defined('user_alias_list_temp'):
+    user_alias_list_temp.clear()
+  else:
+    user_alias_list_temp = []
+
+  if user_alias.there_are_any:
+    for alias in user_alias:
+      if alias not in user_alias_list_temp:
+        user_alias_list_temp.append(alias.name_full())
+  
+  user_alias_list.clear()
+
+  user_alias_list = DAList(elements=user_alias_list_temp, auto_gather=False, gathered=True)
+
+  check_user_alias_list = True
+---
+code: |
+  if defined('other_party_alias_list_temp'):
+    other_party_alias_list_temp.clear()
+  else:
+    other_party_alias_list_temp = []
+
+  if other_party_alias.there_are_any:
+    for alias in other_party_alias:
+      if alias not in other_party_alias_list_temp:
+        other_party_alias_list_temp.append(alias.name_full())
+  
+  other_party_alias_list.clear()
+
+  other_party_alias_list = DAList(elements=other_party_alias_list_temp, auto_gather=False, gathered=True)
+
+  check_other_party_alias_list = True
 ---
 code: |
   if no_stalking_choices['following']:
@@ -662,15 +700,15 @@ code: |
 
   if wants_no_threatening_petitioner:
     if users[0] not in ppo_threat_protectees_list_temp:
-      ppo_threat_protectees_list_temp.append(users[0])
+      ppo_threat_protectees_list_temp.append(users[0].name_full())
   else:
     if users[0] in ppo_threat_protectees_list_temp:
-      ppo_threat_protectees_list_temp.remove(users[0])
+      ppo_threat_protectees_list_temp.remove(users[0].name_full())
 
   if ppo_threat_protectees.there_are_any:
     for protectee in ppo_threat_protectees:
       if protectee not in ppo_threat_protectees_list_temp:
-        ppo_threat_protectees_list_temp.append(protectee)
+        ppo_threat_protectees_list_temp.append(protectee.name_full())
   
   ppo_threat_protectees_list.clear()
   
@@ -686,15 +724,15 @@ code: |
 
   if wants_no_sexual_assault_threats:
     if users[0] not in ppo_sexual_assault_threat_protectees_list_temp:
-      ppo_sexual_assault_threat_protectees_list_temp.append(users[0])
+      ppo_sexual_assault_threat_protectees_list_temp.append(users[0].name_full())
   else:
     if users[0] in ppo_sexual_assault_threat_protectees_list_temp:
-      ppo_sexual_assault_threat_protectees_list_temp.remove(users[0])
+      ppo_sexual_assault_threat_protectees_list_temp.remove(users[0].name_full())
 
   if ppo_sexual_assault_threat_protectees.there_are_any:
     for protectee in ppo_sexual_assault_threat_protectees:
       if protectee not in ppo_sexual_assault_threat_protectees_list_temp: 
-        ppo_sexual_assault_threat_protectees_list_temp.append(protectee)
+        ppo_sexual_assault_threat_protectees_list_temp.append(protectee.name_full())
 
   ppo_sexual_assault_threat_protectees_list.clear()
   
@@ -1550,7 +1588,7 @@ subquestion: |
 
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
-  - Describe your relationship with ${ other_parties[0] }:: relationship_to_respondent_exp
+  - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
     datatype: area
 ---
 id: petitioner alias there_are_any
@@ -4626,9 +4664,9 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
     - users1_address_block: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         Confidential
@@ -4638,7 +4676,9 @@ attachments:
         ${ users[0].phone_number }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - pursuant_to: |
         % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
@@ -4654,24 +4694,24 @@ attachments:
         % else:
         ${ '' }
         % endif
-    - next_friend1_name: ${ next_friends[0] }
+    - next_friend1_name: ${ next_friends[0].name_full() }
     - requestor_signature: |
         % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor):
         % if fourteen_plus_agrees_to_sign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
         % elif is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
         % if next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % else:
         ${ '' }
         % endif
         % endif
     - next_friend1_signature: |
         % if next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -4684,7 +4724,7 @@ attachments:
         % else:
         ${ '' }
         % endif
-    - users1_name: ${ users[0] }
+    - users1_name: ${ users[0].name_full() }
     - is_minor: ${ petitioner_is_minor }
     - is_incapacitated_adult: ${ is_incapacitated_adult }
 ---
@@ -4696,7 +4736,7 @@ attachments:
   editable: False
   pdf template file: proof_of_service_domestic.pdf
   fields:
-    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
 ---
 attachments:
   name: Proof of Service
@@ -4706,7 +4746,7 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic.pdf
   fields:
-    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
 ---
 attachments:
   name: Proof of Service
@@ -4716,7 +4756,7 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic_sa.pdf
   fields:
-    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
 ---
 attachments:
   name: Proof of Service (Minor)
@@ -4726,7 +4766,7 @@ attachments:
   editable: False
   pdf template file: proof_of_service_domestic_minor.pdf
   fields:
-    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
 ---
 attachments:
   name: Proof of Service (Minor)
@@ -4736,7 +4776,7 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic_minor.pdf
   fields:
-    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
 ---
 attachments:
   name: Proof of Service (Minor)
@@ -4746,7 +4786,7 @@ attachments:
   editable: False
   pdf template file: proof_of_service_nondomestic_sa_minor.pdf
   fields:
-    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
 ---
 attachments:
   name: Identifying Information
@@ -4758,9 +4798,9 @@ attachments:
   fields:
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -4771,7 +4811,9 @@ attachments:
         ${ users[0].phone_number }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_height: ${ other_parties[0].height }
     - other_parties1_weight: ${ other_parties[0].weight }
@@ -4801,15 +4843,15 @@ attachments:
   fields:
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_name__2: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] }
+        ${ next_friends[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -4822,9 +4864,9 @@ attachments:
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % elif MLH_esign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -4841,7 +4883,9 @@ attachments:
         ${ '' }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_age: |
@@ -4981,15 +5025,15 @@ attachments:
   fields:
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_name__2: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] }
+        ${ next_friends[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5007,9 +5051,9 @@ attachments:
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % elif MLH_esign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -5026,7 +5070,9 @@ attachments:
         ${ '' }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
     - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5259,9 +5305,9 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5272,21 +5318,22 @@ attachments:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age }
-    - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
-    - other_parties1_name__3: ${ other_parties[0].name }
-    - other_parties1_name__4: ${ other_parties[0].name }
-    - other_parties1_name__5: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
+    - other_parties1_name__1: ${ other_parties[0].name_full() }
+    - other_parties1_name__2: ${ other_parties[0].name_full() }
+    - other_parties1_name__3: ${ other_parties[0].name_full() }
+    - other_parties1_name__4: ${ other_parties[0].name_full() }
+    - other_parties1_name__5: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.block() }
         ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age }
+        ${ other_parties[0].estimated_age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -5312,9 +5359,9 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5325,20 +5372,22 @@ attachments:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
-    - other_parties1_name__3: ${ other_parties[0].name }
-    - other_parties1_name__4: ${ other_parties[0].name }
-    - other_parties1_name__5: ${ other_parties[0].name }
+    - other_parties1_name__1: ${ other_parties[0].name_full() }
+    - other_parties1_name__2: ${ other_parties[0].name_full() }
+    - other_parties1_name__3: ${ other_parties[0].name_full() }
+    - other_parties1_name__4: ${ other_parties[0].name_full() }
+    - other_parties1_name__5: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_phone_number: ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age }
+        ${ other_parties[0].estimated_age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -5352,13 +5401,13 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
-    - other_parties_parents1_name: ${ other_parties_parents[0].name }
-    - other_parties1_name: ${ other_parties[0].name }
+    - other_parties_parents1_name: ${ other_parties_parents[0].name_full() }
+    - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address.line_one() }
         ${ other_parties_parents[0].address.line_two() }
         ${ other_parties_parents[0].phone_number }
-    - other_parties_parents2_name: ${ other_parties_parents[1].name }
+    - other_parties_parents2_name: ${ other_parties_parents[1].name_full() }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address.line_one() }
         ${ other_parties_parents[1].address.line_two() }
@@ -5375,9 +5424,9 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5387,11 +5436,11 @@ attachments:
         ${ users[0].address.line_two() }
         ${ users[0].phone_number }
         % endif
-    - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
-    - other_parties1_name__3: ${ other_parties[0].name }
-    - other_parties1_name__4: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
+    - other_parties1_name__1: ${ other_parties[0].name_full() }
+    - other_parties1_name__2: ${ other_parties[0].name_full() }
+    - other_parties1_name__3: ${ other_parties[0].name_full() }
+    - other_parties1_name__4: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
@@ -5400,7 +5449,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age }
+        ${ other_parties[0].estimated_age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -5426,9 +5475,9 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5438,11 +5487,11 @@ attachments:
         ${ users[0].address.line_two() }
         ${ users[0].phone_number }
         % endif
-    - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
-    - other_parties1_name__3: ${ other_parties[0].name }
-    - other_parties1_name__4: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
+    - other_parties1_name__1: ${ other_parties[0].name_full() }
+    - other_parties1_name__2: ${ other_parties[0].name_full() }
+    - other_parties1_name__3: ${ other_parties[0].name_full() }
+    - other_parties1_name__4: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
@@ -5451,7 +5500,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age }
+        ${ other_parties[0].estimated_age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -5465,12 +5514,12 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
-    - other_parties_parents1_name: ${ other_parties_parents[0].name }
+    - other_parties_parents1_name: ${ other_parties_parents[0].name_full() }
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address.line_one() }
         ${ other_parties_parents[0].address.line_two() }
         ${ other_parties_parents[0].phone_number }
-    - other_parties_parents2_name: ${ other_parties_parents[1].name }
+    - other_parties_parents2_name: ${ other_parties_parents[1].name_full() }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address.line_one() }
         ${ other_parties_parents[1].address.line_two() }
@@ -5486,15 +5535,15 @@ attachments:
   fields:
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_name__2: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] }
+        ${ next_friends[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5507,9 +5556,9 @@ attachments:
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % elif MLH_esign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -5526,7 +5575,9 @@ attachments:
         ${ '' }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5616,15 +5667,15 @@ attachments:
   fields:
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_name__2: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] }
+        ${ next_friends[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5642,9 +5693,9 @@ attachments:
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % elif MLH_esign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -5661,7 +5712,9 @@ attachments:
         ${ '' }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
     - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5751,9 +5804,9 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5763,17 +5816,19 @@ attachments:
         ${ users[0].address.line_two() }
         ${ users[0].phone_number }
         % endif
-    - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
+    - other_parties1_name__1: ${ other_parties[0].name_full() }
+    - other_parties1_name__2: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age }
+        ${ other_parties[0].estimated_age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -5799,9 +5854,9 @@ attachments:
     - wants_ex_parte_order: ${ wants_ex_parte_order }
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5811,17 +5866,19 @@ attachments:
         ${ users[0].address.line_two() }
         ${ users[0].phone_number }
         % endif
-    - other_parties1_name: ${ other_parties[0].name }
-    - other_parties1_name__1: ${ other_parties[0].name }
-    - other_parties1_name__2: ${ other_parties[0].name }
+    - other_parties1_name: ${ other_parties[0].name_full() }
+    - other_parties1_name__1: ${ other_parties[0].name_full() }
+    - other_parties1_name__2: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age }
+        ${ other_parties[0].estimated_age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -5835,12 +5892,12 @@ attachments:
     - trial_court_county: ${ county_choice.upper() }
     - trial_court_address_on_one_line: ${ the_court.address.on_one_line() }
     - trial_court_phone_number: ${ the_court.phone }
-    - other_parties_parents1_name: ${ other_parties_parents[0].name }
+    - other_parties_parents1_name: ${ other_parties_parents[0].name_full() }
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address.line_one() }
         ${ other_parties_parents[0].address.line_two() }
         ${ other_parties_parents[0].phone_number }
-    - other_parties_parents2_name: ${ other_parties_parents[1].name }
+    - other_parties_parents2_name: ${ other_parties_parents[1].name_full() }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address.line_one() }
         ${ other_parties_parents[1].address.line_two() }
@@ -5856,9 +5913,9 @@ attachments:
   fields:
     - users1_name: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - other_parties1_name__1: ${ other_parties[0].name }
     - other_parties1_name__2: ${ other_parties[0].name }
@@ -5879,7 +5936,7 @@ attachments:
   editable: False
   pdf template file: ppo_contact_information_sheet.pdf
   fields:
-    - users1_name: ${ users[0].name }
+    - users1_name: ${ users[0].name_full() }
     - users1_address: ${ users[0].address.address }
     - users1_city_state_zip: |
         ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
@@ -5887,9 +5944,9 @@ attachments:
     - users1_email: ${ contact_email }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % elif MLH_esign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -5917,15 +5974,15 @@ attachments:
   fields:
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_name__2: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] }
+        ${ next_friends[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -5938,9 +5995,9 @@ attachments:
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % elif MLH_esign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -5957,7 +6014,9 @@ attachments:
         ${ '' }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
         ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -6015,15 +6074,15 @@ attachments:
   fields:
     - users1_name__1: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] } NFF ${ users[0] }
+        ${ next_friends[0].name_full() } NFF ${ users[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_name__2: |
         % if is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor):
-        ${ next_friends[0] }
+        ${ next_friends[0].name_full() }
         % else:
-        ${ users[0] }
+        ${ users[0].name_full() }
         % endif
     - users1_address_block: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
@@ -6041,9 +6100,9 @@ attachments:
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
-        /s/ ${ next_friends[0] }
+        /s/ ${ next_friends[0].name_full() }
         % elif MLH_esign:
-        /s/ ${ users[0] }
+        /s/ ${ users[0].name_full() }
         % else:
         ${ '' }
         % endif
@@ -6060,7 +6119,9 @@ attachments:
         ${ '' }
         % endif
     - other_parties1_address_block: |
-        ${ other_parties[0].address_block() }
+        ${ other_parties[0].name_full() }
+        ${ other_parties[0].address.line_one() }
+        ${ other_parties[0].address.line_two() }
     - other_parties1_phone: ${ other_parties[0].phone_number }
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
