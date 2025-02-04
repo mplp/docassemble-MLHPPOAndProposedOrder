@@ -1423,10 +1423,23 @@ fields:
       variable: children[i].married_parents_detail
       is: conceived_outside_marriage
   - note: |
-      In Michigan, when a married person gives birth to a child, that person's spouse is automatically the other legal parent. If a third party is the other biological parent, that third party does not have any legal rights of parentage unless a judge signs a court order revoking the parentage of the spouse and steps are taken to establish the legal parentage of the third party. If you want to learn more, visit [Revoking Paternity](https://michiganlegalhelp.org/resources/revoking-paternity). 
+      In Michigan, when a married person gives birth to a child:
+      
+      * the mother (or the person who gave birth) is automatically a legal parent, and
+      * their {spouse} is also automatically a legal parent.
+      
+      If someone else (not the {spouse}) is the other **biological** parent, that biological parent has no parentage rights **unless**:
+      
+      * a judge signs a court order revoking the {spouse}'s parentage, and 
+      * steps are taken to establish legal parentage of the biological parent. 
+      
+      If you want to learn more, visit [Revoking Paternity](https://michiganlegalhelp.org/resources/revoking-paternity). 
     show if:
       variable: children[i].how_conceived
       is: extramarital
+terms:
+  spouse: |
+    "Spouse" is another word for wife or husband.
 ---
 id: custody or parenting time order
 question: |
@@ -1443,8 +1456,8 @@ subject: |
   More Information
 content: |
   If there is a custody order, there is usually a parenting time provision in that order. 
-  If the parents are divorced, the *Judgment of Divorce* should include custody and parenting time provisions for all children born during the marriage; 
-  this is one type of custody/parenting time order.
+  
+  If the parents are divorced, the *Judgment of Divorce* should include custody and parenting time provisions for all children born during the marriage; this is one type of custody/parenting time order.
 ---
 id: other property address
 sets:
@@ -2576,6 +2589,8 @@ id: who has physical custody
 if: children[i].has_order_in_effect
 question: |
   Who has physical custody over ${ children[i] }?
+subquestion: |
+  ${ collapse_template(custody_explained) }
 fields:
   - According to the court order: children[i].physical_custody_by_order
     datatype: radio
@@ -2583,6 +2598,12 @@ fields:
       - I have sole physical custody: sole_petitioner
       - ${ other_parties[0] } has sole physical custody: sole_respondent
       - I and ${ other_parties[0] } have joint physical custody: joint_custody
+---
+template: custody_explained
+subject: |
+  How do I know?
+content: |
+  Your court order should say who has physical custody. Physical custody refers to a child's living arrangements. If the parties share roughly equal parenting time, usually the parents have joint physical custody. If you are not sure who has physical custody, look at your court order before you answer this question.
 ---
 id: what does the court order say about parenting time
 if: children[i].has_order_in_effect
@@ -2653,18 +2674,21 @@ fields:
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption
 id: child paternity
+terms:
+  parentage: |
+    If the second parent is a father, this is also called establishing **paternity**.
 question: |
   ${ children[i] }'s legal parent(s)
 subquestion: |
-  ${ children[i].familiar() }'s mother (or the parent who gave birth to ${ children[i].familiar() }) is their legal parent. ${ children[i].familiar() }'s father (or second parent) is also their legal parent if paternity/parentage was established.
+  ${ children[i].familiar() }'s mother (or the parent who gave birth to ${ children[i].familiar() }) is their legal parent. ${ children[i].familiar() }'s father (or second parent) is also their legal parent if {parentage} was established.
 fields:
-  - Has the father's (or second parent's) paternity/parentage been legally established?: children[i].paternity
+  - Has the father's (or second parent's) {parentage} been legally established?: children[i].paternity
     datatype: radio
     choices:
       - Yes: paternity_established
-      - A paternity/parentage or adoption case has been filed and is pending. (There is no court order yet.): paternity_pending
-      - "No, paternity/parentage has not been established.": paternity_not_established
-  - Where was paternity/parentage established?: children[i].paternity_established_where
+      - A parentage or adoption case has been filed and is pending. (There is no court order yet.): paternity_pending
+      - "No, parentage has not been established.": paternity_not_established
+  - Where was {parentage} established?: children[i].paternity_established_where
     label above field: False
     datatype: radio
     choices:
@@ -2682,11 +2706,11 @@ fields:
     show if:
       variable: children[i].paternity
       is: paternity_pending
-  - State or country where paternity/parentage was established: children[i].state_of_paternity
+  - State or country where {parentage} was established: children[i].state_of_paternity
     show if:
       variable: children[i].paternity_established_where
       is: out_of_state
-  - State or country where paternity/parentage is pending: children[i].state_of_paternity
+  - State or country where {parentage} is pending: children[i].state_of_paternity
     show if:
       variable: children[i].paternity_pending_where
       is: out_of_state
@@ -2711,7 +2735,7 @@ fields:
     show if:
       variable: children[i].paternity
       is: paternity_not_established
-  - "Paternity/parentage of ${ children[i].familiar() } was established by:": children[i].paternity_how
+  - "{Parentage} of ${ children[i].familiar() } was established by:": children[i].paternity_how
     show if:
       variable: children[i].paternity_established_where
       is: Michigan
@@ -2720,6 +2744,11 @@ fields:
       - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
       - a court order ("*Order of Filiation*"): by_court_order
       - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
+  - note: |
+      ${ collapse_template(parentage_affidavit_explained) }
+    show if: 
+      variable: children[i].paternity_established_where
+      is: Michigan
   - Case number: children[i].paternity_case_number
     show if:
       variable: children[i].paternity_how
@@ -2736,16 +2765,24 @@ fields:
     show if: 
       variable: children[i].paternity_how
       is: by_adoption
-under: |
-  ${ collapse_template(adoption_explained) }
 ---
-template: adoption_explained
+template: parentage_affidavit_explained
 subject: |
-  More Information
+  What if I'm not sure?
 content: |
-  In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
-  In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
+  An *Affidavit of Parentage* (also called an *Acknowledgement of Parentage*) is a form that can be used to establish the legal parentage of the second parent (in many cases, the father) when the parents are unmarried. It is often signed by both parents at the hospital after a child is born, but it can be signed at a later time. In Michigan, the form is then filed with the Central Paternity Registry in Lansing.
+
+  If your child was born in Michigan and you are not sure whether there is an *Affidavit of Parentage*, you can contact the [Michigan Vital Records Office](https://www.michigan.gov/mdhhs/doing-business/vitalrecords) in Lansing. Another way to tell is this: If the second parent's name is on the birth certificate and you are certain that there was no court case establishing parentage, then there is likely an *Affidavit of Parentage*.
 ---
+# If we want this at all, it should appear at the same step as parentage_affidavit_explained, but I don't think it really applies any more. Can delete after testing.
+# template: adoption_explained
+# subject: |
+#   More Information
+# content: |
+#   In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
+#   
+#   In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
+# ---
 if: len(children.complete_elements()) == 1
 id: desired parenting time change one child
 question: |
