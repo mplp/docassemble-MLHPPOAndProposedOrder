@@ -39,12 +39,18 @@ review:
 
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
-  - Edit: user_alias.there_are_any
+  - Edit: 
+      - user_alias.there_are_any
+      - recompute:
+        - check_user_alias_list
     button: |-
       **Do you have any aliases?**
 
       ${ word(yesno(user_alias.there_are_any)) }
-  - Edit: user_alias.revisit
+  - Edit: 
+      - user_alias.revisit
+      - recompute:
+        - check_user_alias_list
     button: |-
       **Your aliases:**
 
@@ -215,12 +221,18 @@ review:
       % else:
       *You have not entered a description of your relationship yet.*
       % endif
-  - Edit: other_party_alias.there_are_any
+  - Edit: 
+      - other_party_alias.there_are_any
+      - recompute:
+        - check_other_party_alias_list
     button: |-
       **Does the Respondent have any aliases?**
 
       ${ word(yesno(other_party_alias.there_are_any)) }
-  - Edit: other_party_alias.revisit
+  - Edit: 
+      - other_party_alias.revisit
+      - recompute:
+        - check_other_party_alias_list
     button: |-
       **Respondent's aliases:**
 
