@@ -2321,8 +2321,9 @@ fields:
   - Choose one: other_parties[0].gender
     datatype: radio
     choices:
-      - Male: M
       - Female: F
+      - Male: M
+      - Nonbinary: X
 ---
 id: respondent height
 question: |
