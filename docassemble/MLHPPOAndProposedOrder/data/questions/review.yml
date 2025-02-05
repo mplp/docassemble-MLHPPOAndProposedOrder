@@ -73,7 +73,7 @@ review:
       - recompute:
           - county_check_minor_respondent_done
     button: |-
-      **Does the Petitioner live in Michigan?**
+      **Do you live in Michigan?**
 
       ${ word(yesno(petitioner_lives_in_michigan)) }
   - Edit: 
@@ -106,6 +106,46 @@ review:
         
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
+  - Edit: 
+      - petitioner_respondent_relationship
+      - recompute:
+        - reset_relationship_description
+        - set_petitioner_respondent_relationship
+    button: |-
+      **Your Relationship to the Respondent:**
+      % if married_choice and petitioner_respondent_relationship['married']:
+
+      * You are currently married.
+      % endif
+      % if was_married_choice and petitioner_respondent_relationship['was_married']:
+
+      * You were previously married.
+      % endif
+      % if petitioner_respondent_relationship['have_child']:
+
+      * You have children together.
+      % endif
+      % if petitioner_respondent_relationship['dating']:
+
+      * You dated or are dating.
+      % endif
+      % if petitioner_respondent_relationship['live_together']:
+
+      * You live or used to live together.
+      % endif
+      % if parent_choice and petitioner_respondent_relationship['parent']:
+      
+      * They are your parent and you live, or used to live, together.
+      % endif
+  - Edit: relationship_to_respondent_exp
+    button: |-
+      **Describe Your Relationship to the Respondent:**
+
+      % if relationship_to_respondent_exp:
+      ${ relationship_to_respondent_exp }
+      % else:
+      *You have not entered a description of your relationship yet.*
+      % endif
   - Edit: 
       - other_parties[0].gender
     button: |-
@@ -182,46 +222,6 @@ review:
         % endif
     show if: defined('other_parties[0].carries_gun_for_work')
   - Edit: 
-      - petitioner_respondent_relationship
-      - recompute:
-        - reset_relationship_description
-        - set_petitioner_respondent_relationship
-    button: |-
-      **Your Relationship to the Respondent:**
-      % if married_choice and petitioner_respondent_relationship['married']:
-
-      * You are currently married.
-      % endif
-      % if was_married_choice and petitioner_respondent_relationship['was_married']:
-
-      * You were previously married.
-      % endif
-      % if petitioner_respondent_relationship['have_child']:
-
-      * You have children together.
-      % endif
-      % if petitioner_respondent_relationship['dating']:
-
-      * You dated or are dating.
-      % endif
-      % if petitioner_respondent_relationship['live_together']:
-
-      * You live or used to live together.
-      % endif
-      % if parent_choice and petitioner_respondent_relationship['parent']:
-      
-      * They are your parent and you live, or used to live, together.
-      % endif
-  - Edit: relationship_to_respondent_exp
-    button: |-
-      **Describe Your Relationship to the Respondent:**
-
-      % if relationship_to_respondent_exp:
-      ${ relationship_to_respondent_exp }
-      % else:
-      *You have not entered a description of your relationship yet.*
-      % endif
-  - Edit: 
       - other_party_alias.there_are_any
       - recompute:
         - check_other_party_alias_list
@@ -295,7 +295,7 @@ review:
         % endif
         % elif item.paternity == "paternity_established" and item.paternity_established_where == "out_of_state":
 
-        * Partentage was was established in: ${ item.state_of_paternity }
+        * Parentage was established in: ${ item.state_of_paternity }
         % elif item.paternity == "paternity_pending" and item.paternity_pending_where == "Michigan":
 
         * Michigan Parentage case pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
@@ -475,7 +475,7 @@ review:
       No
       %endif
       % else:
-      No
+      No, or unknown.
       %endif
   - Edit: respondent_other_children.revisit
     show if: respondent_has_other_children and petitioner_knows_respondent_other_children_names
