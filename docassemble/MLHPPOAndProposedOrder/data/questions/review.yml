@@ -1116,3 +1116,88 @@ edit:
   - location
 confirm: True
 ---
+continue button field: user_alias.revisit
+question: |
+  Edit your aliases.
+subquestion: |
+  ${ user_alias.table }
+
+  ${ user_alias.add_action() }
+---
+table: user_alias.table
+rows: user_alias
+columns:
+  - Name: |
+      row_item.name if defined('row_item.name.first') else ''
+edit:
+  - name.first
+confirm: True
+---
+continue button field: other_party_alias.revisit
+question: |
+  Edit ${ other_parties[0] }'s aliases.
+subquestion: |
+  ${ other_party_alias.table }
+
+  ${ other_party_alias.add_action() }
+---
+table: other_party_alias.table
+rows: other_party_alias
+columns:
+  - Name: |
+      row_item.name if defined('row_item.name.first') else ''
+edit:
+  - name.first
+confirm: True
+---
+continue button field: ppo_harm_protectees.revisit
+question: |
+  Other people you want to be protected from harm
+subquestion: |
+  ${ ppo_harm_protectees.table }
+
+  ${ ppo_harm_protectees.add_action() }
+---
+table: ppo_harm_protectees.table
+rows: ppo_harm_protectees
+columns:
+  - Name: |
+      row_item.name if defined('row_item.name.first') else ''
+edit:
+  - name.first
+confirm: True
+---
+continue button field: ppo_threat_protectees.revisit
+question: |
+  Other people you want to be protected from threats
+subquestion: |
+  ${ ppo_threat_protectees.table }
+
+  ${ ppo_threat_protectees.add_action() }
+---
+table: ppo_threat_protectees.table
+rows: ppo_threat_protectees
+columns:
+  - Name: |
+      row_item.name if defined('row_item.name.first') else ''
+edit:
+  - name.first
+confirm: True
+---
+continue button field: ppo_sexual_assault_threat_protectees.revisit
+question: |
+  Other people you want to be protected from threats
+subquestion: |
+  ${ ppo_sexual_assault_threat_protectees.table }
+
+  ${ ppo_sexual_assault_threat_protectees.add_action() }
+---
+table: ppo_sexual_assault_threat_protectees.table
+rows: ppo_sexual_assault_threat_protectees
+columns:
+  - Name: |
+      row_item.name if defined('row_item.name.first') else ''
+edit:
+  - name.first
+confirm: True
+---
