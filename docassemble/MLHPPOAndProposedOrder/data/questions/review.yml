@@ -37,7 +37,7 @@ review:
 
         **Address:** ${ item.address.on_one_line() }
 
-        **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
+        **Phone:** ${ word("None") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: user_alias.there_are_any
     button: |-
@@ -81,25 +81,27 @@ review:
       ${ next_accordion('<h2 class="h5">Respondent</h2>') }
     show if: respondent_lives_in_michigan or not respondent_lives_in_michigan
   - Edit: 
-      - other_parties.revisit
+      - other_parties[0].name.first
+      - other_parties[0].address.address
+      - other_parties[0].no_phone_number
       - recompute:
         - check_parties_living_together
+        - check_respondent_address_missing
+      - follow up:
+        - respondent_contact_info_kickout
     button: |-
-      % for item in other_parties:
-        **${ item }**
-
-        % if knows_respondents_birthdate:
-        **Age:** ${ item.age_in_years() }[BR]
-        (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
-        % else:
-        **Est. Age:** ${ item.estimated_age }[BR]
-        (If you need to change ${ item.name }'s age, please use the **Undo** button or start over from the beginning.)
-        % endif
-
-        **Address:** ${ item.address.on_one_line() }
-        
-        **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
-      % endfor
+      **${ other_parties[0] }**, 
+      % if knows_respondents_birthdate:
+      **Age:** ${ other_parties[0].age_in_years() }[BR]
+      (If you need to change ${ other_parties[0].name }'s age, please use the **Undo** button or start over from the beginning.)
+      % else:
+      **Est. Age:** ${ other_parties[0].estimated_age }[BR]
+      (If you need to change ${ other_parties[0].name }'s age, please use the **Undo** button or start over from the beginning.)
+      % endif
+      
+      **Address:** ${ other_parties[0].address.on_one_line() }
+      
+      **Phone:** ${ word("Unknown") if other_parties[0].no_phone_number else other_parties[0].phone_number }
   - Edit: 
       - other_parties[0].gender
     button: |-
@@ -952,31 +954,6 @@ columns:
 edit:
   - name.first
   - address.address
-delete buttons: False
----
-id: other parties revisit
-question: |
-  Edit your answers about the person you need protection from (the respondent)
-subquestion: |
-  ${ other_parties.table }
-continue button field: other_parties.revisit
----
-table: other_parties.table
-rows: other_parties
-columns:
-  - Name: |
-      row_item.name_full()
-  - Address: |
-      row_item.address.block()
-  - Phone: |
-      row_item.phone_number
-# just commenting out for now since age editing still in flux
-#  - Age: |
-#      row_item.age_in_years() if defined("row_item.birthdate") else row_item.estimated_age
-edit:
-  - name.first
-  - address.address
-  - phone_number
 delete buttons: False
 ---
 continue button field: |-

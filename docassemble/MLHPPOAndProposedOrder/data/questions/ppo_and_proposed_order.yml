@@ -491,18 +491,16 @@ code: |
 ---
 code: |
   respondent_address_missing = False
-  if other_parties[0].address.address == "": 
+  if other_parties[0].address.address == "" or other_parties[0].address.address == "_________________": 
     other_parties[0].address.address = "_________________"
     respondent_address_missing = True
-  if other_parties[0].address.city == "":
+  if other_parties[0].address.city == "" or other_parties[0].address.city == "_______________":
     other_parties[0].address.city = "_______________"
     respondent_address_missing = True
-  if other_parties[0].address.state == "":
+  if other_parties[0].address.state == "" or other_parties[0].address.state == "___":
     other_parties[0].address.state = "___"
     respondent_address_missing = True
-  if other_parties[0].address.zip == "":
-    other_parties[0].address.zip = "______"
-    respondent_address_missing = True
+  
   check_respondent_address_missing = True
 ---
 code: |
@@ -819,13 +817,6 @@ code: |
 
   set_ex_parte = True
 ---
-# code: |
-#   if county_choice == "Oakland":
-#     if ((not other_parties[0].address.address) or (not other_parties[0].address.city) or (other_parties[0].address.state)) and (not other_parties[0].phone_number):
-#       respondent_contact_info_kickout
-
-#   check_oakland_respondent_contact_info = True
----
 code: |
   if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
   (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
@@ -933,16 +924,14 @@ code: |
   if ppo_type == "domestic":
     if not petitioner_and_respondent_living_together:
       other_parties[i].address.address
-      check_respondent_address_missing
     else:
       check_other_party_address_set_to_user_address
   else:
     other_parties[i].address.address
     check_respondent_address_missing
-  if other_parties[i].no_phone_number:
-    other_parties[i].phone_number = "Unknown phone"
-  if county_choice == "Oakland":
-    if (respondent_address_missing or ((other_parties[0].address.address == "") or (other_parties[0].address.city == "") or (other_parties[0].address.state == ""))) and (other_parties[0].no_phone_number):
+  other_parties[i].no_phone_number
+  if county_choice == "Oakland" and ppo_type != "domestic":
+    if respondent_address_missing and other_parties[0].no_phone_number:
       respondent_contact_info_kickout
   other_parties[i].race
   other_parties[i].gender
@@ -2519,6 +2508,7 @@ fields:
       - No: no
       - I don't know: unknown
 ---
+if: county_choice == "Oakland" and ppo_type != "domestic" and respondent_address_missing and other_parties[0].no_phone_number
 id: respondent contact info kickout
 event: respondent_contact_info_kickout
 question: |
@@ -4644,7 +4634,11 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - pursuant_to: |
         % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
         ${ MLH_esign_tag }
@@ -4777,7 +4771,11 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_height: ${ other_parties[0].height }
     - other_parties1_weight: ${ other_parties[0].weight }
     - other_parties1_race: ${ other_parties[0].race }
@@ -4847,8 +4845,17 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
-    - other_parties1_phone_number: ${ other_parties[0].phone_number }
+        % endif
+    - other_parties1_phone_number: |
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
+        ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -5032,7 +5039,12 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-    - other_parties1_phone: ${ other_parties[0].phone_number }
+    - other_parties1_phone: |
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
+        ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -5285,8 +5297,17 @@ attachments:
     - other_parties1_name__5: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
-    - other_parties1_phone_number: ${ other_parties[0].phone_number }
+        % endif
+    - other_parties1_phone_number: |
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
+        ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -5337,8 +5358,17 @@ attachments:
     - other_parties1_name__5: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
-    - other_parties1_phone_number: ${ other_parties[0].phone_number }
+        % endif
+    - other_parties1_phone_number: |
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
+        ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -5400,7 +5430,11 @@ attachments:
     - other_parties1_address_block: |
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -5451,7 +5485,11 @@ attachments:
     - other_parties1_address_block: |
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -5532,7 +5570,11 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -5667,7 +5709,12 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-    - other_parties1_phone: ${ other_parties[0].phone_number }
+    - other_parties1_phone: |
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
+        ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -5773,7 +5820,11 @@ attachments:
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -5821,7 +5872,11 @@ attachments:
     - other_parties1_name__2: ${ other_parties[0].name }
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
@@ -5963,7 +6018,11 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
         ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
@@ -6066,7 +6125,12 @@ attachments:
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].address_block() }
-    - other_parties1_phone: ${ other_parties[0].phone_number }
+    - other_parties1_phone: |
+        % if other_parties[0].no_phone_number:
+        Unknown phone
+        % else:
+        ${ other_parties[0].phone_number }
+        % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
