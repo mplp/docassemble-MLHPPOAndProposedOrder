@@ -73,7 +73,7 @@ review:
       - recompute:
           - county_check_minor_respondent_done
     button: |-
-      **Does the Petitioner live in Michigan?**
+      **Do you live in Michigan?**
 
       ${ word(yesno(petitioner_lives_in_michigan)) }
   - Edit: 
@@ -107,6 +107,46 @@ review:
         **Phone:** ${ word("") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: 
+      - petitioner_respondent_relationship
+      - recompute:
+        - reset_relationship_description
+        - set_petitioner_respondent_relationship
+    button: |-
+      **Your Relationship to the Respondent:**
+      % if married_choice and petitioner_respondent_relationship['married']:
+
+      * You are currently married.
+      % endif
+      % if was_married_choice and petitioner_respondent_relationship['was_married']:
+
+      * You were previously married.
+      % endif
+      % if petitioner_respondent_relationship['have_child']:
+
+      * You have children together.
+      % endif
+      % if petitioner_respondent_relationship['dating']:
+
+      * You dated or are dating.
+      % endif
+      % if petitioner_respondent_relationship['live_together']:
+
+      * You live or used to live together.
+      % endif
+      % if parent_choice and petitioner_respondent_relationship['parent']:
+      
+      * They are your parent and you live, or used to live, together.
+      % endif
+  - Edit: relationship_to_respondent_exp
+    button: |-
+      **Describe Your Relationship to the Respondent:**
+
+      % if relationship_to_respondent_exp:
+      ${ relationship_to_respondent_exp }
+      % else:
+      *You have not entered a description of your relationship yet.*
+      % endif
+  - Edit: 
       - other_parties[0].gender
     button: |-
       **What is the Respondent's gender?**
@@ -116,6 +156,9 @@ review:
       % elif other_parties[0].gender == "F":
 
       Female
+      % elif other_parties[0].gender == "X":
+
+      Nonbinary
       % endif
   - Edit: other_parties[0].race
     button: |-
@@ -179,46 +222,6 @@ review:
         % endif
     show if: defined('other_parties[0].carries_gun_for_work')
   - Edit: 
-      - petitioner_respondent_relationship
-      - recompute:
-        - reset_relationship_description
-        - set_petitioner_respondent_relationship
-    button: |-
-      **Your Relationship to the Respondent:**
-      % if married_choice and petitioner_respondent_relationship['married']:
-
-      * You are currently married.
-      % endif
-      % if was_married_choice and petitioner_respondent_relationship['was_married']:
-
-      * You were previously married.
-      % endif
-      % if petitioner_respondent_relationship['have_child']:
-
-      * You have children together.
-      % endif
-      % if petitioner_respondent_relationship['dating']:
-
-      * You dated or are dating.
-      % endif
-      % if petitioner_respondent_relationship['live_together']:
-
-      * You live or used to live together.
-      % endif
-      % if parent_choice and petitioner_respondent_relationship['parent']:
-      
-      * They are your parent and you live, or used to live, together.
-      % endif
-  - Edit: relationship_to_respondent_exp
-    button: |-
-      **Describe Your Relationship to the Respondent:**
-
-      % if relationship_to_respondent_exp:
-      ${ relationship_to_respondent_exp }
-      % else:
-      *You have not entered a description of your relationship yet.*
-      % endif
-  - Edit: 
       - other_party_alias.there_are_any
       - recompute:
         - check_other_party_alias_list
@@ -251,52 +254,131 @@ review:
       ${ word(yesno(respondent_lives_in_michigan)) }
   - raw html: |
       ${ next_accordion('<h2 class="h5">Children</h2>') }
-    show if: (len(children.complete_elements()) > 0) or (len(petitioner_other_children.complete_elements()) > 0) or (len(respondent_other_children.complete_elements()) > 0)
-  - Edit: 
-      - children.revisit
+    show if: (petitioner_respondent_have_child and (len(children.complete_elements()) > 0)) or defined('petitioner_has_other_children')
+  - Edit: children.revisit
+    show if: petitioner_respondent_have_child
     button: |-
       % for item in children:
 
-        **${ item }**
-
-        * DOB: ${ item.birthdate }
-        % if item.lives_with:
+        **${ item }**, DOB: ${ item.birthdate }
         % if item.lives_with == "petitioner":
 
-        * Lives with: Petitioner
+        * Lives with: ${ users[0] }
         % elif item.lives_with == "respondent":
 
-        * Lives with: Respondent
+        * Lives with: ${ other_parties[0] }
         % elif item.lives_with == "someone_else":
 
-        * Lives with: Someone other than Petitioner or Respondent
-        % endif
+        * Lives with: Someone other than ${ users[0] } or ${ other_parties[0] }.
         % endif
         % if item.parties_married_when_born:
-
-        * Paternity established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born
-        % elif item.was_adopted:
-
-        * ${ item.familiar() } was adopted (Case \#${ item.adoption_case_number } - ${ item.adoption_case_court })
-        % elif item.paternity == "by_acknowledgment_of_parentage":
+        % if item.married_parents_detail == "marital_child" or item.married_parents_detail == "conceived_outside_marriage" :
         
-        * Paternity established by *Acknowledgment of Parentage*
-        % elif item.paternity == "paternity_case_pending":
-        
-        * Paternity case still pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
-        % elif item.paternity == "by_court_order":
+        * Parentage established by ${ users[0] } and ${ other_parties[0] } being married when ${ item.familiar() } was born.
+        % elif item.married_parents_detail == "married_adoption":
 
-        * Paternity established by court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
-        % elif item.legal_parent == "petitioner":
-
-        * You are ${ item.familiar() }'s legal parent
-        % elif item.legal_parent == "respondent":
-
-        * ${ other_parties[0] } is ${ item.familiar() }'s legal parent
+        * ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
         % endif
+        % elif item.unmarried_adoption:
+      
+        * ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        % elif item.paternity == "paternity_established" and item.paternity_established_where == "Michigan":
+        % if item.paternity_how == "by_acknowledgment_of_parentage":
+
+        * Parentage established in Michigan by *Acknowledgment of Parentage*
+        % elif item.paternity_how == "by_court_order":
+      
+        * Parentage established by Michigan court order (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif item.paternity_how == "by_adoption":
+
+        * Parentage established by adoption. Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
+        % endif
+        % elif item.paternity == "paternity_established" and item.paternity_established_where == "out_of_state":
+
+        * Parentage was established in: ${ item.state_of_paternity }
+        % elif item.paternity == "paternity_pending" and item.paternity_pending_where == "Michigan":
+
+        * Michigan Parentage case pending (Case \#${ item.paternity_case_number } - ${ item.paternity_case_court_name })
+        % elif item.paternity == "paternity_pending" and item.paternity_pending_where == "out_of_state":
+
+        * Parentage case pending in: item.state_of_paternity
+        % elif item.paternity == "paternity_not_established":
+        % if item.legal_parent == "petitioner":
+
+        * ${ users[0] } is ${ item.familiar() }'s legal parent. ${ other_parties[0] } is not a legal parent.
+        % else:
+
+        * ${ other_parties[0] } is ${ item.familiar() }'s legal parent. ${ users[0] } is not a legal parent.
+        % endif
+        % endif
+
+      % endfor
+  - Edit: 
+      - children[0].has_order_in_effect
+      - follow up:
+        - children[0].custody_case_number
+        - children[0].physical_custody_by_order
+        - children[0].parenting_time_order
+        - children[0].who_has_supervised_time
+        - children[0].parent_without_parenting_time
+        - custody_parenting_time_provisions_same
+      - recompute:
+          - gather_other_custody_info
+      - desired_parenting_time_changes
+      - follow up:
+        - exchange_location
+    show if: petitioner_respondent_have_child and (children.target_number == 1 or custody_parenting_time_provisions_same)
+    button: |-
+      **Current Custody and Parenting Time Order**
+      % if children[0].has_order_in_effect:
+
+      Custody/parenting time order in effect (Case \#${ children[0].custody_case_number } - ${ children[0].custody_case_court })
+      % if children[0].parenting_time_order == "reasonable_parenting_time":
+      
+      * Parenting time order says there will be "reasonable parenting time"
+      % elif children[0].parenting_time_order == "specific_times":
+      
+      * Parenting time order lists specific days and times
+      % elif children[0].parenting_time_order == "one_parent_supervised":
+      
+      * Parenting time order says ${ users[0] if children[0].who_has_supervised_time == "petitioner" else other_parties[0] } will be supervised by ${ children[0].who_supervises_parenting_time }
+      % elif children[0].parenting_time_order == "one_parent_no_parenting_time":
+      
+      * Parenting time order says ${ users[0] if children[0].parent_without_parenting_time == "petitioner" else other_parties[0] } does not have any parenting time
+      % endif
+      % if children[0].physical_custody_by_order == 'sole_petitioner':
+      * Custody: ${ users[0] } has sole custody
+      % elif children[0].physical_custody_by_order == 'sole_respondent':
+      * Custody: ${ other_parties[0] } has sole custody
+      % elif children[0].physical_custody_by_order == 'joint_custody':
+      * Custody: ${ users[0] } and ${ other_parties[0] } share custody
+      % endif
+      % else:
+
+      There is no custody/parenting time order in place.
+
+      % endif
+
+      **Desired Parenting Time Changes**
+      % if desired_parenting_time_changes == "no_change":
+      
+      You don't want parenting time changes.
+      % elif desired_parenting_time_changes == "no_change_except_exchange":
+      
+      You want parenting time to stay the same. But you want the exchange to take place at ${ exchange_police_department_location if exchange_location == "police" else exchange_other_location }
+      % elif desired_parenting_time_changes == "suspend_respondent_time":
+      
+      You want ${ other_parties }'s parenting time to be suspended
+      % endif
+  - Edit: 
+      - special_custody_review_screen
+    show if: petitioner_respondent_have_child and children.target_number > 1 and not custody_parenting_time_provisions_same
+    button: |-
+      **Current Custody and Parenting Time Orders**
+      % for item in children:
         % if item.has_order_in_effect:
 
-        * Custody/parenting time order in effect (Case \#${ item.custody_case_number } - ${ item.custody_case_court })
+        There is a custody/parenting time order for **${ item.familiar() }** (Case \#${ item.custody_case_number } - ${ item.custody_case_court })
         % if item.parenting_time_order == "reasonable_parenting_time":
 
         * Parenting time order only says there will be "reasonable parenting time"
@@ -320,23 +402,28 @@ review:
 
         * Custody: ${ users[0] } and ${ other_parties[0] } share custody
         % endif
-        % if defined('custody_parenting_time_provisions_same'):
-        % if not custody_parenting_time_provisions_same:
-        % if item.desired_parenting_time_changes == "no_change":
+        % else:
 
-        * Desired parenting time change: None
-        % elif item.desired_parenting_time_changes == "no_change_except_exchange":
-
-        * Desired parenting time change: No change to parenting time, but exchange should take place at ${ item.exchange_police_department_location if item.exchange_location == "police" else item.exchange_other_location }
-        % elif item.desired_parenting_time_changes == "suspend_respondent_time":
-
-        * Desired parenting time change: ${ other_parties }'s parenting time should be suspended
+        There is no custody/parenting time order for **${ item.familiar() }**
         % endif
-        % endif
-        % endif
-        % endif
-
-      % endfor
+      % endfor 
+  - Edit: 
+      - desired_parenting_time_changes
+      - follow up:
+        - exchange_location
+    show if: petitioner_respondent_have_child and children.target_number > 1 and not custody_parenting_time_provisions_same
+    button: |-
+      **Desired Parenting Time Changes**
+      % if desired_parenting_time_changes == "no_change":
+      
+      You don't want parenting time changes.
+      % elif desired_parenting_time_changes == "no_change_except_exchange":
+      
+      You want parenting time to stay the same. But you want the exchange to take place at ${ exchange_police_department_location if exchange_location == "police" else exchange_other_location }
+      % elif desired_parenting_time_changes == "suspend_respondent_time":
+      
+      You want ${ other_parties }'s parenting time to be suspended
+      % endif
   - note: |
       % if defined('petitioner_has_other_children'):
       <hr>
@@ -352,6 +439,7 @@ review:
       No
       %endif
   - Edit: petitioner_other_children.revisit
+    show if: petitioner_has_other_children
     button: |-
       % for item in petitioner_other_children:
 
@@ -369,20 +457,16 @@ review:
       <hr>
       <h2 class='h5'>Other Children Living with ${ other_parties[0] }</h2>
       % endif
-  - Edit: respondent_has_other_children
+  - Edit: 
+      - respondent_has_other_children
+      - follow up:
+        - petitioner_knows_respondent_other_children_names
     button: |
       **Does ${ other_parties[0] } have any children living in their home who are NOT your children?**
 
       % if respondent_has_other_children:
       Yes
-      % else:
-      No
-      %endif
-  - Edit:
-      - petitioner_knows_respondent_other_children_names
-      - recompute:
-          - set_respondent_has_other_children
-    button: |
+
       **Do you know the names of the other children living with ${ other_parties[0] }?**
 
       % if petitioner_knows_respondent_other_children_names:
@@ -390,8 +474,11 @@ review:
       % else:
       No
       %endif
-    show if: respondent_has_other_children
+      % else:
+      No, or unknown.
+      %endif
   - Edit: respondent_other_children.revisit
+    show if: respondent_has_other_children and petitioner_knows_respondent_other_children_names
     button: |-
       % for item in respondent_other_children:
 
@@ -1001,6 +1088,7 @@ subquestion: |-
   ${ children.table }
   ${ children.add_action() }
 ---
+if: len(children.complete_elements()) > 1
 columns:
   - 'Name': |-
       row_item.name if hasattr(row_item, 'name') else ''
@@ -1014,10 +1102,29 @@ edit:
   - name.first
   - lives_with
   - parties_married_when_born
-  - has_order_in_effect
-  - complete
-  - reset_child_info
+  - paternity
+  - custody_parenting_time_provisions_same
+confirm: True
 ---
+if: len(children.complete_elements()) == 1
+columns:
+  - 'Name': |-
+      row_item.name if hasattr(row_item, 'name') else ''
+  - 'DOB': |-
+      row_item.birthdate if hasattr(row_item, 'birthdate') else ''
+rows: |-
+  children
+table: |-
+  children.table
+edit:
+  - name.first
+  - lives_with
+  - parties_married_when_born
+  - paternity
+  - custody_parenting_time_provisions_same
+delete buttons: False
+---
+if: len(petitioner_other_children.complete_elements()) > 1
 table: petitioner_other_children.table
 rows: petitioner_other_children
 columns:
@@ -1030,6 +1137,20 @@ edit:
   - knows_other_child_birthdate
 confirm: True
 ---
+if: len(petitioner_other_children.complete_elements()) == 1
+table: petitioner_other_children.table
+rows: petitioner_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+delete buttons: False
+---
+if: len(respondent_other_children.complete_elements()) > 1
 table: respondent_other_children.table
 rows: respondent_other_children
 columns:
@@ -1041,6 +1162,19 @@ edit:
   - name.first
   - knows_other_child_birthdate
 confirm: True
+---
+if: len(respondent_other_children.complete_elements()) == 1
+table: respondent_other_children.table
+rows: respondent_other_children
+columns:
+  - Name: |
+      row_item.name_full()
+  - Age: |
+      row_item.age_in_years() if row_item.knows_other_child_birthdate else row_item.estimated_age
+edit:
+  - name.first
+  - knows_other_child_birthdate
+delete buttons: False
 ---
 continue button field: pending_actions.revisit
 question: |
@@ -1115,6 +1249,29 @@ edit:
   - date
   - location
 confirm: True
+---
+table: children.edit_custody
+rows: children
+columns:
+  - Name: |
+      row_item.familiar()
+  - Custody order in place?: |
+      word(yesno(row_item.has_order_in_effect)) 
+edit:
+  - has_order_in_effect
+  - custody_case_number
+  - physical_custody_by_order
+  - parenting_time_order
+  - who_has_supervised_time
+  - parent_without_parenting_time
+delete buttons: False
+---
+id: personal protection order review screen
+question: |
+  Edit Current Custody and Parenting Time Information
+subquestion: |
+  ${ children.edit_custody }
+continue button field: special_custody_review_screen
 ---
 continue button field: user_alias.revisit
 question: |
