@@ -176,29 +176,27 @@ code: |
       safe_contact_info_notice
     user.address.address
     check_user_no_phone
-    if county_choice == "Oakland":
-      if user_alias.there_are_any:
-        user_alias.gather()
-      check_user_alias_list
+    if user_alias.there_are_any:
+      user_alias.gather()
+    check_user_alias_list
 
   nav.set_section("review_respondent_info")
   respondent_intro_screen
   other_parties.gather()
   
-  if (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland")):
+  if ppo_type == "domestic":
     if respondent_is_minor and (not respondent_is_emancipated_minor):
       if all(not petitioner_respondent_relationship.get(key) for key in ['have_child', 'dating']):
         relationship_to_respondent_exp
     else:
       if all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
         relationship_to_respondent_exp
-  elif (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland"):
+  else:
     relationship_to_respondent_exp
 
-  if county_choice == "Oakland":
-    if other_party_alias.there_are_any:
-      other_party_alias.gather()
-    check_other_party_alias_list
+  if other_party_alias.there_are_any:
+    other_party_alias.gather()
+  check_other_party_alias_list
 
   if respondent_is_minor:
     if (not respondent_is_emancipated_minor):
@@ -206,23 +204,22 @@ code: |
 
   respondent_carries_firearm_for_work_asked
 
-  if county_choice == "Oakland":
-    if ppo_type != "domestic":
-      if has_minor_children_in_common:
-        common_children_kickout
-    else:
-      enable_custody_review_screen
-      domestic_ppo_children_intro
-      if petitioner_respondent_relationship['have_child']:
-        children.target_number
-        children.gather()
-        if desired_parenting_time_changes == "no_change_except_exchange":
-          exchange_location
-      if petitioner_has_other_children:
-        petitioner_other_children.gather()
-      if respondent_has_other_children:
-        if petitioner_knows_respondent_other_children_names:
-          respondent_other_children.gather()
+  if ppo_type != "domestic":
+    if has_minor_children_in_common:
+      common_children_kickout
+  else:
+    enable_custody_review_screen
+    domestic_ppo_children_intro
+    if petitioner_respondent_relationship['have_child']:
+      children.target_number
+      children.gather()
+      if desired_parenting_time_changes == "no_change_except_exchange":
+        exchange_location
+    if petitioner_has_other_children:
+      petitioner_other_children.gather()
+    if respondent_has_other_children:
+      if petitioner_knows_respondent_other_children_names:
+        respondent_other_children.gather()
 
   if ppo_type != "nondomestic_sexual_assault":
     if pending_actions.there_are_any:
@@ -850,15 +847,12 @@ code: |
   set_ex_parte = True
 ---
 code: |
-  if (ppo_type == "nondomestic" and (county_choice == "Wayne" or county_choice == "Oakland")) or \
-  (ppo_type == "nondomestic_sexual_assault" and county_choice == "Oakland") or \
-  (ppo_type == "domestic" and (county_choice == "Wayne" or county_choice == "Oakland")):
-    if defined('relationship_to_respondent_exp'):
-      if any(petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
-        undefine('relationship_to_respondent_exp')
-    else:
-      if all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
-        relationship_to_respondent_exp
+  if defined('relationship_to_respondent_exp'):
+    if any(petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+      undefine('relationship_to_respondent_exp')
+  else:
+    if all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+      relationship_to_respondent_exp
   
   reset_relationship_description = True
 ---
@@ -965,7 +959,7 @@ code: |
     other_parties[i].address.address
     check_respondent_address_missing
   other_parties[i].no_phone_number
-  if county_choice == "Oakland" and ppo_type != "domestic":
+  if ppo_type != "domestic":
     if respondent_address_missing and other_parties[0].no_phone_number:
       respondent_contact_info_kickout
   other_parties[i].race
@@ -2497,13 +2491,13 @@ fields:
       - No: no
       - I don't know: unknown
 ---
-if: county_choice == "Oakland" and ppo_type != "domestic" and respondent_address_missing and other_parties[0].no_phone_number
+if: ppo_type != "domestic" and respondent_address_missing and other_parties[0].no_phone_number
 id: respondent contact info kickout
 event: respondent_contact_info_kickout
 question: |
   We're sorry, but you cannot use this tool to prepare your forms.
 subquestion: |
-  In Oakland County, either the Respondent's **address** or **phone number** must be provided in order to inform them of your petition for a protection order.
+  Either the Respondent's **address** or **phone number** must be provided in order to inform them of your petition for a protection order.
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
@@ -4510,6 +4504,7 @@ code: |
     ppo_nondomestic_sexual_assault_minor_attachment.enabled = False
     ppo_nondomestic_sexual_assault_minor_attachment_court.enabled = False
   else:
+    cc_395_statement.enabled = True
     if respondent_is_minor and not respondent_is_emancipated_minor:
       ppo_nondomestic_sexual_assault_attachment.enabled = False
       ppo_nondomestic_sexual_assault_attachment_court.enabled = False
@@ -4628,12 +4623,6 @@ code: |
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
----
-code: |
-  if ppo_type == "nondomestic_sexual_assault" and (county_choice == "Oakland" or (not respondent_sexual_assault_conviction and ((not petitioner_is_minor or not obscene_material_conviction) and fears_future_sexual_assault) or (petitioner_is_minor and not obscene_material_conviction and obscene_material_provided))):
-    cc_395_statement.enabled = True
-  else:
-    cc_395_statement.enabled = False
 ---
 code: |
   if str(county_choice) == "Oakland":
