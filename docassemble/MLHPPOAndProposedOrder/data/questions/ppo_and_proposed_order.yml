@@ -864,9 +864,10 @@ code: |
   x.name.first
   x.complete = True
 ---
-# Tells court_index which court to choose
+# sets court loader information
 code: |
-  court_index = next(court_list.filter_courts_by_2([county_choice], ['circuit'], column_1='address_county', column_2='type'))[0]
+  filing_court = "circuit_only"
+  ottawa_circuit_location = "Grand Haven"
 ---
 code: |
   users[i].name.first
