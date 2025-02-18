@@ -1688,7 +1688,7 @@ subquestion: |
   * Passport number
   * Financial account numbers
 
-  But for PPO forms, there is an exception for the Respondent's date of birth and driver's license number. If you know this information, it needs to go on the PPO. Apart from that information, don’t put any other personal identifying information in your answers.
+  Only include personal identifying information like dates of birth or a driver's license number if this tool specifically asks for it.
 fields:
   - Do you understand that you should **not** enter personal identifying information **unless** this tool specifically asks for it?: PPO_agree_no_pii
     label above field: True
