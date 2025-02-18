@@ -1822,9 +1822,9 @@ event: next_friend_role_kickout
 question: |
   You cannot continue using this tool
 subquestion: |
-  Since ${ next_friends[0] } does not agree to act as ${ users[0] }'s next friend, this tool can’t be used to prepare a PPO.
+  Since ${ next_friends[0] } does not agree to act as ${ users[0] }'s next friend, this tool can’t be used.
 
-  If ${ users[0] } wants to continue preparing a PPO, they will need to find another adult who is willing to act as their next friend.
+  If ${ users[0] } wants to continue preparing PPO forms, they will need to find another adult who is willing to act as their next friend.
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
