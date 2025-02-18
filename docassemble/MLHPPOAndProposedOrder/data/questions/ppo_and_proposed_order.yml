@@ -2574,8 +2574,6 @@ subquestion: |
 id: domestic ppo children intro
 question: |
   Next, you will need to enter information about any children that you or ${ other_parties[0] } have.
-subquestion: |
-  You will also need to enter information about any legal cases between you and ${ other_parties[0] } and describe the things that they have done that made you want a protection order.
 continue button field: domestic_ppo_children_intro
 ---
 id: minor children in common target_number
