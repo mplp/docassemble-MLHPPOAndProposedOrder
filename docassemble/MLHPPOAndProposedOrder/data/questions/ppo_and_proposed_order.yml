@@ -1407,7 +1407,7 @@ id: married when child born
 question: |
   Relationship to ${ other_parties[0] }
 fields:
-  - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born?: children[i].parties_married_when_born
+  - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born or conceived?: children[i].parties_married_when_born
     datatype: yesnoradio
     label above field: True
   - Did you and ${ other_parties[0] } **adopt ${ children[i].familiar() } together**? Only answer yes if neither of you gave birth to the child and you both adopted.: children[i].unmarried_adoption
