@@ -2513,7 +2513,7 @@ fields:
     choices:
       - No: 0
       - Yes, I have information about **one** parent, guardian, or custodian: 1
-      - Yes, I have information about **two** parents, guardians, or custoidans: 2
+      - Yes, I have information about **two** parents, guardians, or custodians: 2
 ---
 id: minor children in common with respondent
 question: |
