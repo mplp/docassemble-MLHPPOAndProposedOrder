@@ -2686,7 +2686,7 @@ fields:
     choices:
       - I do: petitioner
       - ${ other_parties[0] } does: respondent
-  - Who is parenting time supervised by: children[i].who_supervises_parenting_time
+  - Who is parenting time supervised by?: children[i].who_supervises_parenting_time
 ---
 id: who does not have parenting time
 if: children[i].has_order_in_effect and children[i].parenting_time_order == "one_parent_no_parenting_time"
