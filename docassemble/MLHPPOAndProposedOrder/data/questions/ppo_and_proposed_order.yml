@@ -2825,7 +2825,7 @@ fields:
 if: len(children.complete_elements()) > 1
 id: desired parenting time change multiple children
 question: |
-  Parenting time changes for all common children with ${ other_parties[0] }
+  Parenting time changes
 fields:
   - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
     datatype: radio
