@@ -1812,7 +1812,7 @@ subquestion: |
 
   Have ${ next_friends[0] } read (or read to them) the information above. Ask them if they agree to act as your next friend.
 
-  **If ${ next_friends[0] } is not available** to ask right now, exit this tool and start over when they are available.
+  **If ${ next_friends[0] } is not available** to ask right now, exit this tool and return when they are available.
 fields:
   - Do YOU, ${ next_friends[0] }, agree to act as ${ users[0] }'s next friend?: next_friend_agrees_to_role
     datatype: yesnoradio
