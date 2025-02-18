@@ -2834,6 +2834,17 @@ fields:
       - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of the children should take place at a neutral place.: no_change_except_exchange
       - I think that the safety of the children is at risk. I would like all parenting time between ${ other_parties[0] } and our minor children suspended.: suspend_respondent_time
 ---
+id: informal parenting time 
+question: |
+  Informal parenting time arrangement
+fields:
+  - Do you and ${ other_parties[0] } have an informal parenting time arrangement?: informal_PT
+    datatype: yesnoradio
+  - 'Describe your informal parenting time arrangment *(Example: The respondent usually has our child at his house every other weekend, from Friday after school to Sunday evening.)*': informal_PT_exp
+    show if:
+      variable: informal_PT
+      is: True
+---
 id: pending_actions there_are_any
 question: |
   Pending legal cases
