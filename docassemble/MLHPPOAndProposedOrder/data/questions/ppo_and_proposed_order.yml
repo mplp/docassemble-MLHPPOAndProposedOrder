@@ -3286,7 +3286,7 @@ progress: 50
 question: |
   ${ other_parties[0].name } will receive a copy of the petition and statement of facts, and they will also be put in the court file
 subquestion: |
-  If there is a hearing on your petition, you will be required to testify about the events in your statement of facts, so it is important to tell the truth and be as accurate as possible.
+  If there is a hearing on your petition, you will be required to testify about the events in your statement of facts, so it is important to be as accurate as possible.
 
   Be as specific as you can about facts like dates and locations. However, if you are not sure of a date or other fact, do not guess. It is okay to give an approximate date or time, or to put a time of year, like "last summer."
 
