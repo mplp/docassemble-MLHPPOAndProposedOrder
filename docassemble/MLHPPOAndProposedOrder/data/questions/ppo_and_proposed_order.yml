@@ -4276,7 +4276,7 @@ subquestion: |
 id: email confirmation ETCSent
 continue button field: email_status_sent
 question: |
-  You forms were e-mailed to the court!
+  Your forms were e-mailed to the court!
 subquestion: |
   Your forms **were e-mailed** to the ${ county_choice } County Circuit Court. 
   % if county_choice == "Oakland":
