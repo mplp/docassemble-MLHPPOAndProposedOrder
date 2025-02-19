@@ -147,6 +147,13 @@ code: |
 
   set_relationship_choices
 
+  petitioner_respondent_relationship
+  set_petitioner_respondent_relationship
+  if parent_choice and petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
+    petitioner_respondents_child_kickout
+
+  set_ppo_type
+
   if ppo_type == "nondomestic_sexual_assault":
     ppo_nondomestic_intro
 
@@ -154,14 +161,6 @@ code: |
     ppo_nondomestic_intro
     if not has_two_separate_noncontinuous_incidents:
       separate_noncontinuous_incidents_kickout
-
-  if ppo_type == "domestic":
-    petitioner_respondent_relationship
-    set_petitioner_respondent_relationship
-    if parent_choice and petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
-      petitioner_respondents_child_kickout
-
-  set_ppo_type_full
 
   check_if_any_protectees
 
@@ -758,14 +757,17 @@ code: |
   set_mental_distress_control_options = True
 ---
 code: |
-  if ppo_type == "domestic":
+  if petitioner_respondent_relationship.any_true():
+    ppo_type = "domestic"
     ppo_type_full = "Domestic"
-  elif ppo_type == "nondomestic":
-    ppo_type_full = "Non-Domestic"
-  elif ppo_type == "nondomestic_sexual_assault":
+  elif sexual_assault_facts:
+    ppo_type = "nondomestic_sexual_assault"
     ppo_type_full = "Non-Domestic Sexual Assault"
+  elif stalking_facts:
+    ppo_type = "nondomestic"
+    ppo_type_full = "Non-Domestic"
 
-  set_ppo_type_full = True
+  set_ppo_type = True
 ---
 code: |
   if ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault":
@@ -2188,7 +2190,7 @@ subquestion: |
 reconsider: relationship_choices
 id: relationship to respondent
 question: |
-  What kind of relationship do/did you have with the Respondent?
+  What kind of relationship do/did you have with the Respondent, if any?
 fields:
   - Select **all** that apply: petitioner_respondent_relationship
     datatype: checkboxes
@@ -2198,9 +2200,6 @@ under: |
   ${ collapse_template(what_if_no_domestic_relationship) }
 
   ${ sign_in_message }
-validation code: |
-  if petitioner_respondent_relationship.all_false():
-    validation_error("You cannot use this tool to prepare a domestic PPO petition unless you have one of these relationships with the respondent.", field='petitioner_respondent_relationship')
 ---
 template: what_if_no_domestic_relationship
 subject: |
