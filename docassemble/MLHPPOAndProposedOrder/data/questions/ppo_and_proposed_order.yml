@@ -1018,19 +1018,19 @@ code: |
   orders_judgments[i].complete = True
 ---
 code: |
-  if (ppo_type == "nondomestic" or ppo_type == "nondomestic_sexual_assault") and len(incidents.complete_elements()) > 0:
+  if ppo_type == "nondomestic" and len(incidents.complete_elements()) > 0:
     incidents[i].nondomestic_subsequent_incident_intro
   incidents[i].date
   incidents[i].location
   incidents[i].other_party_actions
-  if (ppo_type == "nondomestic") or (ppo_type == "nondomestic_sexual_assault"):
+  if ppo_type == "nondomestic":
     incidents[i].reason_other_party_responsible
   incidents[i].emotional_effect
   if ppo_type == "domestic":
     incidents[i].petitioner_injured
   incidents[i].had_witnesses
   if incidents[i].had_police:
-    incidents_outro
+    incidents[i].police_report_info
   incidents[i].complete = True
 ---
 code: |
@@ -3427,6 +3427,7 @@ fields:
     label above field: True
     input type: area
 ---
+if: ppo_type == "nondomestic"
 id: incidents reason other party responsible
 question: |
   How do you know ${ other_parties[0].name } was responsible?
@@ -3438,6 +3439,7 @@ fields:
   - I know ${ other_parties[0].name } is responsible because...: incidents[i].reason_other_party_responsible
     label above field: True
     input type: area
+    required: False
 ---
 template: other_party_responsible_explained
 subject: |
@@ -3455,6 +3457,7 @@ content: |
 
   "I know it was him calling because the number was blocked, and each time he called before he blocked the number. Also, he has a pattern of calling me in the evening between 6:00 and 9:00 and repeatedly hanging up when I answer the phone."
 ---
+if: ppo_type == "domestic"
 id: incidents physical injury
 question: |
   Physical injuries
@@ -3514,6 +3517,7 @@ subject: |
 content: |
   There is no requirement that the police were called to get a personal protection order. This is just information that can help the judge understand what happened to you and why you need protection from ${ other_parties[0].name }.
 ---
+if: incidents[i].had_police
 id: incidents outro
 question: |
   Important! If there is a police report for this incident, get a copy to include with your petition.
@@ -3522,7 +3526,7 @@ subquestion: |
 
   Note that only including a police report number or incident number in your petition does **not** automatically allow the court to access the police report. It must be filed with your petition if you want the court to be able to see it.
 
-continue button field: incidents_outro
+continue button field: incidents[i].police_report_info
 ---
 id: incidents there_is_another
 question: |
