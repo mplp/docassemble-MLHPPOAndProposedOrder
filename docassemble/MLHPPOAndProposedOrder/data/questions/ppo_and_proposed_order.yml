@@ -2109,9 +2109,9 @@ continue button field: need_respondent_parents
 ---
 id: ppo type info
 question: |
-  Type of Personal Protection Order
+  Type of Personal Protection Order (PPO)
 subquestion: |
-  In Michigan, there are three kinds of PPO. On the next few screens, we will ask questions to figure out if there is a PPO type you can apply for. 
+  In Michigan, there are three kinds of PPO. On the next few screens, we will ask questions to figure out if there is a PPO type that fits your situation. 
 
   ${ collapse_template(ppo_types_explained) }
 continue button field: ppo_type_info
