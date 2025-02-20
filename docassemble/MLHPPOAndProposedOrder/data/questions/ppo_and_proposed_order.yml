@@ -155,7 +155,7 @@ code: |
   if petitioner_respondent_relationship.all_false():
     if not sexual_assault_facts:
       if not has_two_separate_noncontinuous_incidents:
-        separate_noncontinuous_incidents_kickout
+        no_applicable_PPO_type_kickout
   set_ppo_type
   check_if_any_protectees
 
@@ -2181,8 +2181,8 @@ content: |
 
   For example, if the respondent approached you, physically harmed you, and then made a verbal threat — and these actions followed immediately one after the other — this would count as only one incident of stalking or harassment, and would not be enough to get a nondomestic PPO.
 ---
-id: separate noncontinuous incidents kickout
-event: separate_noncontinuous_incidents_kickout
+id: no applicable PPO type kickout
+event: no_applicable_PPO_type_kickout
 question: |
   We're sorry, your answers indicate you don't qualify for a Michigan PPO.
 subquestion: |
