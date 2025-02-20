@@ -147,21 +147,16 @@ code: |
 
   set_relationship_choices
 
+  ppo_type_info
   petitioner_respondent_relationship
   set_petitioner_respondent_relationship
   if parent_choice and petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
     petitioner_respondents_child_kickout
-
+  if petitioner_respondent_relationship.all_false():
+    if not sexual_assault_facts:
+      if not has_two_separate_noncontinuous_incidents:
+        separate_noncontinuous_incidents_kickout
   set_ppo_type
-
-  if ppo_type == "nondomestic_sexual_assault":
-    ppo_nondomestic_intro
-
-  if ppo_type == "nondomestic":
-    ppo_nondomestic_intro
-    if not has_two_separate_noncontinuous_incidents:
-      separate_noncontinuous_incidents_kickout
-
   check_if_any_protectees
 
   county_choice
@@ -763,7 +758,7 @@ code: |
   elif sexual_assault_facts:
     ppo_type = "nondomestic_sexual_assault"
     ppo_type_full = "Non-Domestic Sexual Assault"
-  elif stalking_facts:
+  elif has_two_separate_noncontinuous_incidents:
     ppo_type = "nondomestic"
     ppo_type_full = "Non-Domestic"
 
@@ -2094,13 +2089,16 @@ question: |
 subquestion: |
   ${ collapse_template(emancipated_respondent_minor_explained) }
 fields:
-  - Is the Respondent an emancipated minor?: respondent_is_emancipated_minor
+  - Is the {Respondent} an emancipated minor?: respondent_is_emancipated_minor
     datatype: yesnoradio
-  - Is the Respondent your child?: respondent_is_petitioners_child
+  - Is the {Respondent} your child?: respondent_is_petitioners_child
     datatype: yesnoradio
     show if:
       variable: respondent_is_emancipated_minor
       is: False
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 ---
 id: need respondent parents
 question: |
@@ -2109,64 +2107,71 @@ subquestion: |
   Because ${ other_parties[0] } is an unemancipated minor, both ${ other_parties[0] } and their parents, guardians, or custodians must be served with your petition for a personal protection order.
 continue button field: need_respondent_parents
 ---
-id: choose ppo type
+id: ppo type info
 question: |
-  What type of Personal Protection Order do you want to ask the court for?
+  Type of Personal Protection Order
 subquestion: |
+  In Michigan, there are three kinds of PPO. On the next few screens, we will ask questions to figure out if there is a PPO type you can apply for. 
+
   ${ collapse_template(ppo_types_explained) }
-fields:
-  - Choose one: ppo_type
-    datatype: radio
-    choices:
-      - 1. Personal Protection Order - Domestic Relationship: domestic
-      - 2. Personal Protection Order - Nondomestic Relationship: nondomestic
-      - 3. Personal Protection Order - Nondomestic Sexual Assault: nondomestic_sexual_assault
+continue button field: ppo_type_info
 ---
 template: ppo_types_explained
 subject: |
-  What's the difference?
+  Want more information about the different types of PPOs?
 content: |
-  1. A **Personal Protection Order - Domestic Relationship** is for someone who has or had a domestic relationship with the Respondent. A domestic relationship means:
+  1. Personal Protection Order - **Domestic Relationship.** You **must** use this PPO type if you have or had a domestic relationship with the {Respondent}. A domestic relationship means:
 
     * You are/were married to the Respondent
     * You are dating/dated the Respondent
     * You live/lived with the Respondent
     * You have one or more children with the Respondent
 
-  2. A **Personal Protection Order - Nondomestic** is for someone who does not have a domestic relationship with the Respondent.
-
-      A nondomestic personal protection order is used to protect someone from stalking or harassing behavior.
-
-  3. A **Personal Protection Order - Nondomestic Sexual Assault** is for someone who does **not** have a domestic relationship with the Respondent.
+  2. A Personal Protection Order - **Nondomestic Sexual Assault** is for someone who does **not** have a domestic relationship with the Respondent.
 
       A nondomestic sexual assault personal protection order is used to protect someone from sexual assault and/or threats of sexual assault.
+
+  3. A Personal Protection Order - **Nondomestic** is for someone who does **not** have a domestic relationship with the Respondent.
+
+      A nondomestic personal protection order is used to protect someone from stalking or harassing behavior.
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 ---
-id: ppo nondomestic intro
+id: sexual assault facts
 question: |
-  You have chosen a type of PPO that is for someone who does not have a domestic relationship with the Respondent.
-subquestion: |
-  A domestic relationship means:
-
-    * You are/were married to the Respondent;
-    * You are dating/dated the Respondent;
-    * You live/lived with the Respondent; or
-    * You have one or more children with the Respondent.
-
-  If you **do** have a domestic relationship with the Respondent, you cannot use this type of PPO. You should select **Undo** to return to the prior screen and choose **Personal Protection Order - Domestic Relationship**.
-
-  If you **do not** have a domestic relationship with the Respondent, you can continue.
-
-continue button field: ppo_nondomestic_intro
+  Sexual assault 
+fields:
+  - "Has the {respondent} sexually assaulted you or threatened to sexually assault you?": sexual_assault_facts
+    datatype: yesnoradio
+  - note: |
+      OK, you will fill out the forms to request a **Nondomestic Sexual Assault** PPO.
+    show if:
+      variable: sexual_assault_facts
+      is: True
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 ---
 id: two or more noncontinuous incidents
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 question: |
-  Number of incidents
+  Stalking
 subquestion: |
+  Based on your answers, the only type of PPO that might be right for you is a nondomestic PPO. To qualify for a nondomestic PPO, there must be **two or more separate, noncontinuous incidents** where the {respondent} **stalked or harassed you**.
+  
   ${ collapse_template(separate_noncontinuous_incidents_explained) }
 fields:
-  - Were there two or more **separate**, **noncontinuous** incidents where the respondent stalked or harassed you?: has_two_separate_noncontinuous_incidents
+  - Were there two or more **separate**, **noncontinuous** incidents where the {respondent} stalked or harassed you?: has_two_separate_noncontinuous_incidents
     datatype: yesnoradio
     label above field: True
+  - note: |
+      OK, you will fill out the forms to request a **Nondomestic** PPO.
+    show if:
+      variable: has_two_separate_noncontinuous_incidents
+      is: True
 ---
 template: separate_noncontinuous_incidents_explained
 subject: |
@@ -2179,13 +2184,20 @@ content: |
 id: separate noncontinuous incidents kickout
 event: separate_noncontinuous_incidents_kickout
 question: |
-  We're sorry, but your answers indicate you don't qualify for a nondomestic (stalking) PPO.
+  We're sorry, your answers indicate you don't qualify for a Michigan PPO.
 subquestion: |
-  To qualify, you must show two or more separate and noncontinuous incidents of stalking or harassing behavior. 
+  To get a Michigan PPO:
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+  * you must have a domestic relationship with the {respondent}, or
+  * the {respondent} must have sexually assaulted you, or threatened to do so, or 
+  * there must be two separate, noncontinuous incidents of stalking or harassing behavior.
+  
+  Read the article [Overview of Personal Protection Orders ](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn about different kinds of PPOs.
 
-  Otherwise, **Exit** the interview. To find out if you could qualify for a different type of PPO, read [Overview of Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders).
+  Tap the **${ MLH_back_button_label }** button to go back and change your answers if one of the PPO types applies to you. Otherwise, return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal resources.
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 ---
 reconsider: relationship_choices
 id: relationship to respondent
@@ -2205,14 +2217,10 @@ template: what_if_no_domestic_relationship
 subject: |
   What if none of these options apply?
 content: |
-  If you don't have a domestic relationship with the Respondent, you cannot use this tool to prepare a Petition for a **domestic relationship** PPO. 
-  
-  You can go back or start over and chooose a different PPO type if 
-  
-  * someone is stalking or harassing you, or 
-  * someone has sexually assaulted you. 
-  
-  Read the article [Overview of Personal Protection Orders ](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn about different kinds of PPOs.
+  If you have never had a domestic relationship with the {Respondent}, select "None of the above." Then tap **Continue** to see if you can request a different type of PPO.
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 ---
 id: relationship to respondent kickout
 question: |
@@ -2229,21 +2237,27 @@ question: |
   In what county will you file your PPO case?
 subquestion: |
   % if respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and petitioner_lives_in_michigan and respondent_lives_in_michigan:
-  You may file your PPO case either in **your county of residence** or **the Respondent's county of residence**.
+  You may file your PPO case either in: 
+  
+  * **your county of residence** or 
+  * **the {Respondent}'s county of residence**.
   % elif respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and (not petitioner_lives_in_michigan) and respondent_lives_in_michigan:
-  Because the Respondent is a minor and you do not live in Michigan, you need to file your PPO case in the county **where the Respondent lives**.
+  Because the Respondent is a minor and you do not live in Michigan, you need to file your PPO case in the county **where the {Respondent} lives**.
 
   ${ collapse_template(unknown_minor_respondent_county) }
   % elif respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and petitioner_lives_in_michigan and (not respondent_lives_in_michigan):
   Because the Respondent is a minor and does not live in Michigan, you must file your PPO case in the county **where you live**.
   % else:
-  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the Respondent lives, because there may be future hearings to attend.
+  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the {Respondent} lives, because there may be future hearings to attend.
 
   If the Respondent doesn’t know what county you live in and you want to keep your location a secret, it’s probably best to file in a different county.
   % endif
 fields:
   - Select the county you will file your PPO case in: county_choice
     code: court_list._load_courts()["address_county"].unique()
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
 ---
 code: |
   if defined('county_choice') and (respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child)) and (not petitioner_lives_in_michigan or not respondent_lives_in_michigan):
