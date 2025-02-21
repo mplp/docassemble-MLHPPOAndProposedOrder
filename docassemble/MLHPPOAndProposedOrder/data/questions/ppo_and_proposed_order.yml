@@ -2208,6 +2208,10 @@ fields:
     datatype: checkboxes
     code: |
       relationship_choices
+  - note: |
+      OK, you will fill out the forms to request a **Domestic** PPO.
+    js show if: |
+      val("petitioner_respondent_relationship['married']") || val("petitioner_respondent_relationship['was_married']") || val("petitioner_respondent_relationship['have_child']") || val("petitioner_respondent_relationship['live_together']") || val("petitioner_respondent_relationship['dating']") || val("petitioner_respondent_relationship['parent']")
 under: |
   ${ collapse_template(what_if_no_domestic_relationship) }
 
