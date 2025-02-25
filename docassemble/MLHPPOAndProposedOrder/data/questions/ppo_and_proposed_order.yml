@@ -1355,7 +1355,7 @@ fields:
   - code: |
       children[i].name_fields()
   - Birthdate: children[i].birthdate
-    datatype: date
+    datatype: BirthDate
 ---
 id: petitioner_other_children info
 sets:
@@ -1752,7 +1752,7 @@ question: |
   Date of birth
 fields:
   - Enter your date of birth: users[0].birthdate
-    datatype: date
+    datatype: BirthDate
     required: True
 ---
 id: emancipated minor
@@ -2027,7 +2027,7 @@ fields:
     datatype: yesnoradio
     label above field: True
   - Enter the Respondent's date of birth: other_parties[0].birthdate
-    datatype: date
+    datatype: BirthDate
     show if:
       variable: knows_respondents_birthdate
       is: True
@@ -2047,7 +2047,7 @@ fields:
     datatype: yesnoradio
     label above field: True
   - What is ${ petitioner_other_children[i].familiar() }'s date of birth?: petitioner_other_children[i].birthdate
-    datatype: date
+    datatype: BirthDate
     show if:
       variable: petitioner_other_children[i].knows_other_child_birthdate
       is: True
@@ -2066,7 +2066,7 @@ fields:
     datatype: yesnoradio
     label above field: True
   - What is ${ respondent_other_children[i].familiar() }'s date of birth?: respondent_other_children[i].birthdate
-    datatype: date
+    datatype: BirthDate
     show if:
       variable: respondent_other_children[i].knows_other_child_birthdate
       is: True
