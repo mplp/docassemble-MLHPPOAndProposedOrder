@@ -3360,7 +3360,7 @@ subquestion: |
 
   ${ collapse_template(incident_date_explained) }
 fields:
-  - Complete the sentence "This incident occured on or about...": incidents[i].date
+  - Complete the sentence "This incident occurred on or about...": incidents[i].date
     label above field: True
 ---
 template: incident_date_explained
