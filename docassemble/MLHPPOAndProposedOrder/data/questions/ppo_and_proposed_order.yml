@@ -1585,7 +1585,7 @@ question: |
 subquestion: |
   ${ collapse_template(user_alias_list_template) }
 fields:
-  - Have you ever been known by any other name?: user_alias.there_is_another
+  - Do you have any other previous names to add?: user_alias.there_is_another
     datatype: yesnoradio
 ---
 template: user_alias_list_template
@@ -1616,7 +1616,7 @@ question: |
 subquestion: |
   ${ collapse_template(other_party_alias_list_template) }
 fields:
-  - Has ${ other_parties[0] } ever been known by any other name?: other_party_alias.there_is_another
+  - Do you have any other previous names to add for ${ other_parties[0] }?: other_party_alias.there_is_another
     datatype: yesnoradio
 ---
 template: other_party_alias_list_template
