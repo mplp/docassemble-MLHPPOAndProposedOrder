@@ -93,6 +93,14 @@ code: |
   snapshot_start
   nav.set_section('review_full')
   nav.set_section("signpost_intro")
+
+  other_parties[0].name = "John Smith"
+  children.target_number
+  children.gather()
+  if any_child_has_PT:
+    if desired_parenting_time_changes == "no_change_except_exchange":
+      exchange_location    
+  
   MLH_intro_landing
   MLH_intro_roles
   MLH_agree_terms
@@ -2669,8 +2677,11 @@ question: |
 subquestion: |
   You told us about the custody and parenting time provisions for ${ children[0] }.
 fields:
-  - Are custody and parenting time provisions the same for all your children with ${ other_parties[0] }?: custody_parenting_time_provisions_same
-    datatype: yesnoradio
+  - Are custody and parenting time the same for all your children with ${ other_parties[0] }?: custody_parenting_time_provisions_same
+    datatype: radio
+    choices:
+      - Yes: True
+      - No, at least one child has **no custody/parenting time order** or has a court order that says **something different** about parenting time.: False
     label above field: True
 ---
 id: same informal PT plan for all children?
@@ -2902,7 +2913,7 @@ id: desired parenting time change multiple children
 question: |
   Parenting time changes
 fields:
-  - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
+  - Select the option below that best describes what you want to happen with parenting time for your children: desired_parenting_time_changes
     datatype: radio
     choices:
       - I do not want to change the current parenting time arrangements.: no_change
