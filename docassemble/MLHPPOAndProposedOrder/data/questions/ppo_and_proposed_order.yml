@@ -5613,6 +5613,7 @@ attachments:
     - other_parties1_name__3: ${ other_parties[0].name_full() }
     - other_parties1_name__4: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
+        ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
         % if other_parties[0].no_phone_number:
