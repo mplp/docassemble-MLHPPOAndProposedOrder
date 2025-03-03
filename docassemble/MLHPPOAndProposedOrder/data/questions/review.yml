@@ -331,8 +331,8 @@ review:
       - recompute:
           - gather_other_custody_info
           - any_child_has_PT
-      - desired_parenting_time_changes
       - follow up:
+        - desired_parenting_time_changes
         - exchange_location
     show if: petitioner_respondent_have_child and (children.target_number == 1 or custody_parenting_time_provisions_same)
     button: |-
@@ -416,22 +416,22 @@ review:
         % endif
         % if item.physical_custody_by_order == 'sole_petitioner':
 
-        * Custody: ${ users[0] } has sole custody
+        * Custody: ${ users[0] } has sole custody.
         % elif item.physical_custody_by_order == 'sole_respondent':
 
-        * Custody: ${ other_parties[0] } has sole custody
+        * Custody: ${ other_parties[0] } has sole custody.
         % elif item.physical_custody_by_order == 'joint_custody':
 
-        * Custody: ${ users[0] } and ${ other_parties[0] } share custody
+        * Custody: ${ users[0] } and ${ other_parties[0] } share custody.
         % endif
         % elif item.informal_PT:
 
-        There is no custody/parenting time order in place for **${ item.familiar() }**, but there is an **informal parenting time** arrangement:
+        For **${ item.familiar() }**, there is no custody/parenting time order, but there is an **informal parenting time** arrangement:
 
         ${ item.informal_PT_exp }
         % else:
 
-        There is no custody/parenting time order for **${ item.familiar() }**
+        There is no custody/parenting time order for **${ item.familiar() }**.
         % endif
       % endfor 
   - Edit: 
