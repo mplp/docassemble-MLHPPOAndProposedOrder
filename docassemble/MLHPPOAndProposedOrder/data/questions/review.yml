@@ -257,7 +257,10 @@ review:
   - raw html: |
       ${ next_accordion('<h2 class="h5">Children</h2>') }
     show if: (petitioner_respondent_have_child and (len(children.complete_elements()) > 0)) or defined('petitioner_has_other_children')
-  - Edit: children.revisit
+  - Edit: 
+      - children.revisit
+      - recompute:
+          - any_child_has_PT
     show if: petitioner_respondent_have_child
     button: |-
       % for item in children:
@@ -327,6 +330,7 @@ review:
         - custody_parenting_time_provisions_same
       - recompute:
           - gather_other_custody_info
+          - any_child_has_PT
       - desired_parenting_time_changes
       - follow up:
         - exchange_location
@@ -368,6 +372,7 @@ review:
 
       % endif
 
+      % if children[0].has_order_in_effect or children[0].informal_PT:
       **Desired Parenting Time Changes**
       % if desired_parenting_time_changes == "no_change":
       
@@ -377,15 +382,18 @@ review:
       You want parenting time to stay the same. But you want the exchange to take place at ${ exchange_police_department_location if exchange_location == "police" else exchange_other_location }
       % elif desired_parenting_time_changes == "suspend_respondent_time":
       
-      You want ${ other_parties }'s parenting time to be suspended
+      You want ${ other_parties }'s parenting time to stop.
       % elif desired_parenting_time_changes == "something_else":
 
       You want something else:
       
       ${ parenting_time_changes_exp }
       % endif
+      % endif
   - Edit: 
       - special_custody_review_screen
+      - recompute:
+          - any_child_has_PT
     show if: petitioner_respondent_have_child and children.target_number > 1 and not custody_parenting_time_provisions_same
     button: |-
       **Current Custody and Parenting Time Orders**
@@ -430,7 +438,7 @@ review:
       - desired_parenting_time_changes
       - follow up:
         - exchange_location
-    show if: petitioner_respondent_have_child and children.target_number > 1 and not custody_parenting_time_provisions_same
+    show if: petitioner_respondent_have_child and children.target_number > 1 and not custody_parenting_time_provisions_same and any_child_has_PT
     button: |-
       **Desired Parenting Time Changes**
       % if desired_parenting_time_changes == "no_change":
@@ -441,7 +449,7 @@ review:
       You want parenting time to stay the same. But you want the exchange to take place at ${ exchange_police_department_location if exchange_location == "police" else exchange_other_location }
       % elif desired_parenting_time_changes == "suspend_respondent_time":
       
-      You want ${ other_parties }'s parenting time to be suspended
+      You want ${ other_parties }'s parenting time to stop.
       % elif desired_parenting_time_changes == "something_else":
 
       You want something else:

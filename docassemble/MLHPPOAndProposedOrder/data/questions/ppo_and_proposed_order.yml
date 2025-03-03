@@ -93,14 +93,6 @@ code: |
   snapshot_start
   nav.set_section('review_full')
   nav.set_section("signpost_intro")
-
-  other_parties[0].name = "John Smith"
-  children.target_number
-  children.gather()
-  if any_child_has_PT:
-    if desired_parenting_time_changes == "no_change_except_exchange":
-      exchange_location    
-  
   MLH_intro_landing
   MLH_intro_roles
   MLH_agree_terms
@@ -2712,7 +2704,7 @@ fields:
       - No, **none** of the children have a custody order or informal parenting time arrangement.: True
     label above field: True
 ---
-if: desired_parenting_time_changes == "no_change_except_exchange"
+if: any_child_has_PT and desired_parenting_time_changes == "no_change_except_exchange"
 id: parenting time exchange location for all children
 question: |
   Location of parenting time exchanges
