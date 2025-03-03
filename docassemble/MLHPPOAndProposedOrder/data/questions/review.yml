@@ -318,6 +318,7 @@ review:
   - Edit: 
       - children[0].has_order_in_effect
       - follow up:
+        - children[0].informal_PT
         - children[0].custody_case_number
         - children[0].physical_custody_by_order
         - children[0].parenting_time_order
@@ -355,6 +356,12 @@ review:
       % elif children[0].physical_custody_by_order == 'joint_custody':
       * Custody: ${ users[0] } and ${ other_parties[0] } share custody
       % endif
+      % elif children[0].informal_PT:
+
+      There is no custody/parenting time order in place, but there is an **informal parenting time** arrangement:
+
+      ${ children[0].informal_PT_exp }
+      
       % else:
 
       There is no custody/parenting time order in place.
@@ -371,6 +378,11 @@ review:
       % elif desired_parenting_time_changes == "suspend_respondent_time":
       
       You want ${ other_parties }'s parenting time to be suspended
+      % elif desired_parenting_time_changes == "something_else":
+
+      You want something else:
+      
+      ${ parenting_time_changes_exp }
       % endif
   - Edit: 
       - special_custody_review_screen
@@ -404,6 +416,11 @@ review:
 
         * Custody: ${ users[0] } and ${ other_parties[0] } share custody
         % endif
+        % elif item.informal_PT:
+
+        There is no custody/parenting time order in place for **${ item.familiar() }**, but there is an **informal parenting time** arrangement:
+
+        ${ item.informal_PT_exp }
         % else:
 
         There is no custody/parenting time order for **${ item.familiar() }**
@@ -425,6 +442,11 @@ review:
       % elif desired_parenting_time_changes == "suspend_respondent_time":
       
       You want ${ other_parties }'s parenting time to be suspended
+      % elif desired_parenting_time_changes == "something_else":
+
+      You want something else:
+      
+      ${ parenting_time_changes_exp }
       % endif
   - note: |
       % if defined('petitioner_has_other_children'):
@@ -1238,6 +1260,7 @@ columns:
       word(yesno(row_item.has_order_in_effect)) 
 edit:
   - has_order_in_effect
+  - informal_PT
   - custody_case_number
   - physical_custody_by_order
   - parenting_time_order
