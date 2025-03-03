@@ -1257,6 +1257,13 @@ columns:
 edit:
   - date
   - location
+  - other_party_actions
+  - reason_other_party_responsible
+  - emotional_effect
+  - petitioner_injured
+  - had_witnesses
+  - had_police
+  - police_report_info
 confirm: True
 ---
 table: children.edit_custody
