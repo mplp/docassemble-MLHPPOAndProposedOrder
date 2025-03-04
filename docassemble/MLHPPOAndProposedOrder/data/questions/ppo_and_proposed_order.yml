@@ -93,6 +93,12 @@ code: |
   snapshot_start
   nav.set_section('review_full')
   nav.set_section("signpost_intro")
+
+  other_parties[0].name.first = "John"
+  other_parties[0].name.last = "Smith"
+  children.target_number
+  children.gather()
+  
   MLH_intro_landing
   MLH_intro_roles
   MLH_agree_terms
@@ -913,12 +919,12 @@ code: |
 code: |
   if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].paternity == "paternity_not_established":
     if children[i].birthing_parent == "petitioner":
-      children[i].legal_parent == "petitioner"
+      children[i].legal_parent = "petitioner"
     if children[i].birthing_parent == "respondent":
-      children[i].legal_parent == "respondent"
+      children[i].legal_parent = "respondent"
   ###### do we need this ######
     if children[i].legal_parent == "third_party":
-      children[i].legal_parent == "mystery"
+      children[i].legal_parent = "mystery"
 
   children[i].select_legal_parent = True
 ---
@@ -1416,7 +1422,7 @@ fields:
 ---
 id: married when child born
 question: |
-  Relationship to ${ other_parties[0] }
+  ${ children[i] }'s legal parents
 fields:
   - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born or conceived?: children[i].parties_married_when_born
     datatype: yesnoradio
@@ -1474,9 +1480,24 @@ fields:
     show if:
       variable: children[i].how_conceived
       is: extramarital
+  - note: |
+      ${ collapse_template(why_ask_married) }
 terms:
   spouse: |
     "Spouse" is another word for wife or husband.
+---
+template: why_ask_married
+subject: |
+  Why are you asking this?
+content: |
+  The judge may want to know whether you and/or ${ other_parties[0] } is a legal parent.
+
+  You are **both** legal parents if:
+  
+  * you were married when ${ children[i].familiar() } was born or conceived, or 
+  * you adopted ${ children[i].familiar() } together.
+
+  If neither of these apply, we will ask about other ways of becoming legal parents.
 ---
 id: custody or parenting time order
 question: |
@@ -2748,28 +2769,40 @@ fields:
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption
 id: who gave birth to child
 question: |
-  ${ children[i] }'s legal parent(s)
-subquestion: |
-  The parent who gave birth to ${ children[i].familiar() }) is usually their legal parent. 
+  ${ children[i] }'s legal parents
 fields:
-  - Who gave birth to ${ children[i] }?: birthing_parent
+  - Who gave birth to ${ children[i] }?: children[i].birthing_parent
     datatype: radio
     choices:
       - I did: petitioner
       - ${ other_parties[0] } did: respondent
-      - Someone else did: third_party                                       
+      - Someone else did: third_party 
+  - note: |
+      ${ collapse_template(why_ask_birthing_parent) }
 ---
-if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and birthing_parent == "petitioner"
+template: why_ask_birthing_parent
+subject: |
+  Why are you asking this?
+content: |
+  The judge may want to know whether you and/or ${ other_parties[0] } is a legal parent.
+  
+  First we ask who gave birth to ${ children[i].familiar() } because that person is usually a legal parent. It also helps us make followup questions a little simpler.
+  
+  Next, we will ask about the other parent.
+---
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "petitioner"
 id: child paternity
 terms:
   parentage: |
-    If the second parent is a father, this is also called establishing **paternity**.
+        Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
 question: |
   ${ other_parties[0] }'s legal parentage status
 subquestion: |
-  Since you gave birth to ${ children[i].familiar() }, you are their legal parent. ${ other_parties[0] } is also a legal parent **if {parentage} was established.**
+  Since you gave birth to ${ children[i].familiar() }, you are their legal parent. 
+  
+  ${ other_parties[0] } is also a legal parent **if** {parentage} was established. Parentage is often established with an *Affidavit of Parentage* or a court order.
 fields:
-  - Has ${ other_parties[0] } {parentage} been legally established?: children[i].paternity
+  - Has ${ other_parties[0] }'s {parentage} been legally established?: children[i].paternity
     datatype: radio
     choices:
       - Yes: paternity_established
@@ -2840,15 +2873,17 @@ fields:
       variable: children[i].paternity_how
       is: by_adoption
 ---
-if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and birthing_parent == "respondent"
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "respondent"
 id: child paternity
 terms:
   parentage: |
-    If the second parent is a father, this is also called establishing **paternity**.
+    Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
 question: |
   Your legal parentage status
 subquestion: |
-  Since ${ other_parties[0] } gave birth to ${ children[i].familiar() }, they are ${ children[i].familiar() }'s legal parent. You are also a legal parent **if {parentage} was established.**
+  Since ${ other_parties[0] } gave birth to ${ children[i].familiar() }, ${ other_parties[0].familiar() } is ${ children[i].familiar() }'s legal parent. 
+  
+  You are also a legal parent **if** {parentage} was established. Parentage is often established with an *Affidavit of Parentage* or a court order.
 fields:
   - Has your {parentage} been legally established?: children[i].paternity
     datatype: radio
