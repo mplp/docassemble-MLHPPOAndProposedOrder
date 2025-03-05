@@ -213,8 +213,9 @@ code: |
     if petitioner_respondent_relationship['have_child']:
       children.target_number
       children.gather()
-      if desired_parenting_time_changes == "no_change_except_exchange":
-        exchange_location
+      if any_child_has_PT:
+        if desired_parenting_time_changes == "no_change_except_exchange":
+          exchange_location        
     if petitioner_has_other_children:
       petitioner_other_children.gather()
     if respondent_has_other_children:
@@ -900,6 +901,8 @@ code: |
         children[i].who_has_supervised_time
       elif children[i].parenting_time_order == "one_parent_no_parenting_time":
         children[i].parent_without_parenting_time
+    else:
+      children[i].informal_PT  
     if children.target_number > 1:
       custody_parenting_time_provisions_same
   else:
@@ -911,8 +914,20 @@ code: |
           children[i].who_has_supervised_time
         elif children[i].parenting_time_order == "one_parent_no_parenting_time":
           children[i].parent_without_parenting_time
+      else:
+        children[i].informal_PT  
   
   children[i].complete = True
+---
+code: |
+  any_child_has_PT = False
+  if len(children.complete_elements()) > 1 and custody_parenting_time_provisions_same:
+    if children[0].has_order_in_effect or children[0].informal_PT:
+      any_child_has_PT = True
+  else:
+    for child in children:
+      if child.has_order_in_effect or child.informal_PT:
+        any_child_has_PT = True
 ---
 code: |
   if children.target_number > 1 and not custody_parenting_time_provisions_same:
@@ -924,6 +939,8 @@ code: |
           child.who_has_supervised_time
         elif child.parenting_time_order == "one_parent_no_parenting_time":
           child.parent_without_parenting_time
+      else:
+        child.informal_PT
       
   gather_other_custody_info = True
 ---
@@ -1361,7 +1378,7 @@ fields:
   - code: |
       children[i].name_fields()
   - Birthdate: children[i].birthdate
-    datatype: date
+    datatype: BirthDate
 ---
 id: petitioner_other_children info
 sets:
@@ -1606,7 +1623,7 @@ question: |
 subquestion: |
   ${ collapse_template(user_alias_list_template) }
 fields:
-  - Have you ever been known by any other name?: user_alias.there_is_another
+  - Do you have any other previous names to add?: user_alias.there_is_another
     datatype: yesnoradio
 ---
 template: user_alias_list_template
@@ -1637,7 +1654,7 @@ question: |
 subquestion: |
   ${ collapse_template(other_party_alias_list_template) }
 fields:
-  - Has ${ other_parties[0] } ever been known by any other name?: other_party_alias.there_is_another
+  - Do you have any other previous names to add for ${ other_parties[0] }?: other_party_alias.there_is_another
     datatype: yesnoradio
 ---
 template: other_party_alias_list_template
@@ -1773,7 +1790,7 @@ question: |
   Date of birth
 fields:
   - Enter your date of birth: users[0].birthdate
-    datatype: date
+    datatype: BirthDate
     required: True
 ---
 id: emancipated minor
@@ -2048,7 +2065,7 @@ fields:
     datatype: yesnoradio
     label above field: True
   - Enter the Respondent's date of birth: other_parties[0].birthdate
-    datatype: date
+    datatype: BirthDate
     show if:
       variable: knows_respondents_birthdate
       is: True
@@ -2068,7 +2085,7 @@ fields:
     datatype: yesnoradio
     label above field: True
   - What is ${ petitioner_other_children[i].familiar() }'s date of birth?: petitioner_other_children[i].birthdate
-    datatype: date
+    datatype: BirthDate
     show if:
       variable: petitioner_other_children[i].knows_other_child_birthdate
       is: True
@@ -2087,7 +2104,7 @@ fields:
     datatype: yesnoradio
     label above field: True
   - What is ${ respondent_other_children[i].familiar() }'s date of birth?: respondent_other_children[i].birthdate
-    datatype: date
+    datatype: BirthDate
     show if:
       variable: respondent_other_children[i].knows_other_child_birthdate
       is: True
@@ -2698,16 +2715,49 @@ fields:
       - The order gives one of the parents supervised parenting time.: one_parent_supervised
       - One of us does not have any parenting time with the child.: one_parent_no_parenting_time
 ---
-id: are custody and parenting time same for all children
-if: children.target_number > 1
+id: same custody and PT order provisions for all children?
+if: children.target_number > 1 and children[0].has_order_in_effect
 question: |
   Provisions for other children
+subquestion: |
+  You told us about the custody and parenting time provisions for ${ children[0] }.
 fields:
-  - Are custody and parenting time provisions the same for all your children?: custody_parenting_time_provisions_same
-    datatype: yesnoradio
+  - Are custody and parenting time the same for all your children with ${ other_parties[0] }?: custody_parenting_time_provisions_same
+    datatype: radio
+    choices:
+      - Yes: True
+      - No, at least one child has **no custody/parenting time order** or has a court order that says **something different** about parenting time.: False
     label above field: True
 ---
-if: desired_parenting_time_changes == "no_change_except_exchange"
+id: same informal PT plan for all children?
+if: children.target_number > 1 and not children[0].has_order_in_effect and children[0].informal_PT
+question: |
+  Provisions for other children
+subquestion: |
+  You told us about the informal parenting time arrangement for ${ children[0] }.
+fields:
+  - Does the same informal parenting time arrangement apply to all your children with ${ other_parties[0] }?: custody_parenting_time_provisions_same
+    datatype: radio
+    choices:
+      - Yes, the **same** informal parenting time arrangement applies to **all the children**.: True
+      - No, at least one child has a **custody order** or a **different** informal arrangement.: False
+    label above field: True
+---
+id: no order or informal PT for any child?
+if: children.target_number > 1 and not children[0].has_order_in_effect and not children[0].informal_PT
+question: |
+  Provisions for other children
+subquestion: |
+  You said there is **no** custody order and **no** informal parenting time arrangement for ${ children[0] }.
+fields:
+  - Do any of your **other children** with ${ other_parties[0] } have a custody order or informal parenting time arrangement?: custody_parenting_time_provisions_same
+    datatype: radio
+    choices:
+      - Yes, **at least one child** has a custody order or informal parenting time arrangement.: False
+      - No, **none** of the children have a custody order or informal parenting time arrangement.: True
+    label above field: True
+---
+if: any_child_has_PT and desired_parenting_time_changes == "no_change_except_exchange"
 id: parenting time exchange location for all children
 question: |
   Location of parenting time exchanges
@@ -2961,29 +3011,74 @@ content: |
 
   If your child was born in Michigan and you are not sure whether there is an *Affidavit of Parentage*, you can contact the [Michigan Vital Records Office](https://www.michigan.gov/mdhhs/doing-business/vitalrecords) in Lansing. Another way to tell is this: If the second parent's name is on the birth certificate and you are certain that there was no court case establishing parentage, then there is likely an *Affidavit of Parentage*.
 ---
-if: len(children.complete_elements()) == 1
-id: desired parenting time change one child
+id: informal parenting time arrangement?
+if: not children[i].has_order_in_effect
+question: |
+  Informal parenting time arrangment for ${ children[i].familiar() }?
+subquestion: |
+  An informal parenting time arrangement means that you and ${ other_parties[0] } have a plan set up for how you will each spend time with ${ children[i].familiar() }.
+fields:
+  - Do you and ${ other_parties[0] } have an informal parenting time arrangement?: children[i].informal_PT
+    datatype: yesnoradio
+  - "Describe your informal parenting time arrangement. (Example: The Respondent usually has our child at his house every other weekend, from Friday after school to Sunday evening.)": children[i].informal_PT_exp
+    input type: area
+    show if:
+      variable: children[i].informal_PT
+      is: True         
+---
+if: len(children.complete_elements()) == 1 and children[0].has_order_in_effect
+id: desired parenting time change one child with custody order
 question: |
   Parenting time changes for ${ children[0].familiar() }
 fields:
   - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
     datatype: radio
     choices:
-      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
-      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[0].familiar() } should take place at a neutral place.: no_change_except_exchange
-      - I think that ${ children[0].familiar() }'s safety is at risk. I would like all parenting time between ${ other_parties[0] } and ${ children[0].familiar() } suspended.: suspend_respondent_time
+      - I want to keep the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
+      - I want to keep the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of ${ children[0].familiar() } should happen at a neutral place.: no_change_except_exchange
+      - I think that ${ children[0].familiar() }'s safety is at risk. I would like to stop all parenting time between ${ other_parties[0] } and ${ children[0].familiar() }.: suspend_respondent_time
+      - Something else.: something_else
+  - Explain how you want the current parenting time arrangements to change:: parenting_time_changes_exp
+    input type: area
+    show if:
+      variable: desired_parenting_time_changes
+      is: something_else
 ---
-if: len(children.complete_elements()) > 1
-id: desired parenting time change multiple children
+if: len(children.complete_elements()) == 1 and not children[0].has_order_in_effect and children[0].informal_PT 
+id: desired parenting time change one child with informal PT arrangement
 question: |
-  Parenting time changes for all common children with ${ other_parties[0] }
-fields:
+  Parenting time changes for ${ children[0].familiar() }
+fields:                                       
   - Select the option below that best describes what you want to happen with parenting time: desired_parenting_time_changes
     datatype: radio
     choices:
-      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order.: no_change
-      - I do not want to change the current custody and parenting time arrangements. They should continue as ordered in the divorce judgment and/or custody order, **BUT** I think the exchange of the children should take place at a neutral place.: no_change_except_exchange
-      - I think that the safety of the children is at risk. I would like all parenting time between ${ other_parties[0] } and our minor children suspended.: suspend_respondent_time
+      - I want to keep the current parenting time arrangements.: no_change
+      - I want to keep the current parenting time arrangements, **BUT** I think the exchange of ${ children[0].familiar() } should happen at a neutral place.: no_change_except_exchange
+      - I think that ${ children[0].familiar() }'s safety is at risk. I would like to stop all parenting time between ${ other_parties[0] } and ${ children[0].familiar() }.: suspend_respondent_time
+      - Something else.: something_else
+  - Explain how you want the current parenting time arrangements to change:: parenting_time_changes_exp
+    input type: area
+    show if:
+      variable: desired_parenting_time_changes
+      is: something_else
+---
+if: len(children.complete_elements()) > 1 and any_child_has_PT
+id: desired parenting time change multiple children 
+question: |
+  Parenting time changes
+fields:
+  - Select the option below that best describes what you want to happen with parenting time for your children: desired_parenting_time_changes
+    datatype: radio
+    choices:
+      - I want to keep the current parenting time arrangements.: no_change
+      - I want to keep the current parenting time arrangements, **BUT** I think parenting time exchanges should happen at a neutral place.: no_change_except_exchange
+      - I think that the safety of the children is at risk. I would like to stop all parenting time between ${ other_parties[0] } and our minor children.: suspend_respondent_time
+      - Something else.: something_else
+  - Explain how you want the current parenting time arrangements to change:: parenting_time_changes_exp
+    input type: area
+    show if:
+      variable: desired_parenting_time_changes
+      is: something_else
 ---
 id: pending_actions there_are_any
 question: |
@@ -5732,6 +5827,7 @@ attachments:
     - other_parties1_name__3: ${ other_parties[0].name_full() }
     - other_parties1_name__4: ${ other_parties[0].name_full() }
     - other_parties1_address_block: |
+        ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
         % if other_parties[0].no_phone_number:
