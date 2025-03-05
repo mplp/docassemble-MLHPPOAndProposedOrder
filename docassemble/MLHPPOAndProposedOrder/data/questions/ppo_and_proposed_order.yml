@@ -892,8 +892,6 @@ code: |
   children[i].lives_with
   if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent != "third_party":
     children[i].paternity
-    if children[i].paternity == "paternity_not_established":
-      children[i].select_legal_parent
   if i < 1:
     if children[i].has_order_in_effect:
       children[i].custody_case_number
@@ -915,15 +913,6 @@ code: |
           children[i].parent_without_parenting_time
   
   children[i].complete = True
----
-code: |
-  if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent != "third_party" and children[i].paternity == "paternity_not_established":
-    if children[i].birthing_parent == "petitioner":
-      children[i].legal_parent = "petitioner"
-    if children[i].birthing_parent == "respondent":
-      children[i].legal_parent = "respondent"
-
-  children[i].select_legal_parent = True
 ---
 code: |
   if children.target_number > 1 and not custody_parenting_time_provisions_same:
