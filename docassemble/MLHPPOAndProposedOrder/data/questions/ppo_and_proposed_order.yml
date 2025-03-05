@@ -890,7 +890,7 @@ code: |
 code: |
   children[i].name.first
   children[i].lives_with
-  if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
+  if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent != "third_party":
     children[i].paternity
     if children[i].paternity == "paternity_not_established":
       children[i].select_legal_parent
@@ -917,14 +917,11 @@ code: |
   children[i].complete = True
 ---
 code: |
-  if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].paternity == "paternity_not_established":
+  if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent != "third_party" and children[i].paternity == "paternity_not_established":
     if children[i].birthing_parent == "petitioner":
       children[i].legal_parent = "petitioner"
     if children[i].birthing_parent == "respondent":
       children[i].legal_parent = "respondent"
-  ###### do we need this ######
-    if children[i].legal_parent == "third_party":
-      children[i].legal_parent = "mystery"
 
   children[i].select_legal_parent = True
 ---
@@ -2777,6 +2774,19 @@ fields:
       - I did: petitioner
       - ${ other_parties[0] } did: respondent
       - Someone else did: third_party 
+  - Please explain:: children[i].third_party_birthing_parent_exp
+    input type: area
+    show if:
+      variable: children[i].birthing_parent
+      is: "third_party"
+  - note: |
+      Examples:
+      
+      * "We had our child through a surrogacy agreement. We are both legal parents."
+      * "My ex-wife gave birth to this child while I was married to her. The respondent later adopted the child through a step-parent adoption."
+    show if:
+      variable: children[i].birthing_parent
+      is: "third_party"
   - note: |
       ${ collapse_template(why_ask_birthing_parent) }
 ---
@@ -2787,8 +2797,6 @@ content: |
   The judge may want to know whether you and/or ${ other_parties[0] } is a legal parent.
   
   First we ask who gave birth to ${ children[i].familiar() } because that person is usually a legal parent. It also helps us make followup questions a little simpler.
-  
-  Next, we will ask about the other parent.
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "petitioner"
 id: child paternity
