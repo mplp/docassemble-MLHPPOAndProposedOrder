@@ -1491,7 +1491,7 @@ content: |
 
   You are **both** legal parents if:
   
-  * you were married when ${ children[i].familiar() } was born or conceived, or 
+  * you were married when ${ children[i].familiar() } was born or conceived, **or** 
   * you adopted ${ children[i].familiar() } together.
 
   If neither of these apply, we will ask about other ways of becoming legal parents.
@@ -2835,7 +2835,7 @@ if: not children[i].parties_married_when_born and not children[i].unmarried_adop
 id: child paternity
 terms:
   parentage: |
-        Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
+    Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
 question: |
   ${ other_parties[0] }'s legal parentage status
 subquestion: |
