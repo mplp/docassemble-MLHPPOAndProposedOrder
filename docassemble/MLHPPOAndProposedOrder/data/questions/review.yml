@@ -287,7 +287,22 @@ review:
         % elif item.unmarried_adoption:
       
         * ${ users[0] } and ${ other_parties[0] } adopted ${ item.familiar() } together. Adoption Case: ${ item.adoption_case_number }, ${ item.adoption_case_court }
-        % elif item.paternity == "paternity_established" and item.paternity_established_where == "Michigan":
+        % elif item.birthing_parent == "third_party":
+
+        * Someone other than ${ users[0] } and ${ other_parties[0] } gave birth to ${ item.familiar() }. 
+      
+          * Explanation: ${ item.third_party_birthing_parent_exp }
+      
+        % else:
+
+        % if item.birthing_parent == "petitioner":
+
+        * ${ users[0] } gave birth to ${ item.familiar() }.
+        % elif item.birthing_parent == "respondent":
+
+        * ${ other_parties[0] } gave birth to ${ item.familiar() }.
+        % endif
+        % if item.paternity == "paternity_established" and item.paternity_established_where == "Michigan":
         % if item.paternity_how == "by_acknowledgment_of_parentage":
 
         * Parentage established in Michigan by *Acknowledgment of Parentage*
@@ -308,12 +323,13 @@ review:
 
         * Parentage case pending in: item.state_of_paternity
         % elif item.paternity == "paternity_not_established":
-        % if item.legal_parent == "petitioner":
+        % if item.birthing_parent == "petitioner":
 
-        * ${ users[0] } is ${ item.familiar() }'s legal parent. ${ other_parties[0] } is not a legal parent.
-        % else:
+        * ${ other_parties[0] } is not a legal parent.
+        % elif item.birthing_parent == "respondent":
 
-        * ${ other_parties[0] } is ${ item.familiar() }'s legal parent. ${ users[0] } is not a legal parent.
+        * ${ users[0] } is not a legal parent.
+        % endif
         % endif
         % endif
 
@@ -364,7 +380,7 @@ review:
 
       There is no custody/parenting time order in place, but there is an **informal parenting time** arrangement:
 
-      ${ children[0].informal_PT_exp }
+      * ${ children[0].informal_PT_exp }
       
       % else:
 
@@ -400,7 +416,7 @@ review:
       % for item in children:
         % if item.has_order_in_effect:
 
-        There is a custody/parenting time order for **${ item.familiar() }** (Case \#${ item.custody_case_number } - ${ item.custody_case_court })
+        For **${ item.familiar() }**, there is a custody/parenting time order (Case \#${ item.custody_case_number } - ${ item.custody_case_court }):
         % if item.parenting_time_order == "reasonable_parenting_time":
 
         * Parenting time order only says there will be "reasonable parenting time"
@@ -428,10 +444,10 @@ review:
 
         For **${ item.familiar() }**, there is no custody/parenting time order, but there is an **informal parenting time** arrangement:
 
-        ${ item.informal_PT_exp }
+        * ${ item.informal_PT_exp }
         % else:
 
-        There is no custody/parenting time order for **${ item.familiar() }**.
+        For **${ item.familiar() }**, there is no custody/parenting time order.
         % endif
       % endfor 
   - Edit: 
@@ -1098,6 +1114,8 @@ subquestion: |-
   ${ children.add_action() }
 ---
 if: len(children.complete_elements()) > 1
+table: |-
+  children.table
 columns:
   - 'Name': |-
       row_item.name if hasattr(row_item, 'name') else ''
@@ -1105,17 +1123,18 @@ columns:
       row_item.birthdate if hasattr(row_item, 'birthdate') else ''
 rows: |-
   children
-table: |-
-  children.table
 edit:
   - name.first
   - lives_with
   - parties_married_when_born
+  - birthing_parent
   - paternity
   - custody_parenting_time_provisions_same
 confirm: True
 ---
 if: len(children.complete_elements()) == 1
+table: |-
+  children.table
 columns:
   - 'Name': |-
       row_item.name if hasattr(row_item, 'name') else ''
@@ -1123,12 +1142,11 @@ columns:
       row_item.birthdate if hasattr(row_item, 'birthdate') else ''
 rows: |-
   children
-table: |-
-  children.table
 edit:
   - name.first
   - lives_with
   - parties_married_when_born
+  - birthing_parent
   - paternity
   - custody_parenting_time_provisions_same
 delete buttons: False
