@@ -4542,7 +4542,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_domestic_minor_attachment, ppo_nondomestic_minor_attachment, ppo_nondomestic_sexual_assault_minor_attachment, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_domestic_minor_attachment, ppo_nondomestic_minor_attachment, ppo_nondomestic_sexual_assault_minor_attachment, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
   - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, ppo_domestic_minor_attachment_court, ppo_nondomestic_minor_attachment_court, ppo_nondomestic_sexual_assault_minor_attachment_court, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True)
@@ -4572,12 +4572,11 @@ objects:
 ---
 objects:
   - etc_cover_page: ALDocument.using(title="ETC Cover Page", filename="ETC Cover Page")
-  - instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - oakland_county_instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", enabled=True)
+  - oakland_county_instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", enabled=True)
+  - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", enabled=True)
+  - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", enabled=True)
   - instructions: ALDocument.using(filename="Instructions - Do not file this", title="Instructions", enabled=True, has_addendum=False)
-  - instructions_bundle: ALDocumentBundle.using(elements=[instructions, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte], filename="Instructions - Do not file this", title="Instructions", enabled=True, has_addendum=False)
   - exhibit_attachment: ALExhibitDocument.using(title="Exhibits to Personal Protection Order", filename="Exhibits to Personal Protection Order", include_exhibit_cover_pages=True, add_page_numbers=True)
 ---
 code: |
@@ -4713,30 +4712,6 @@ code: |
     ppo_cc_381.enabled = False
   else:
     ppo_cc_381.enabled = True
----
-code: |
-  if (not wants_ex_parte_order) and (county_choice != "Oakland"):
-    instructions_after_hearing.enabled = True
-  else:
-    instructions_after_hearing.enabled = False
----
-code: |
-  if (not wants_ex_parte_order) and (county_choice == "Oakland"):
-    oakland_county_instructions_after_hearing.enabled = True
-  else:
-    oakland_county_instructions_after_hearing.enabled = False
----
-code: |
-  if (wants_ex_parte_order) and (county_choice != "Oakland"):
-    instructions_ex_parte.enabled = True
-  else:
-    instructions_ex_parte.enabled = False
----
-code: |
-  if (wants_ex_parte_order) and (county_choice == "Oakland"):
-    oakland_county_instructions_ex_parte.enabled = True
-  else:
-    oakland_county_instructions_ex_parte.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_harm_protectees_list.complete_elements()) > 1 or len(ppo_threat_protectees_list.complete_elements()) > 1 or wants_other_request):
