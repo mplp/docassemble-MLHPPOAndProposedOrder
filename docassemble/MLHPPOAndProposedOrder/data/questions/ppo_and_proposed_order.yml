@@ -45,13 +45,13 @@ code: |
 ---
 code: |
   if ppo_type == "domestic":
-    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-domestic-relationship"
+    resource_page_url_only = "https://michiganlegalhelp.org/node/233/"
     resource_page_name = "Filing for a Personal Protection Order - Domestic Relationship"
   elif ppo_type == "nondomestic":
-    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-non-domestic-stalking"
+    resource_page_url_only = "https://michiganlegalhelp.org/node/272/"
     resource_page_name = "Filing for a Personal Protection Order - Non-Domestic Stalking"
   elif ppo_type == "nondomestic_sexual_assault":
-    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-non-domestic-sexual-assault"
+    resource_page_url_only = "https://michiganlegalhelp.org/node/2373/"
     resource_page_name = "Filing for a Personal Protection Order - Non-Domestic Sexual Assault"
 ---
 template: survey_embed_script
