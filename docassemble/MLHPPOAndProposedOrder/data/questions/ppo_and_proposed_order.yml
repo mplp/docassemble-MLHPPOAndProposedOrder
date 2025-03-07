@@ -775,9 +775,11 @@ code: |
 code: |
   if is_incapacitated_adult:
     has_next_friend_petitioning = True
-  else:
+  elif petitioner_is_minor and not petitioner_is_emancipated_minor:
     if next_friend_agrees_to_role:
       has_next_friend_petitioning = True
+  else:
+    has_next_friend_petitioning = False
 
   set_next_friend = True
 ---
