@@ -885,7 +885,7 @@ code: |
 code: |
   children[i].name.first
   children[i].lives_with
-  if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
+  if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent != "third_party":
     children[i].paternity
   if i < 1:
     if children[i].has_order_in_effect:
@@ -1406,7 +1406,7 @@ fields:
   - code: |
       respondent_other_children[i].name_fields()
 ---
-id: who does child love with?
+id: who does child live with?
 question: |
   ${ children[i] }'s residence
 fields:
@@ -1419,7 +1419,7 @@ fields:
 ---
 id: married when child born
 question: |
-  Relationship to ${ other_parties[0] }
+  ${ children[i] }'s legal parents
 fields:
   - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born or conceived?: children[i].parties_married_when_born
     datatype: yesnoradio
@@ -1477,9 +1477,24 @@ fields:
     show if:
       variable: children[i].how_conceived
       is: extramarital
+  - note: |
+      ${ collapse_template(why_ask_married) }
 terms:
   spouse: |
     "Spouse" is another word for wife or husband.
+---
+template: why_ask_married
+subject: |
+  Why are you asking this?
+content: |
+  The judge may want to know whether you and/or ${ other_parties[0] } is a legal parent.
+
+  You are **both** legal parents if:
+  
+  * you were married when ${ children[i].familiar() } was born or conceived, **or** 
+  * you adopted ${ children[i].familiar() } together.
+
+  If neither of these apply, we will ask about other ways of becoming legal parents.
 ---
 id: custody or parenting time order
 question: |
@@ -2782,16 +2797,53 @@ fields:
     - ${ other_parties[0] }: respondent
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption
+id: who gave birth to child
+question: |
+  ${ children[i] }'s legal parents
+fields:
+  - Who gave birth to ${ children[i] }?: children[i].birthing_parent
+    datatype: radio
+    choices:
+      - I did: petitioner
+      - ${ other_parties[0] } did: respondent
+      - Someone else did: third_party 
+  - Please explain:: children[i].third_party_birthing_parent_exp
+    input type: area
+    show if:
+      variable: children[i].birthing_parent
+      is: "third_party"
+  - note: |
+      Examples:
+      
+      * "We had our child through a surrogacy agreement. We are both legal parents."
+      * "My ex-wife gave birth to this child while I was married to her. The respondent later adopted the child through a step-parent adoption."
+    show if:
+      variable: children[i].birthing_parent
+      is: "third_party"
+  - note: |
+      ${ collapse_template(why_ask_birthing_parent) }
+---
+template: why_ask_birthing_parent
+subject: |
+  Why are you asking this?
+content: |
+  The judge may want to know whether you and/or ${ other_parties[0] } is a legal parent.
+  
+  First we ask who gave birth to ${ children[i].familiar() } because that person is usually a legal parent. It also helps us make follow-up questions a little simpler.
+---
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "petitioner"
 id: child paternity
 terms:
   parentage: |
-    If the second parent is a father, this is also called establishing **paternity**.
+    Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
 question: |
-  ${ children[i] }'s legal parent(s)
+  ${ other_parties[0] }'s legal parentage status
 subquestion: |
-  ${ children[i].familiar() }'s mother (or the parent who gave birth to ${ children[i].familiar() }) is their legal parent. ${ children[i].familiar() }'s father (or second parent) is also their legal parent if {parentage} was established.
+  Since you gave birth to ${ children[i].familiar() }, you are their legal parent. 
+  
+  ${ other_parties[0] } is also a legal parent **if** {parentage} was established. Parentage is often established with an *Affidavit of Parentage* or a court order.
 fields:
-  - Has the father's (or second parent's) {parentage} been legally established?: children[i].paternity
+  - Has ${ other_parties[0] }'s {parentage} been legally established?: children[i].paternity
     datatype: radio
     choices:
       - Yes: paternity_established
@@ -2831,19 +2883,89 @@ fields:
     show if: 
       variable: children[i].paternity_pending_where
       is: Michigan
-  - Who is ${ children[i] }'s legal parent?: children[i].legal_parent
+  - "{Parentage} of ${ children[i].familiar() } was established by:": children[i].paternity_how
+    show if:
+      variable: children[i].paternity_established_where
+      is: Michigan
     datatype: radio
     choices:
-      - I am: petitioner
-      - ${ other_parties[0] } is: respondent
-    show if: 
-      variable: children[i].paternity
-      is: paternity_not_established
+      - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
+      - a court order ("*Order of Filiation*"): by_court_order
+      - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
   - note: |
-      The mother (or the parent who gave birth to the child) is usually a legal parent automatically.
+      ${ collapse_template(parentage_affidavit_explained) }
+    show if: 
+      variable: children[i].paternity_established_where
+      is: Michigan
+  - Case number: children[i].paternity_case_number
+    show if:
+      variable: children[i].paternity_how
+      is: by_court_order
+  - Name of Court: children[i].paternity_case_court_name
+    show if:
+      variable: children[i].paternity_how
+      is: by_court_order
+  - Case number: children[i].adoption_case_number
+    show if: 
+      variable: children[i].paternity_how
+      is: by_adoption
+  - Name of Court: children[i].adoption_case_court
+    show if: 
+      variable: children[i].paternity_how
+      is: by_adoption
+---
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "respondent"
+id: child paternity
+terms:
+  parentage: |
+    Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
+question: |
+  Your legal parentage status
+subquestion: |
+  Since ${ other_parties[0] } gave birth to ${ children[i].familiar() }, ${ other_parties[0].familiar() } is ${ children[i].familiar() }'s legal parent. 
+  
+  You are also a legal parent **if** {parentage} was established. Parentage is often established with an *Affidavit of Parentage* or a court order.
+fields:
+  - Has your {parentage} been legally established?: children[i].paternity
+    datatype: radio
+    choices:
+      - Yes: paternity_established
+      - A parentage or adoption case has been filed and is pending. (There is no court order yet.): paternity_pending
+      - "No, parentage has not been established.": paternity_not_established
+  - Where was {parentage} established?: children[i].paternity_established_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
     show if:
       variable: children[i].paternity
-      is: paternity_not_established
+      is: paternity_established
+  - Where was the case filed?: children[i].paternity_pending_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
+    show if:
+      variable: children[i].paternity
+      is: paternity_pending
+  - State or country where {parentage} was established: children[i].state_of_paternity
+    show if:
+      variable: children[i].paternity_established_where
+      is: out_of_state
+  - State or country where {parentage} is pending: children[i].state_of_paternity
+    show if:
+      variable: children[i].paternity_pending_where
+      is: out_of_state
+  - Case number: children[i].paternity_case_number
+    show if: 
+      variable: children[i].paternity_pending_where
+      is: Michigan
+  - Name of Court: children[i].paternity_case_court_name
+    show if: 
+      variable: children[i].paternity_pending_where
+      is: Michigan
   - "{Parentage} of ${ children[i].familiar() } was established by:": children[i].paternity_how
     show if:
       variable: children[i].paternity_established_where
@@ -2883,15 +3005,6 @@ content: |
 
   If your child was born in Michigan and you are not sure whether there is an *Affidavit of Parentage*, you can contact the [Michigan Vital Records Office](https://www.michigan.gov/mdhhs/doing-business/vitalrecords) in Lansing. Another way to tell is this: If the second parent's name is on the birth certificate and you are certain that there was no court case establishing parentage, then there is likely an *Affidavit of Parentage*.
 ---
-# If we want this at all, it should appear at the same step as parentage_affidavit_explained, but I don't think it really applies any more. Can delete after testing.
-# template: adoption_explained
-# subject: |
-#   More Information
-# content: |
-#   In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
-#   
-#   In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
-# ---
 id: informal parenting time arrangement?
 if: not children[i].has_order_in_effect
 question: |
@@ -2908,7 +3021,6 @@ fields:
       is: True         
 ---
 if: len(children.complete_elements()) == 1 and children[0].has_order_in_effect
-continue button field: PT_changes_screen
 id: desired parenting time change one child with custody order
 question: |
   Parenting time changes for ${ children[0].familiar() }
