@@ -45,6 +45,13 @@ code: |
 ---
 code: |
   if ppo_type == "domestic":
+    has_whats_next_text = True
+    whats_next_text_message = "Text 1700 to (734) 275-2201 to get text messages reminding you of deadlines and giving you information about what to do next to ask for a personal protection order."
+  else:
+    has_whats_next_text = False
+---
+code: |
+  if ppo_type == "domestic":
     resource_page_url_only = "https://michiganlegalhelp.org/node/233/"
     resource_page_name = "Filing for a Personal Protection Order - Domestic Relationship"
   elif ppo_type == "nondomestic":
