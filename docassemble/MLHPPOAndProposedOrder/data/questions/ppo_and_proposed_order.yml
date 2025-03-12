@@ -1587,22 +1587,35 @@ continue button field: minimum_incidents_explainer
 ---
 id: describe relationship to respondent
 question: |
+  % if ppo_type == "domestic":
   Your relationship with ${ other_parties[0] }
+  % else:
+  Is ${ other_parties[0] } someone you know?
+  % endif
 subquestion: |
-  For example:
+  Please explain. For example:
 
     % if ppo_type == "domestic":
     * "The respondent and I are siblings."
     * "The respondent and I used to be roomates. We are not related to each other."
     % else:
+    * "I don't know the respondent. They are a stranger."
     * "The respondent is my neighbor."
     * "The respondent used to be my co-worker."
     % endif
 
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
-  - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
+  - Describe your relationship with ${ other_parties[0] }:: relationship_to_respondent_exp
     datatype: area
+    show if:
+      code: |
+        ppo_type == "domestic"
+  - Describe how you know ${ other_parties[0] }, if at all:: relationship_to_respondent_exp
+    datatype: area
+    show if:
+      code: |
+        ppo_type != "domestic"
 ---
 id: petitioner alias there_are_any
 question: |
@@ -1994,7 +2007,7 @@ fields:
   - Upload the first document: x[0].pages
     show if: x.has_exhibits
     datatype: files
-    maximum image size: 1024
+    maximum image size: 2048
     image upload type: jpeg
     accept: |
       "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"
