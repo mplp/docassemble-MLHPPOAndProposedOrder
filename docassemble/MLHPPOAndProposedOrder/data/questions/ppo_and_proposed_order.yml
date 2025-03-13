@@ -1945,6 +1945,15 @@ content: |
   Yes. Because these forms will be e-mailed directly to the court, e-signatures are required. 
   % endif
 ---
+template: efiling_info_template
+subject: Can I e-file?
+content: |
+  Only some courts and case types allow e-filing using ${ MLH_MiFILE } or another e-filing system. 
+  
+  [Find out if your court has electronic filing for your case type.](https://sw0lylcelhb.typeform.com/to/HXBVb68q) For more information, read [What is E-Filing?](https://michiganlegalhelp.org/resources/mifile/what-e-filing).
+  
+  ${ MLH_case_type_language }
+---
 # overriding version from ql_baseline
 generic object: ALExhibitList
 id: any exhibits
@@ -2025,6 +2034,70 @@ validation code: |
       validation_error("Unable to convert this file. Please upload a new one.")
     x[0].pages.complete_attribute = 'ok'
     x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
+---
+# overriding version from ql_baseline
+sets:
+  - x[i].pages[j].initialized
+  - x[i].pages[j].mimetype
+  - x[i].pages[j].ok
+generic object: ALExhibitList
+id: exhibit additional page
+question: |
+  Upload the ${ ordinal(j) } part of your ${ x[i].title } document
+fields:
+  - Upload a PDF, Word, or image file: x[i].pages[j]
+    datatype: file
+    maximum image size: 2048
+    image upload type: jpeg
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  page_size = x[i].pages[j].size_in_bytes()
+  if page_size > (15 * 1024 * 1024):
+    validation_error("Upload a file smaller than 15 MB.")
+  if hasattr(x, 'maximum_size'):
+    # this_doc_size already includes `page_size`
+    this_doc_size = sum(a_page.size_in_bytes() for a_page in x[i].pages.complete_elements())
+    full_size = x.size_in_bytes() + this_doc_size
+    if full_size > x.maximum_size:
+      suggested_size = x.maximum_size - (full_size - page_size)
+      validation_error(f"All exhibits combined must be smaller than {humanize.naturalsize(x.maximum_size)}. Upload a file smaller than {humanize.naturalsize(suggested_size)}.")
+  try:
+    pdf_concatenate(x[i].pages[j])
+  except:
+    validation_error("Unable to convert this file. Please upload a new one.")
+
+  x[i].pages[j] = unpack_dafilelist(x[i].pages[j])
+---
+generic object: ALExhibitList
+id: exhibit i
+question: |
+  Upload the ${ ordinal(i) } document
+subquestion: |
+  You will have a chance to upload additional pages for this document later.
+fields:
+  - Document title: x[i].title
+    maxlength: 60 # longer might break TOC
+  - Upload the exhibit: x[i].pages
+    datatype: files
+    maximum image size: 2048
+    image upload type: jpeg
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  this_doc_size = sum(a_page.size_in_bytes() for a_page in x[i].pages)
+  if this_doc_size > (15 * 1024 * 1024):
+    validation_error("Upload a file smaller than 15 MB.")
+  if hasattr(x, 'maximum_size'):
+    full_size = x.size_in_bytes()
+    if full_size > x.maximum_size:
+      suggested_size = x.maximum_size - (full_size - this_doc_size)
+      validation_error(f"All exhibits combined must be smaller than {humanize.naturalsize(x.maximum_size)}. Upload a file smaller than {humanize.naturalsize(suggested_size)}.")
+  try:
+    pdf_concatenate(x[i].pages)
+  except:
+    validation_error("Unable to convert this file. Please upload a new one.")
+  x[i].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
 ---
 template: audiovisual_evidence
 subject: |
@@ -4328,7 +4401,7 @@ under: |
 
   ${ sign_in_message }
 ---
-id: ETC required, collect email
+id: ETC , collect email
 continue button field: ETC_required_email_collect
 question: |
   Contact E-mail
