@@ -4411,7 +4411,7 @@ under: |
 
   ${ sign_in_message }
 ---
-id: ETC , collect email
+id: ETC required, collect email
 continue button field: ETC_required_email_collect
 question: |
   Contact E-mail
