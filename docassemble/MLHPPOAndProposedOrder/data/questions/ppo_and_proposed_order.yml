@@ -2022,6 +2022,27 @@ validation code: |
     x[0].pages.complete_attribute = 'ok'
     x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
 ---
+# overriding version from ql_baseline
+generic object: ALExhibitList
+id: exhibit i has additional pages
+question: |
+  Add more pages to "**${ x[i] }**"?
+subquestion: |
+  % if hasattr(x, 'maximum_size'):
+  The total size of all exhibits must be less than ${ humanize.naturalsize(x.maximum_size) }.
+  You can upload ${ humanize.naturalsize(x.maximum_size - x.size_in_bytes() - sum(ap.size_in_bytes() for ap in x[i].pages.complete_elements()))} more.
+  % endif
+
+  ${ collapse_template(x[i].in_progress_template )}
+  
+fields: 
+  - Do you want to add more pages to "**${ x[i] }**"?: x[i].pages.there_is_another
+    datatype: radio
+    choices:
+      - Yes, I want to add more pages to "${ x[i] }".: True
+      - No, there are no more pages to add to "${ x[i] }".: False
+    label above field: True
+---
 # overriding version from ql_baseline (only changed max image size)
 sets:
   - x[i].pages[j].initialized
@@ -2057,6 +2078,26 @@ validation code: |
     validation_error("Unable to convert this file. Please upload a new one.")
 
   x[i].pages[j] = unpack_dafilelist(x[i].pages[j])
+---
+# overriding version from ql_baseline
+generic object: ALExhibitList
+id: another exhibit
+question: |
+  You have ${ x.number_gathered() } document(s) so far. Do you want to upload another document?
+subquestion: |
+  % if hasattr(x, 'maximum_size'):
+  The total size of all exhibits must be less than ${ humanize.naturalsize(x.maximum_size) }.
+  You can upload ${ humanize.naturalsize(x.maximum_size - x.size_in_bytes())} more.
+  % endif
+
+  ${ collapse_template(x.in_progress_exhibits) }
+fields: 
+  - Upload another document?: x.there_is_another
+    datatype: radio
+    choices:
+      - Yes, I want to add another.: True
+      - No, I'm done adding documents.: False
+    label above field: True
 ---
 # overriding version from ql_baseline (only changed max image size and text)
 generic object: ALExhibitList
@@ -2120,6 +2161,8 @@ content: |
   Scan paper documents with a scanner app or a physical scanner to create clean PDF copies.
 
   It's OK to upload photos or screenshots from phones.
+
+  Accepted file types: PDF, JPG, PNG, and word-processing files such as DOCX.
 ---
 id: petitioner or respondent living in michigan
 question: |
