@@ -1973,6 +1973,10 @@ subquestion: |
   * Copies of e-mails or text messages
   * Letters
 
+  % if is_incapacitated_adult:
+  You **must** upload a copy of either the guardianship order or the Power of Attorney that gives you authority to file for the petitioner.
+  % endif
+
   % elif ETC_county_status == "optional":
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
 
@@ -1983,6 +1987,10 @@ subquestion: |
   * Letters
 
   If you plan to file by direct e-mail from this tool, attach any documents now. If you plan to file in a different way, you can upload documents now or attach documents yourself outside of this tool.
+
+  % if is_incapacitated_adult:
+  Either way, you **must** file a copy of either the guardianship order or the Power of Attorney that gives you authority to file for the petitioner.
+  % endif
   % else:
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
 
@@ -1993,6 +2001,10 @@ subquestion: |
   * Letters
 
   You can upload documents now or attach documents yourself outside of this tool.
+
+  % if is_incapacitated_adult:
+  Either way, you **must** file a copy of either the guardianship order or the Power of Attorney that gives you authority to file for the petitioner.
+  % endif
   % endif
 
   ${ collapse_template(no_documents) }
