@@ -4641,9 +4641,9 @@ code: |
 template: clerk_email
 subject: |
   % if len(next_friends.complete_elements()) > 0:
-  PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
+  TEST TEST PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] } TEST TEST
   % else:
-  Petition for PPO by ${ users[0] }
+  TEST TEST Petition for PPO by ${ users[0] } TEST TEST
   % endif
 content: |
   % if len(next_friends.complete_elements()) > 0:
