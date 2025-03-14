@@ -1010,18 +1010,16 @@ review:
       % elif not exhibit_attachment.exhibits.has_exhibits:
       No
       % endif
-  - Edit:
-      - exhibit_attachment.exhibits.revisit
-      - recompute:
-        - exhibit_attachment.table_of_contents
-    button: |
+  - note: |
       **Uploaded Documents**
 
-      % if exhibit_attachment.exhibits.number_gathered() > 0:
+      % if exhibit_attachment.exhibits.there_are_any:
       ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
       % else:
       You have not uploaded any documents yet.
       % endif
+
+      ${ exhibit_attachment.exhibits.add_action() }
     css class: bg-secondary-subtle
     show if: exhibit_attachment.exhibits.has_exhibits
   - raw html: |
@@ -1114,17 +1112,6 @@ question: |-
 subquestion: |-
   ${ children.table }
   ${ children.add_action() }
----
-continue button field: |-
-  exhibit_attachment.exhibits.revisit
-id: |-
-  revisit exhibits
-question: |-
-  Edit uploaded docs
-subquestion: |-
-  ${ exhibit_attachment.exhibits.in_progress_exhibits }
-
-  ${ exhibit_attachment.exhibits.add_action() }
 ---
 if: len(children.complete_elements()) > 1
 table: |-
