@@ -1973,6 +1973,10 @@ subquestion: |
   * Copies of e-mails or text messages
   * Letters
 
+  % if is_incapacitated_adult:
+  You **must** upload a copy of either the **guardianship order or Power of Attorney** that gives you authority to file for the petitioner.
+  % endif
+
   % elif ETC_county_status == "optional":
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
 
@@ -1983,6 +1987,10 @@ subquestion: |
   * Letters
 
   If you plan to file by direct e-mail from this tool, attach any documents now. If you plan to file in a different way, you can upload documents now or attach documents yourself outside of this tool.
+
+  % if is_incapacitated_adult:
+  Either way, you **must** file a copy of either the **guardianship order or Power of Attorney** that gives you authority to file for the petitioner.
+  % endif
   % else:
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
 
@@ -1993,6 +2001,10 @@ subquestion: |
   * Letters
 
   You can upload documents now or attach documents yourself outside of this tool.
+
+  % if is_incapacitated_adult:
+  Either way, you **must** file a copy of either the **guardianship order or Power of Attorney** that gives you authority to file for the petitioner.
+  % endif
   % endif
 
   ${ collapse_template(no_documents) }
@@ -2766,7 +2778,7 @@ question: |
 subquestion: |
   If you have children in common with ${ other_parties[0] }, you should choose to file for a **Personal Protection Order - Domestic Relationship**.
 
-  Click the **${ MLH_back_button_label }** button to go back and change your answer.
+  Tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: domestic ppo children intro
 question: |
@@ -3805,7 +3817,7 @@ id: incidents reason other party responsible
 question: |
   How do you know ${ other_parties[0].name } was responsible?
 subquestion: |
-  You may not need to complete this field if it is obvious from your description of the incident that ${ other_parties[0].name } was responsible for the behavior. Click the link below for more information.
+  You may not need to complete this field if it is obvious from your description of the incident that ${ other_parties[0].name } was responsible for the behavior. Tap the link below for more information.
 
   ${ collapse_template(other_party_responsible_explained) }
 fields:
@@ -3937,7 +3949,7 @@ fields:
 ---
 template: incident_other_details_explained
 subject: |
-  Click here to see examples.
+  Tap here to see examples.
 content: |
   Examples:
 
@@ -3953,7 +3965,7 @@ content: |
 ---
 template: incident_other_details_explained_nondomestic
 subject: |
-  Click here to see examples.
+  Tap here to see examples.
 content: |
   Examples:
 
@@ -4667,6 +4679,7 @@ subquestion: |
 ---
 id: email confirmation ETCSent
 continue button field: email_status_sent
+prevent going back: True
 question: |
   Your forms were e-mailed to the court!
 subquestion: |
@@ -4694,7 +4707,7 @@ question: |
 subquestion: |
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
-  Tap **Undo** to return to the Submit page and try again. 
+  Tap **${ MLH_back_button_label }** to return to the Submit page and try again. 
 
   Or tap "Continue" to download your forms.
 under: |
@@ -4730,7 +4743,7 @@ question: |
 subquestion: |
   **Your forms were NOT sent to the court.**
 
-  Click **Undo** to try again. You can also download your forms below. 
+  Tap **${ MLH_back_button_label }** to try again. You can also download your forms below. 
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
 
@@ -4755,7 +4768,7 @@ question: |
 subquestion: |
   Thank you ${users}. Your form is ready to download and deliver.
 
-  View, download and send your form below. Click the "✎ Review / Edit" button to fix any mistakes.
+  View, download and send your form below. Tap the "✎ Review / Edit" button to fix any mistakes.
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
 
