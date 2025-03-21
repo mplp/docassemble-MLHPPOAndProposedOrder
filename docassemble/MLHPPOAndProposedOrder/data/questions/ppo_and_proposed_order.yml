@@ -393,6 +393,8 @@ code: |
 code: |
   if users[0].no_phone_number:
     users[0].phone_number = "Has no phone"
+  else:
+    users[0].phone_number = phone_number_formatted(users[0].phone_number)
   check_user_no_phone = True
 ---
 code: |
@@ -5071,16 +5073,22 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - pursuant_to: |
         % if petitioner_is_minor and (not petitioner_under_fourteen) and (not petitioner_is_emancipated_minor) and fourteen_plus_agrees_to_sign:
@@ -5210,16 +5218,22 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_height: ${ other_parties[0].height }
     - other_parties1_weight: ${ other_parties[0].weight }
@@ -5265,6 +5279,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age_in_years() }
@@ -5292,16 +5311,11 @@ attachments:
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
-        % if other_parties[0].no_phone_number:
-        Unknown phone
-        % else:
-        ${ other_parties[0].phone_number }
-        % endif
     - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5492,7 +5506,7 @@ attachments:
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -5735,6 +5749,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age }
@@ -5747,16 +5766,11 @@ attachments:
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.block() }
-        % if other_parties[0].no_phone_number:
-        Unknown phone
-        % else:
-        ${ other_parties[0].phone_number }
-        % endif
     - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -5798,6 +5812,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age }
@@ -5810,16 +5829,11 @@ attachments:
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
-        % endif
-    - other_parties1_phone_number: |
-        % if other_parties[0].no_phone_number:
-        Unknown phone
-        % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -5844,12 +5858,14 @@ attachments:
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address.line_one() }
         ${ other_parties_parents[0].address.line_two() }
-        ${ other_parties_parents[0].phone_number }
+    - other_parties_parents1_phone: |
+        ${ phone_number_formatted(other_parties_parents[0].phone_number) }
     - other_parties_parents2_name: ${ other_parties_parents[1].name_full() }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address.line_one() }
         ${ other_parties_parents[1].address.line_two() }
-        ${ other_parties_parents[1].phone_number }
+    - other_parties_parents2_phone: |
+        ${ phone_number_formatted(other_parties_parents[1].phone_number) }
 ---
 attachments:
   name: Personal Protection Order (Non-Domestic Relationship) - CC 380
@@ -5872,6 +5888,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
@@ -5882,10 +5903,11 @@ attachments:
     - other_parties1_address_block: |
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -5927,6 +5949,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
@@ -5938,10 +5965,11 @@ attachments:
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -5965,12 +5993,14 @@ attachments:
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address.line_one() }
         ${ other_parties_parents[0].address.line_two() }
-        ${ other_parties_parents[0].phone_number }
+    - other_parties_parents1_phone_number: |
+        ${ phone_number_formatted(other_parties_parents[0].phone_number) }
     - other_parties_parents2_name: ${ other_parties_parents[1].name_full() }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address.line_one() }
         ${ other_parties_parents[1].address.line_two() }
-        ${ other_parties_parents[1].phone_number }
+    - other_parties_parents2_phone_number: |
+        ${ phone_number_formatted(other_parties_parents[1].phone_number) }
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
@@ -5998,8 +6028,9 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
-        ${ users[0].phone_number }
         % endif
+    - users1_phone_number: |
+        ${ (users[0].phone_number) }
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
@@ -6025,10 +6056,11 @@ attachments:
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -6170,7 +6202,7 @@ attachments:
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -6270,6 +6302,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
@@ -6279,10 +6316,11 @@ attachments:
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -6324,6 +6362,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
@@ -6333,10 +6376,11 @@ attachments:
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_birthdate: |
         % if knows_respondents_birthdate: 
@@ -6360,12 +6404,14 @@ attachments:
     - other_parties_parents1_address_block: |
         ${ other_parties_parents[0].address.line_one() }
         ${ other_parties_parents[0].address.line_two() }
-        ${ other_parties_parents[0].phone_number }
+    - other_parties_parents1_phone_number: |
+        ${ phone_number_formatted(other_parties_parents[0].phone_number) }
     - other_parties_parents2_name: ${ other_parties_parents[1].name_full() }
     - other_parties_parents2_address_block: |
         ${ other_parties_parents[1].address.line_one() }
         ${ other_parties_parents[1].address.line_two() }
-        ${ other_parties_parents[1].phone_number }
+    - other_parties_parents2_phone_number: |
+        ${ phone_number_formatted(other_parties_parents[1].phone_number) }
 ---
 attachments:
   name: Notice of Hearing
@@ -6454,6 +6500,11 @@ attachments:
         % else:
         ${ users[0].address.line_one() }
         ${ users[0].address.line_two() }
+        % endif
+    - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ${ '' }
+        % else:
         ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age_in_years() }
@@ -6481,10 +6532,11 @@ attachments:
         ${ other_parties[0].name_full() }
         ${ other_parties[0].address.line_one() }
         ${ other_parties[0].address.line_two() }
+    - other_parties1_phone_number: |
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
@@ -6594,7 +6646,7 @@ attachments:
         % if other_parties[0].no_phone_number:
         Unknown phone
         % else:
-        ${ other_parties[0].phone_number }
+        ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:

@@ -25,9 +25,11 @@ review:
       If you need to change this, please use the **Undo** button or start over from the beginning.
     show if: is_incapacitated_adult
   - Edit: 
-      - users.revisit
+      - users[0].name.first
+      - users[0].address.address
       - recompute:
         - check_parties_living_together
+        - check_user_no_phone
     button: |-
       % for item in users:
         **${ item }**
@@ -1081,27 +1083,6 @@ subject: |
   View your uploaded documents
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
----
-id: users revisit
-question: |
-  Edit your answers about yourself
-subquestion: |
-  ${ users.table }
-continue button field: users.revisit
----
-table: users.table
-rows: users
-columns:
-  - Name: |
-      row_item.name_full()
-  - Address: |
-      row_item.address.block()
-  - Phone: |
-      row_item.phone_number
-edit:
-  - name.first
-  - address.address
-delete buttons: False
 ---
 continue button field: |-
   children.revisit
