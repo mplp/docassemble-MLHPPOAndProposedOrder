@@ -205,10 +205,7 @@ code: |
 
   respondent_carries_firearm_for_work_asked
 
-  if ppo_type != "domestic":
-    if has_minor_children_in_common:
-      common_children_kickout
-  else:
+  if ppo_type == "domestic":
     enable_custody_review_screen
     domestic_ppo_children_intro
     if petitioner_respondent_relationship['have_child']:
@@ -1606,7 +1603,7 @@ subquestion: |
 
     % if ppo_type == "domestic":
     * "The respondent and I are siblings."
-    * "The respondent and I used to be roomates. We are not related to each other."
+    * "The respondent and I used to be roommates. We are not related to each other."
     % else:
     * "I don't know the respondent. They are a stranger."
     * "The respondent is my neighbor."
@@ -2741,16 +2738,6 @@ fields:
       - Yes, I have information about **one** parent, guardian, or custodian: 1
       - Yes, I have information about **two** parents, guardians, or custodians: 2
 ---
-id: minor children in common with respondent
-question: |
-  Minor children
-subquestion: |
-  *Minor children are children who are under 18 years old.*
-fields:
-  - Do you and ${ other_parties[0] } have any minor children in common?: has_minor_children_in_common
-    datatype: yesnoradio
-    label above field: True
----
 id: petitioner's other children
 question: |
   Your other children
@@ -2770,15 +2757,6 @@ fields:
       For example: stepchildren or adopted children.
     datatype: yesnomaybe
     label above field: True
----
-id: children in common with respondent kickout
-event: common_children_kickout
-question: |
-  We're sorry, but you'll need to go back and select a different type of PPO
-subquestion: |
-  If you have children in common with ${ other_parties[0] }, you should choose to file for a **Personal Protection Order - Domestic Relationship**.
-
-  Tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: domestic ppo children intro
 question: |
