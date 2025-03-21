@@ -4830,7 +4830,7 @@ objects:
   - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", enabled=True)
   - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", enabled=True)
   - instructions: ALDocument.using(filename="Instructions - Do not file this", title="Instructions", enabled=True, has_addendum=False)
-  - exhibit_attachment: ALExhibitDocument.using(title="Exhibits to Personal Protection Order", filename="Exhibits to Personal Protection Order", include_exhibit_cover_pages=True, add_page_numbers=True)
+  - exhibit_attachment: ALExhibitDocument.using(title="Exhibits to Personal Protection Order", filename="Exhibits to Personal Protection Order", include_exhibit_cover_pages=False, add_page_numbers=True)
 ---
 code: |
   if county_choice == "Wayne":
