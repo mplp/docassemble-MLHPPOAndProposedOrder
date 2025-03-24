@@ -125,22 +125,7 @@ code: |
     user.birthdate
 
   check_if_petitioner_minor
-  if petitioner_is_minor:
-    if is_incapacitated_adult:
-      inconsistent_age_kickout
-    else:
-      if petitioner_at_least_sixteen:
-        petitioner_is_emancipated_minor
-
-      if not petitioner_is_emancipated_minor:
-        if next_friends.there_are_any:
-          next_friends.gather()
-          if next_friend_agrees_to_role:
-            set_next_friend
-          else:
-            next_friend_role_kickout
-        else:
-          minor_kickout
+  minor_petitioner_initial_logic
 
   knows_respondents_birthdate
 
@@ -419,6 +404,26 @@ code: |
     petitioner_at_least_sixteen = False
     petitioner_is_emancipated_minor = False
   check_if_petitioner_minor = True
+---
+code: |
+  if petitioner_is_minor:
+    if is_incapacitated_adult:
+      inconsistent_age_kickout
+    else:
+      if petitioner_at_least_sixteen:
+        petitioner_is_emancipated_minor
+
+      if not petitioner_is_emancipated_minor:
+        if next_friends.there_are_any:
+          next_friends.gather()
+          if next_friend_agrees_to_role:
+            set_next_friend
+          else:
+            next_friend_role_kickout
+        else:
+          minor_kickout
+
+  minor_petitioner_initial_logic = True
 ---
 code: |
   if knows_respondents_birthdate:
@@ -833,6 +838,8 @@ code: |
   relationship_choices.append({'dating':'We dated or are dating'}) 
   if parent_choice: 
     relationship_choices.append({'parent':'They are my parent and we live together (or used to live together)'})
+
+  populate_relationship_choices_list = True
 ---
 code: |
   if other_parties_parents[i].shares_respondent_address:
@@ -1068,15 +1075,6 @@ code: |
 code: |
   ppo_sexual_assault_threat_protectees[i].name.first
   ppo_sexual_assault_threat_protectees[i].complete = True
----
-code: |
-  if is_incapacitated_adult:
-    next_friends.there_are_any = True
-  elif petitioner_is_minor:
-    if not petitioner_is_emancipated_minor:
-      next_friends.there_are_any = True
-
-  reset_next_friend = True
 ---
 code: |
   if not pending_actions.there_are_any:
