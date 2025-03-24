@@ -51,8 +51,6 @@ review:
       % for item in users:
         **${ item }**
 
-        **Age:** ${ users[0].age_in_years() }[BR]
-
         **Address:** ${ item.address.on_one_line() }
 
         **Phone:** ${ word("None") if item.no_phone_number else item.phone_numbers() }
@@ -1114,12 +1112,9 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
-  - Age: |
-      row_item.age_in_years()
 edit:
   - name.first
   - address.address
-  - birthdate
 delete buttons: False
 ---
 continue button field: |-
