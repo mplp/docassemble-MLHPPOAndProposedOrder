@@ -4344,9 +4344,9 @@ subquestion: |
 
   After you file your petition, the judge will consider it without a hearing and decide 
   whether to grant you a personal protection order within 
-  % if county_choice == "Ingham":
+  % if county_choice == "Ingham" or county_choice == "Saginaw":
   24 hours.
-  % elif county_choice == "Jackson" or county_choice == "Saginaw":
+  % elif county_choice == "Jackson":
   72 hours.
   % elif county_choice == "Wayne":
   24 hours. If the judge does not grant you an ex parte PPO, the court will either schedule the matter
