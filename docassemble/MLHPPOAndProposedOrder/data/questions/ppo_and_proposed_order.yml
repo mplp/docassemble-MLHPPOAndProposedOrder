@@ -327,7 +327,7 @@ code: |
 
   wants_other_request
 
-  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
+  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
     need_ex_parte
     set_ex_parte
   else:
@@ -845,7 +845,7 @@ code: |
   set_shared_respondent_address = True
 ---
 code: |
-  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
+  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
     wants_ex_parte_order = True
 
   set_ex_parte = True
@@ -4328,21 +4328,13 @@ id: will need ex parte order
 question: |
   You will be requesting an **ex parte** order
 subquestion: |
-  An ex parte order is an order that the judge signs without having a court hearing first. In 
-  % if county_choice == "Ingham":
-  Ingham
-  % elif county_choice == "Jackson":
-  Jackson
-  % elif county_choice == "Wayne":
-  Wayne
-  % endif
-  County, all PPO petitions are viewed as ex parte petitions. 
+  An ex parte order is an order that the judge signs without having a court hearing first. In ${ county_choice } County, all PPO petitions are viewed as ex parte petitions. 
 
   After you file your petition, the judge will consider it without a hearing and decide 
   whether to grant you a personal protection order within 
   % if county_choice == "Ingham":
   24 hours.
-  % elif county_choice == "Jackson":
+  % elif county_choice == "Jackson" or county_choice == "Saginaw":
   72 hours.
   % elif county_choice == "Wayne":
   24 hours. If the judge does not grant you an ex parte PPO, the court will either schedule the matter
@@ -5000,7 +4992,7 @@ code: |
     ppo_mc_319.enabled = False
 ---
 code: |
-  if wants_ex_parte_order or county_choice == "Wayne":
+  if wants_ex_parte_order:
     pet_proof_of_serv_domestic.enabled = False
     pet_proof_of_serv_domestic_minor.enabled = False
     pet_proof_of_serv_nondomestic.enabled = False
