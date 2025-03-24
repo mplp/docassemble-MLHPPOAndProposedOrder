@@ -25,6 +25,25 @@ review:
       If you need to change this, please use the **Undo** button or start over from the beginning.
     show if: is_incapacitated_adult
   - Edit: 
+      - users[0].birthdate
+      - other_parties[0].birthdate
+      - recompute:
+        - check_if_petitioner_minor
+        - check_if_respondent_minor
+        - respondent parent addresses etc. logic
+        - county_choice options logic/warning based on respondent age
+        - minor_petitioner_initial_logic
+        - set_relationship_choices
+        - populate_relationship_choices_list
+      - follow up:
+        - petitioner_respondent_relationship
+      - recompute:
+        - reset_relationship_description
+        - set_petitioner_respondent_relationship
+    button: |-
+      **Your age**: ${ users[0].age_in_years() }[BR]
+      ** Respondent's age**: ${ other_parties[0].age_in_years() }
+  - Edit: 
       - users.revisit
       - recompute:
         - check_parties_living_together
@@ -33,7 +52,6 @@ review:
         **${ item }**
 
         **Age:** ${ users[0].age_in_years() }[BR]
-        (If you need to change your age, please use the **Undo** button or start over from the beginning.)
 
         **Address:** ${ item.address.on_one_line() }
 
@@ -78,8 +96,6 @@ review:
       ${ word(yesno(petitioner_lives_in_michigan)) }
   - Edit: 
       - next_friends[0].name.first
-      - recompute:
-        - reset_next_friend
     button: |-
       **Next Friend:**  ${ next_friends[0] }
     show if: next_friends.there_are_any
@@ -1098,9 +1114,12 @@ columns:
       row_item.address.block()
   - Phone: |
       row_item.phone_number
+  - Age: |
+      row_item.age_in_years()
 edit:
   - name.first
   - address.address
+  - birthdate
 delete buttons: False
 ---
 continue button field: |-
