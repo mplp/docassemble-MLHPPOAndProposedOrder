@@ -1047,7 +1047,7 @@ review:
     show if: is_incapacitated_adult or not is_incapacitated_adult
 ---
 generic object: ALExhibitList
-table: exhibit_attachment.exhibits.rearrange_exhibits_table
+table: exhibit_attachment.exhibits.add_delete_exhibits_table
 rows: exhibit_attachment.exhibits
 allow reordering: True
 delete buttons: True
@@ -1058,8 +1058,17 @@ columns:
       row_item.pages.show(width="50%")
   - ${ al_exhibit_total_pages_label }: |
       row_item.pages.num_pages()
-edit:
-  - rearrange_pages
+---
+generic object: ALExhibitList
+table: exhibit_attachment.exhibits.rearrange_exhibits_table
+rows: exhibit_attachment.exhibits
+columns:
+  - ${ al_exhibit_title_label }: |
+      row_item.title
+  - ${ al_exhibit_preview_label }: |
+      row_item.pages.show(width="50%")
+  - ${ al_exhibit_total_pages_label }: |
+      row_item.pages.num_pages()
 ---
 generic object: ALExhibitList
 template: exhibit_attachment.exhibits.in_progress_exhibits
@@ -1067,6 +1076,13 @@ subject: |
   View your uploaded documents
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
+---
+generic object: ALExhibitList
+template: exhibit_attachment.exhibits.add_delete_exhibits
+subject: |
+  View your uploaded documents
+content: |
+  ${ exhibit_attachment.exhibits.add_delete_exhibits_table }
 ---
 id: users revisit
 question: |
@@ -1106,7 +1122,7 @@ id: |-
 question: |-
   Edit uploaded docs
 subquestion: |-
-  ${ exhibit_attachment.exhibits.in_progress_exhibits }
+  ${ exhibit_attachment.exhibits.add_delete_exhibits }
 
   ${ exhibit_attachment.exhibits.add_action() }
 ---
