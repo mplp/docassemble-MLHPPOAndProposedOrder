@@ -45,13 +45,20 @@ code: |
 ---
 code: |
   if ppo_type == "domestic":
-    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-domestic-relationship"
+    has_whats_next_text = True
+    whats_next_text_message = "Text 1700 to (734) 275-2201 to get text messages reminding you of deadlines and giving you information about what to do next to ask for a personal protection order."
+  else:
+    has_whats_next_text = False
+---
+code: |
+  if ppo_type == "domestic":
+    resource_page_url_only = "https://michiganlegalhelp.org/node/233/"
     resource_page_name = "Filing for a Personal Protection Order - Domestic Relationship"
   elif ppo_type == "nondomestic":
-    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-non-domestic-stalking"
+    resource_page_url_only = "https://michiganlegalhelp.org/node/272/"
     resource_page_name = "Filing for a Personal Protection Order - Non-Domestic Stalking"
   elif ppo_type == "nondomestic_sexual_assault":
-    resource_page_url_only = "https://michiganlegalhelp.org/resources/personal-safety/filing-personal-protection-order-non-domestic-sexual-assault"
+    resource_page_url_only = "https://michiganlegalhelp.org/node/2373/"
     resource_page_name = "Filing for a Personal Protection Order - Non-Domestic Sexual Assault"
 ---
 template: survey_embed_script
@@ -198,10 +205,7 @@ code: |
 
   respondent_carries_firearm_for_work_asked
 
-  if ppo_type != "domestic":
-    if has_minor_children_in_common:
-      common_children_kickout
-  else:
+  if ppo_type == "domestic":
     enable_custody_review_screen
     domestic_ppo_children_intro
     if petitioner_respondent_relationship['have_child']:
@@ -775,9 +779,11 @@ code: |
 code: |
   if is_incapacitated_adult:
     has_next_friend_petitioning = True
-  else:
+  elif petitioner_is_minor and not petitioner_is_emancipated_minor:
     if next_friend_agrees_to_role:
       has_next_friend_petitioning = True
+  else:
+    has_next_friend_petitioning = False
 
   set_next_friend = True
 ---
@@ -885,7 +891,7 @@ code: |
 code: |
   children[i].name.first
   children[i].lives_with
-  if not children[i].parties_married_when_born and not children[i].unmarried_adoption:
+  if not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent != "third_party":
     children[i].paternity
   if i < 1:
     if children[i].has_order_in_effect:
@@ -1406,7 +1412,7 @@ fields:
   - code: |
       respondent_other_children[i].name_fields()
 ---
-id: who does child love with?
+id: who does child live with?
 question: |
   ${ children[i] }'s residence
 fields:
@@ -1419,7 +1425,7 @@ fields:
 ---
 id: married when child born
 question: |
-  Relationship to ${ other_parties[0] }
+  ${ children[i] }'s legal parents
 fields:
   - Were you married to ${ other_parties[0] } when ${ children[i].familiar() } was born or conceived?: children[i].parties_married_when_born
     datatype: yesnoradio
@@ -1477,9 +1483,24 @@ fields:
     show if:
       variable: children[i].how_conceived
       is: extramarital
+  - note: |
+      ${ collapse_template(why_ask_married) }
 terms:
   spouse: |
     "Spouse" is another word for wife or husband.
+---
+template: why_ask_married
+subject: |
+  Why are you asking this?
+content: |
+  The judge may want to know whether you and/or ${ other_parties[0] } is a legal parent.
+
+  You are **both** legal parents if:
+  
+  * you were married when ${ children[i].familiar() } was born or conceived, **or** 
+  * you adopted ${ children[i].familiar() } together.
+
+  If neither of these apply, we will ask about other ways of becoming legal parents.
 ---
 id: custody or parenting time order
 question: |
@@ -1572,22 +1593,35 @@ continue button field: minimum_incidents_explainer
 ---
 id: describe relationship to respondent
 question: |
+  % if ppo_type == "domestic":
   Your relationship with ${ other_parties[0] }
+  % else:
+  Is ${ other_parties[0] } someone you know?
+  % endif
 subquestion: |
-  For example:
+  Please explain. For example:
 
     % if ppo_type == "domestic":
     * "The respondent and I are siblings."
-    * "The respondent and I used to be roomates. We are not related to each other."
+    * "The respondent and I used to be roommates. We are not related to each other."
     % else:
+    * "I don't know the respondent. They are a stranger."
     * "The respondent is my neighbor."
     * "The respondent used to be my co-worker."
     % endif
 
   *Use complete sentences and proper punctuation. Your answer will appear in your forms exactly as you type it.*
 fields:
-  - Describe your relationship with ${ other_parties[0] }: relationship_to_respondent_exp
+  - Describe your relationship with ${ other_parties[0] }:: relationship_to_respondent_exp
     datatype: area
+    show if:
+      code: |
+        ppo_type == "domestic"
+  - Describe how you know ${ other_parties[0] }, if at all:: relationship_to_respondent_exp
+    datatype: area
+    show if:
+      code: |
+        ppo_type != "domestic"
 ---
 id: petitioner alias there_are_any
 question: |
@@ -1936,6 +1970,10 @@ subquestion: |
   * Copies of e-mails or text messages
   * Letters
 
+  % if is_incapacitated_adult:
+  You **must** upload a copy of either the **guardianship order or Power of Attorney** that gives you authority to file for the petitioner.
+  % endif
+
   % elif ETC_county_status == "optional":
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
 
@@ -1945,10 +1983,11 @@ subquestion: |
   * Copies of e-mails or text messages
   * Letters
 
-  If you plan to file by direct e-mail from this tool, attach any documents now. If you plan to file in a different way, you can choose to:
+  If you plan to file by direct e-mail from this tool, attach any documents now. If you plan to file in a different way, you can upload documents now or attach documents yourself outside of this tool.
 
-  * upload documents using this tool, or
-  * attach documents yourself outside of this tool.
+  % if is_incapacitated_adult:
+  Either way, you **must** file a copy of either the **guardianship order or Power of Attorney** that gives you authority to file for the petitioner.
+  % endif
   % else:
   If you have any documents you want to show the judge, you can attach them now. This could include things like:
 
@@ -1958,20 +1997,23 @@ subquestion: |
   * Copies of e-mails or text messages
   * Letters
 
-  You can choose to:
+  You can upload documents now or attach documents yourself outside of this tool.
 
-  * upload documents using this tool, or
-  * attach documents yourself after you get your forms.
+  % if is_incapacitated_adult:
+  Either way, you **must** file a copy of either the **guardianship order or Power of Attorney** that gives you authority to file for the petitioner.
+  % endif
   % endif
 
   ${ collapse_template(no_documents) }
+  ${ collapse_template(paper_documents) }
   ${ collapse_template(audiovisual_evidence) }
 fields:
   - Do you have any documents you want to upload?: x.has_exhibits
     datatype: yesnoradio
   - note: |
-      **Okay**. You will have a chance to upload multiple documents. 
-      You can also add additional pages to this document.
+      **Okay**. You can upload multiple documents. You can also add more pages to this document.
+
+      ${ collapse_template(preferred_file_types) }
     show if: x.has_exhibits
   - First document title: x[0].title
     maxlength: 60 # longer might break TOC
@@ -1979,7 +2021,7 @@ fields:
   - Upload the first document: x[0].pages
     show if: x.has_exhibits
     datatype: files
-    maximum image size: 1024
+    maximum image size: 2048
     image upload type: jpeg
     accept: |
       "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"
@@ -1998,17 +2040,147 @@ validation code: |
     x[0].pages.complete_attribute = 'ok'
     x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
 ---
+# overriding version from ql_baseline
+generic object: ALExhibitList
+id: exhibit i has additional pages
+question: |
+  Add more pages to "**${ x[i] }**"?
+subquestion: |
+  % if hasattr(x, 'maximum_size'):
+  The total size of all exhibits must be less than ${ humanize.naturalsize(x.maximum_size) }.
+  You can upload ${ humanize.naturalsize(x.maximum_size - x.size_in_bytes() - sum(ap.size_in_bytes() for ap in x[i].pages.complete_elements()))} more.
+  % endif
+
+  ${ collapse_template(x[i].in_progress_template )}
+  
+fields: 
+  - Do you want to add more pages to "**${ x[i] }**"?: x[i].pages.there_is_another
+    datatype: radio
+    choices:
+      - Yes, I want to add more pages to "${ x[i] }".: True
+      - No, there are no more pages to add to "${ x[i] }".: False
+    label above field: True
+---
+# overriding version from ql_baseline (only changed max image size)
+sets:
+  - x[i].pages[j].initialized
+  - x[i].pages[j].mimetype
+  - x[i].pages[j].ok
+generic object: ALExhibitList
+id: exhibit additional page
+question: |
+  Upload the ${ ordinal(j) } part of your ${ x[i].title } document
+subquestion: |
+  ${ collapse_template(preferred_file_types) }
+fields:
+  - Upload a PDF, Word, or image file: x[i].pages[j]
+    datatype: file
+    maximum image size: 2048
+    image upload type: jpeg
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  page_size = x[i].pages[j].size_in_bytes()
+  if page_size > (15 * 1024 * 1024):
+    validation_error("Upload a file smaller than 15 MB.")
+  if hasattr(x, 'maximum_size'):
+    # this_doc_size already includes `page_size`
+    this_doc_size = sum(a_page.size_in_bytes() for a_page in x[i].pages.complete_elements())
+    full_size = x.size_in_bytes() + this_doc_size
+    if full_size > x.maximum_size:
+      suggested_size = x.maximum_size - (full_size - page_size)
+      validation_error(f"All exhibits combined must be smaller than {humanize.naturalsize(x.maximum_size)}. Upload a file smaller than {humanize.naturalsize(suggested_size)}.")
+  try:
+    pdf_concatenate(x[i].pages[j])
+  except:
+    validation_error("Unable to convert this file. Please upload a new one.")
+
+  x[i].pages[j] = unpack_dafilelist(x[i].pages[j])
+---
+# overriding version from ql_baseline
+generic object: ALExhibitList
+id: another exhibit
+question: |
+  You have ${ x.number_gathered() } document(s) so far. Do you want to upload another document?
+subquestion: |
+  % if hasattr(x, 'maximum_size'):
+  The total size of all exhibits must be less than ${ humanize.naturalsize(x.maximum_size) }.
+  You can upload ${ humanize.naturalsize(x.maximum_size - x.size_in_bytes())} more.
+  % endif
+
+  ${ collapse_template(x.in_progress_exhibits) }
+fields: 
+  - Upload another document?: x.there_is_another
+    datatype: radio
+    choices:
+      - Yes, I want to add another.: True
+      - No, I'm done adding documents.: False
+    label above field: True
+---
+# overriding version from ql_baseline (only changed max image size and text)
+generic object: ALExhibitList
+id: exhibit i
+question: |
+  Upload the ${ ordinal(i) } document
+subquestion: |
+  You will have a chance to upload more pages for this document later.
+
+  ${ collapse_template(preferred_file_types) }
+fields:
+  - Document title: x[i].title
+    maxlength: 60 # longer might break TOC
+  - Upload the exhibit: x[i].pages
+    datatype: files
+    maximum image size: 2048
+    image upload type: jpeg
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  this_doc_size = sum(a_page.size_in_bytes() for a_page in x[i].pages)
+  if this_doc_size > (15 * 1024 * 1024):
+    validation_error("Upload a file smaller than 15 MB.")
+  if hasattr(x, 'maximum_size'):
+    full_size = x.size_in_bytes()
+    if full_size > x.maximum_size:
+      suggested_size = x.maximum_size - (full_size - this_doc_size)
+      validation_error(f"All exhibits combined must be smaller than {humanize.naturalsize(x.maximum_size)}. Upload a file smaller than {humanize.naturalsize(suggested_size)}.")
+  try:
+    pdf_concatenate(x[i].pages)
+  except:
+    validation_error("Unable to convert this file. Please upload a new one.")
+  x[i].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
+---
 template: audiovisual_evidence
 subject: |
-  What if I have audio or video evidence?
+  What if I have **audio or video** evidence?
 content: |
   Save any audio or video evidence you have. If there will be a hearing for your case, you can submit the audio or video evidence to the court directly.
 ---
 template: no_documents
 subject: |
-  What if don't have any documents to attach?
+  What if **don't** have any documents to attach?
 content: |
   Even if you don't have any documents to attach, you can still file your petition. The judge shouldn't deny a petition just because you don't have any documents to attach.
+---
+template: paper_documents
+subject: |
+  How do I upload a **paper document**?
+content: |
+  Scan paper documents using a **scanner app** on your phone or a **physical scanner** to create clean PDF copies. 
+
+  Examples of free scanner apps are Adobe Scan, Google Drive, or Apple Notes. (We do not recommend any specific software. You can create PDFs in other ways as well.) Some libraries also have scanners.
+---
+template: preferred_file_types
+subject: |
+  File type tips
+content: |
+  If possible, upload documents as PDFs to help avoid issues. In many cases, "save", "print", "download", or "share" options include a way to create a PDF. To learn more, read [Working with PDF Files](https://michiganlegalhelp.org/resources/mifile/working-pdf-files). 
+
+  Scan paper documents with a scanner app or a physical scanner to create clean PDF copies.
+
+  It's OK to upload photos or screenshots from phones.
+
+  Accepted file types: PDF, JPG, PNG, and word-processing files such as DOCX.
 ---
 id: petitioner or respondent living in michigan
 question: |
@@ -2566,16 +2738,6 @@ fields:
       - Yes, I have information about **one** parent, guardian, or custodian: 1
       - Yes, I have information about **two** parents, guardians, or custodians: 2
 ---
-id: minor children in common with respondent
-question: |
-  Minor children
-subquestion: |
-  *Minor children are children who are under 18 years old.*
-fields:
-  - Do you and ${ other_parties[0] } have any minor children in common?: has_minor_children_in_common
-    datatype: yesnoradio
-    label above field: True
----
 id: petitioner's other children
 question: |
   Your other children
@@ -2595,15 +2757,6 @@ fields:
       For example: stepchildren or adopted children.
     datatype: yesnomaybe
     label above field: True
----
-id: children in common with respondent kickout
-event: common_children_kickout
-question: |
-  We're sorry, but you'll need to go back and select a different type of PPO
-subquestion: |
-  If you have children in common with ${ other_parties[0] }, you should choose to file for a **Personal Protection Order - Domestic Relationship**.
-
-  Click the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
 id: domestic ppo children intro
 question: |
@@ -2782,16 +2935,53 @@ fields:
     - ${ other_parties[0] }: respondent
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption
+id: who gave birth to child
+question: |
+  ${ children[i] }'s legal parents
+fields:
+  - Who gave birth to ${ children[i] }?: children[i].birthing_parent
+    datatype: radio
+    choices:
+      - I did: petitioner
+      - ${ other_parties[0] } did: respondent
+      - Someone else did: third_party 
+  - Please explain:: children[i].third_party_birthing_parent_exp
+    input type: area
+    show if:
+      variable: children[i].birthing_parent
+      is: "third_party"
+  - note: |
+      Examples:
+      
+      * "We had our child through a surrogacy agreement. We are both legal parents."
+      * "My ex-wife gave birth to this child while I was married to her. The respondent later adopted the child through a step-parent adoption."
+    show if:
+      variable: children[i].birthing_parent
+      is: "third_party"
+  - note: |
+      ${ collapse_template(why_ask_birthing_parent) }
+---
+template: why_ask_birthing_parent
+subject: |
+  Why are you asking this?
+content: |
+  The judge may want to know whether you and/or ${ other_parties[0] } is a legal parent.
+  
+  First we ask who gave birth to ${ children[i].familiar() } because that person is usually a legal parent. It also helps us make follow-up questions a little simpler.
+---
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "petitioner"
 id: child paternity
 terms:
   parentage: |
-    If the second parent is a father, this is also called establishing **paternity**.
+    Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
 question: |
-  ${ children[i] }'s legal parent(s)
+  ${ other_parties[0] }'s legal parentage status
 subquestion: |
-  ${ children[i].familiar() }'s mother (or the parent who gave birth to ${ children[i].familiar() }) is their legal parent. ${ children[i].familiar() }'s father (or second parent) is also their legal parent if {parentage} was established.
+  Since you gave birth to ${ children[i].familiar() }, you are their legal parent. 
+  
+  ${ other_parties[0] } is also a legal parent **if** {parentage} was established. Parentage is often established with an *Affidavit of Parentage* or a court order.
 fields:
-  - Has the father's (or second parent's) {parentage} been legally established?: children[i].paternity
+  - Has ${ other_parties[0] }'s {parentage} been legally established?: children[i].paternity
     datatype: radio
     choices:
       - Yes: paternity_established
@@ -2831,19 +3021,89 @@ fields:
     show if: 
       variable: children[i].paternity_pending_where
       is: Michigan
-  - Who is ${ children[i] }'s legal parent?: children[i].legal_parent
+  - "{Parentage} of ${ children[i].familiar() } was established by:": children[i].paternity_how
+    show if:
+      variable: children[i].paternity_established_where
+      is: Michigan
     datatype: radio
     choices:
-      - I am: petitioner
-      - ${ other_parties[0] } is: respondent
-    show if: 
-      variable: children[i].paternity
-      is: paternity_not_established
+      - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
+      - a court order ("*Order of Filiation*"): by_court_order
+      - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
   - note: |
-      The mother (or the parent who gave birth to the child) is usually a legal parent automatically.
+      ${ collapse_template(parentage_affidavit_explained) }
+    show if: 
+      variable: children[i].paternity_established_where
+      is: Michigan
+  - Case number: children[i].paternity_case_number
+    show if:
+      variable: children[i].paternity_how
+      is: by_court_order
+  - Name of Court: children[i].paternity_case_court_name
+    show if:
+      variable: children[i].paternity_how
+      is: by_court_order
+  - Case number: children[i].adoption_case_number
+    show if: 
+      variable: children[i].paternity_how
+      is: by_adoption
+  - Name of Court: children[i].adoption_case_court
+    show if: 
+      variable: children[i].paternity_how
+      is: by_adoption
+---
+if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "respondent"
+id: child paternity
+terms:
+  parentage: |
+    Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
+question: |
+  Your legal parentage status
+subquestion: |
+  Since ${ other_parties[0] } gave birth to ${ children[i].familiar() }, ${ other_parties[0].familiar() } is ${ children[i].familiar() }'s legal parent. 
+  
+  You are also a legal parent **if** {parentage} was established. Parentage is often established with an *Affidavit of Parentage* or a court order.
+fields:
+  - Has your {parentage} been legally established?: children[i].paternity
+    datatype: radio
+    choices:
+      - Yes: paternity_established
+      - A parentage or adoption case has been filed and is pending. (There is no court order yet.): paternity_pending
+      - "No, parentage has not been established.": paternity_not_established
+  - Where was {parentage} established?: children[i].paternity_established_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
     show if:
       variable: children[i].paternity
-      is: paternity_not_established
+      is: paternity_established
+  - Where was the case filed?: children[i].paternity_pending_where
+    label above field: False
+    datatype: radio
+    choices:
+      - In Michigan: Michigan
+      - In another state or country: out_of_state
+    show if:
+      variable: children[i].paternity
+      is: paternity_pending
+  - State or country where {parentage} was established: children[i].state_of_paternity
+    show if:
+      variable: children[i].paternity_established_where
+      is: out_of_state
+  - State or country where {parentage} is pending: children[i].state_of_paternity
+    show if:
+      variable: children[i].paternity_pending_where
+      is: out_of_state
+  - Case number: children[i].paternity_case_number
+    show if: 
+      variable: children[i].paternity_pending_where
+      is: Michigan
+  - Name of Court: children[i].paternity_case_court_name
+    show if: 
+      variable: children[i].paternity_pending_where
+      is: Michigan
   - "{Parentage} of ${ children[i].familiar() } was established by:": children[i].paternity_how
     show if:
       variable: children[i].paternity_established_where
@@ -2883,15 +3143,6 @@ content: |
 
   If your child was born in Michigan and you are not sure whether there is an *Affidavit of Parentage*, you can contact the [Michigan Vital Records Office](https://www.michigan.gov/mdhhs/doing-business/vitalrecords) in Lansing. Another way to tell is this: If the second parent's name is on the birth certificate and you are certain that there was no court case establishing parentage, then there is likely an *Affidavit of Parentage*.
 ---
-# If we want this at all, it should appear at the same step as parentage_affidavit_explained, but I don't think it really applies any more. Can delete after testing.
-# template: adoption_explained
-# subject: |
-#   More Information
-# content: |
-#   In states that allow second-parent adoption, a partner who is not biologically related to a child can adopt their partner's biological or adoptive child without terminating the first legal parent's rights. 
-#   
-#   In general, second-parent adoption has not been allowed for unmarried parents in Michigan, but there are some exceptions. Or you may have done a second-parent adoption in another state before becoming a Michigan resident.
-# ---
 id: informal parenting time arrangement?
 if: not children[i].has_order_in_effect
 question: |
@@ -2908,7 +3159,6 @@ fields:
       is: True         
 ---
 if: len(children.complete_elements()) == 1 and children[0].has_order_in_effect
-continue button field: PT_changes_screen
 id: desired parenting time change one child with custody order
 question: |
   Parenting time changes for ${ children[0].familiar() }
@@ -3545,7 +3795,7 @@ id: incidents reason other party responsible
 question: |
   How do you know ${ other_parties[0].name } was responsible?
 subquestion: |
-  You may not need to complete this field if it is obvious from your description of the incident that ${ other_parties[0].name } was responsible for the behavior. Click the link below for more information.
+  You may not need to complete this field if it is obvious from your description of the incident that ${ other_parties[0].name } was responsible for the behavior. Tap the link below for more information.
 
   ${ collapse_template(other_party_responsible_explained) }
 fields:
@@ -3677,7 +3927,7 @@ fields:
 ---
 template: incident_other_details_explained
 subject: |
-  Click here to see examples.
+  Tap here to see examples.
 content: |
   Examples:
 
@@ -3693,7 +3943,7 @@ content: |
 ---
 template: incident_other_details_explained_nondomestic
 subject: |
-  Click here to see examples.
+  Tap here to see examples.
 content: |
   Examples:
 
@@ -4407,6 +4657,7 @@ subquestion: |
 ---
 id: email confirmation ETCSent
 continue button field: email_status_sent
+prevent going back: True
 question: |
   Your forms were e-mailed to the court!
 subquestion: |
@@ -4434,7 +4685,7 @@ question: |
 subquestion: |
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
-  Tap **Undo** to return to the Submit page and try again. 
+  Tap **${ MLH_back_button_label }** to return to the Submit page and try again. 
 
   Or tap "Continue" to download your forms.
 under: |
@@ -4470,7 +4721,7 @@ question: |
 subquestion: |
   **Your forms were NOT sent to the court.**
 
-  Click **Undo** to try again. You can also download your forms below. 
+  Tap **${ MLH_back_button_label }** to try again. You can also download your forms below. 
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
 
@@ -4495,7 +4746,7 @@ question: |
 subquestion: |
   Thank you ${users}. Your form is ready to download and deliver.
 
-  View, download and send your form below. Click the "✎ Review / Edit" button to fix any mistakes.
+  View, download and send your form below. Tap the "✎ Review / Edit" button to fix any mistakes.
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
 
@@ -4542,7 +4793,7 @@ objects:
   - ppo_contact_information_sheet: ALDocument.using(title="Contact Information Sheet", filename="Contact Information Sheet", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_bundle, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_domestic_minor_attachment, ppo_nondomestic_minor_attachment, ppo_nondomestic_sexual_assault_minor_attachment, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, ppo_domestic_attachment, ppo_nondomestic_attachment, ppo_nondomestic_sexual_assault_attachment, ppo_domestic_minor_attachment, ppo_nondomestic_minor_attachment, ppo_nondomestic_sexual_assault_minor_attachment, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to download for your records", enabled=True)
 ---
 objects:
   - al_court_bundle: ALDocumentBundle.using(elements=[ppo_domestic_attachment_court, ppo_nondomestic_attachment_court, ppo_nondomestic_sexual_assault_attachment_court, ppo_domestic_minor_attachment_court, ppo_nondomestic_minor_attachment_court, ppo_nondomestic_sexual_assault_minor_attachment_court, exhibit_attachment, ppo_mc_319, pet_proof_of_serv_domestic, pet_proof_of_serv_domestic_minor, pet_proof_of_serv_nondomestic, pet_proof_of_serv_nondomestic_minor, pet_proof_of_serv_nondomestic_sa, pet_proof_of_serv_nondomestic_sa_minor, ppo_cc_381, ppo_cc_376, ppo_cc_376m, ppo_cc_380, ppo_cc_380m, ppo_cc_396, ppo_cc_396m, ppo_contact_information_sheet], filename="Personal Protection Order Petition and Proposed Order.pdf", title="All forms to file", enabled=True)
@@ -4572,12 +4823,11 @@ objects:
 ---
 objects:
   - etc_cover_page: ALDocument.using(title="ETC Cover Page", filename="ETC Cover Page")
-  - instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - oakland_county_instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", enabled=True)
+  - oakland_county_instructions_after_hearing: ALDocument.using(title="Instructions After Hearing", filename="Instructions After Hearing", enabled=True)
+  - instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", enabled=True)
+  - oakland_county_instructions_ex_parte: ALDocument.using(title="Ex Parte Instructions", filename="Ex Parte Instructions", enabled=True)
   - instructions: ALDocument.using(filename="Instructions - Do not file this", title="Instructions", enabled=True, has_addendum=False)
-  - instructions_bundle: ALDocumentBundle.using(elements=[instructions, instructions_after_hearing, oakland_county_instructions_after_hearing, instructions_ex_parte, oakland_county_instructions_ex_parte], filename="Instructions - Do not file this", title="Instructions", enabled=True, has_addendum=False)
   - exhibit_attachment: ALExhibitDocument.using(title="Exhibits to Personal Protection Order", filename="Exhibits to Personal Protection Order", include_exhibit_cover_pages=False, add_page_numbers=True)
 ---
 code: |
@@ -4713,30 +4963,6 @@ code: |
     ppo_cc_381.enabled = False
   else:
     ppo_cc_381.enabled = True
----
-code: |
-  if (not wants_ex_parte_order) and (county_choice != "Oakland"):
-    instructions_after_hearing.enabled = True
-  else:
-    instructions_after_hearing.enabled = False
----
-code: |
-  if (not wants_ex_parte_order) and (county_choice == "Oakland"):
-    oakland_county_instructions_after_hearing.enabled = True
-  else:
-    oakland_county_instructions_after_hearing.enabled = False
----
-code: |
-  if (wants_ex_parte_order) and (county_choice != "Oakland"):
-    instructions_ex_parte.enabled = True
-  else:
-    instructions_ex_parte.enabled = False
----
-code: |
-  if (wants_ex_parte_order) and (county_choice == "Oakland"):
-    oakland_county_instructions_ex_parte.enabled = True
-  else:
-    oakland_county_instructions_ex_parte.enabled = False
 ---
 code: |
   if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_harm_protectees_list.complete_elements()) > 1 or len(ppo_threat_protectees_list.complete_elements()) > 1 or wants_other_request):
