@@ -3040,7 +3040,7 @@ fields:
     datatype: radio
     choices:
       - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
-      - a court order ("*Order of Filiation*"): by_court_order
+      - "a paternity or parentage order (examples: *Order of Filiation, Judgment of Parentage*)": by_court_order
       - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
   - note: |
       ${ collapse_template(parentage_affidavit_explained) }
@@ -3123,7 +3123,7 @@ fields:
     datatype: radio
     choices:
       - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
-      - a court order ("*Order of Filiation*"): by_court_order
+      - "a paternity or parentage order (examples: *Order of Filiation, Judgment of Parentage*)": by_court_order
       - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
   - note: |
       ${ collapse_template(parentage_affidavit_explained) }
