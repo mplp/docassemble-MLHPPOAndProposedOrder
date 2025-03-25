@@ -25,9 +25,11 @@ review:
       If you need to change this, please use the **Undo** button or start over from the beginning.
     show if: is_incapacitated_adult
   - Edit: 
-      - users.revisit
+      - users[0].name.first
+      - users[0].address.address
       - recompute:
         - check_parties_living_together
+        - check_user_no_phone
     button: |-
       % for item in users:
         **${ item }**
@@ -554,17 +556,17 @@ review:
       % endif
       PPO. To change the petition type, use the **Undo** button or start over.
       % endif
-  - Edit:
-      - county_choice
-      - recompute:
-          - court_index
-          - the_court
-    button: |
-      **Court you will file in**: -- under construction -- TESTERS PLEASE DON'T EDIT
-      
-      ${ the_court }, ${ county_choice } County
-
-      -- under construction -- TESTERS PLEASE DON'T EDIT
+#  - Edit:
+#      - county_choice
+#      - recompute:
+#          - court_index
+#          - the_court
+#    button: |
+#      **Court you will file in**: 
+#      
+#      ${ the_court }, ${ county_choice } County
+  - note: |
+       **Court you will file in**: ${ the_court }, ${ county_choice } County
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
     show if: defined('pending_actions.there_are_any')
@@ -996,7 +998,7 @@ review:
       **Do you want to request an ex parte order?**
 
       ${ word(yesno(wants_ex_parte_order)) }
-    show if: county_choice not in ["Ingham", "Jackson", "Wayne"]
+    show if: county_choice not in ["Ingham", "Jackson", "Wayne", "Saginaw"]
   - raw html: |
       ${ next_accordion('<h2 class="h5">Uploaded Documents</h2>') }
     show if: defined('exhibit_attachment.exhibits.has_exhibits')
@@ -1099,27 +1101,6 @@ subject: |
   View your uploaded documents
 content: |
   ${ exhibit_attachment.exhibits.add_delete_exhibits_table }
----
-id: users revisit
-question: |
-  Edit your answers about yourself
-subquestion: |
-  ${ users.table }
-continue button field: users.revisit
----
-table: users.table
-rows: users
-columns:
-  - Name: |
-      row_item.name_full()
-  - Address: |
-      row_item.address.block()
-  - Phone: |
-      row_item.phone_number
-edit:
-  - name.first
-  - address.address
-delete buttons: False
 ---
 continue button field: |-
   children.revisit
