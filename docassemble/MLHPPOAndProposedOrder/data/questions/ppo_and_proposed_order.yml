@@ -327,7 +327,7 @@ code: |
 
   wants_other_request
 
-  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
+  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
     need_ex_parte
     set_ex_parte
   else:
@@ -847,7 +847,7 @@ code: |
   set_shared_respondent_address = True
 ---
 code: |
-  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne":
+  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
     wants_ex_parte_order = True
 
   set_ex_parte = True
@@ -1751,12 +1751,24 @@ fields:
   - Will you be filing this PPO petition on behalf of a legally incapacitated adult?: is_incapacitated_adult
     datatype: yesnoradio
     label above field: True
+  - note: |
+      ${ collapse_template(incapacitated_adult_explained) }
   - Have you been named the guardian of this person by court order **OR** do you have a power of attorney that allows you to file for them?: next_friends.there_are_any
     datatype: yesnoradio
     show if:
       variable: is_incapacitated_adult
       is: True
     label above field: True
+---
+template: incapacitated_adult_explained
+subject: |
+  What does this mean?
+content: |
+  Answer "Yes" if the person who **needs protection** is a legally incapacitated adult.
+
+  A legally incapacitated adult is an adult who is unable to make their own informed decisions due to mental or physical illness or disability, or other causes. Only a legal guardian or someone with a valid Power of Attorney can file a PPO petition on behalf of a legally incapacitated adult.
+  
+  Answer "No" if you want a PPO to protect yourself, or if you are helping a child fill this out.
 ---
 id: unauthorized to file for legally incapacitated adult kickout
 event: unauthorized_to_file_for_lii_kickout
@@ -3030,7 +3042,7 @@ fields:
     datatype: radio
     choices:
       - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
-      - a court order ("*Order of Filiation*"): by_court_order
+      - "a paternity or parentage order (examples: *Order of Filiation, Judgment of Parentage*)": by_court_order
       - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
   - note: |
       ${ collapse_template(parentage_affidavit_explained) }
@@ -3113,7 +3125,7 @@ fields:
     datatype: radio
     choices:
       - an *Affidavit of Parentage* (also called an "Acknowledgment of Parentage"): by_acknowledgment_of_parentage
-      - a court order ("*Order of Filiation*"): by_court_order
+      - "a paternity or parentage order (examples: *Order of Filiation, Judgment of Parentage*)": by_court_order
       - "an adoption (examples: stepparent adoption, confirmatory adoption)": by_adoption
   - note: |
       ${ collapse_template(parentage_affidavit_explained) }
@@ -4330,19 +4342,11 @@ id: will need ex parte order
 question: |
   You will be requesting an **ex parte** order
 subquestion: |
-  An ex parte order is an order that the judge signs without having a court hearing first. In 
-  % if county_choice == "Ingham":
-  Ingham
-  % elif county_choice == "Jackson":
-  Jackson
-  % elif county_choice == "Wayne":
-  Wayne
-  % endif
-  County, all PPO petitions are viewed as ex parte petitions. 
+  An ex parte order is an order that the judge signs without having a court hearing first. In ${ county_choice } County, all PPO petitions are viewed as ex parte petitions. 
 
   After you file your petition, the judge will consider it without a hearing and decide 
   whether to grant you a personal protection order within 
-  % if county_choice == "Ingham":
+  % if county_choice == "Ingham" or county_choice == "Saginaw":
   24 hours.
   % elif county_choice == "Jackson":
   72 hours.
@@ -5002,7 +5006,7 @@ code: |
     ppo_mc_319.enabled = False
 ---
 code: |
-  if wants_ex_parte_order or county_choice == "Wayne":
+  if wants_ex_parte_order:
     pet_proof_of_serv_domestic.enabled = False
     pet_proof_of_serv_domestic_minor.enabled = False
     pet_proof_of_serv_nondomestic.enabled = False

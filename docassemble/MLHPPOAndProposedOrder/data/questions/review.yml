@@ -998,7 +998,7 @@ review:
       **Do you want to request an ex parte order?**
 
       ${ word(yesno(wants_ex_parte_order)) }
-    show if: county_choice not in ["Ingham", "Jackson", "Wayne"]
+    show if: county_choice not in ["Ingham", "Jackson", "Wayne", "Saginaw"]
   - raw html: |
       ${ next_accordion('<h2 class="h5">Uploaded Documents</h2>') }
     show if: defined('exhibit_attachment.exhibits.has_exhibits')
