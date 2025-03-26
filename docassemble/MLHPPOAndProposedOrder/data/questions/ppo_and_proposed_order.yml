@@ -362,7 +362,7 @@ code: |
     MLH_outro_filing_information
     have_patience_download
     snapshot_download
-    personal_protection_order_download
+    MLH_download
   else: 
     have_patience_download
     snapshot_download
@@ -4551,6 +4551,7 @@ review:
     show if: exhibit_attachment.exhibits.has_exhibits
   - note: |
       ${ collapse_template(no_documents) }
+      ${ collapse_template(paper_documents) }
       ${ collapse_template(audiovisual_evidence) }
 ---
 template: wait_to_file_help
@@ -4715,10 +4716,14 @@ subquestion: |
 
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
 
+  <h2 class="h3">Download or e-mail your ${ MLH_form_type }</h2>
   ${ al_user_bundle.download_list_html() }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
+  <h2 class="h3">Take our quick survey!</h2>
+  Answer below or [open the survey in a new tab](${ survey_link_url_only }).
+  ${ survey_embed_script }
 ---
 id: email to court error screen
 event: ETC_error
@@ -4743,23 +4748,23 @@ code: |
   reconsider('snapshot_interview_state')
   snapshot_ETC = True
 ---
-# if no ETC
-id: download screen
-event: personal_protection_order_download
-progress: 100
-question: |
-  All done!
-subquestion: |
-  Thank you ${users}. Your form is ready to download and deliver.
-
-  View, download and send your form below. Tap the "✎ Review / Edit" button to fix any mistakes.
-
-  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
-
-  ${ al_user_bundle.download_list_html() }
-
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
----
+# if no ETC, trying out sending to MLH_download
+# id: download screen
+# event: personal_protection_order_download
+# progress: 100
+# question: |
+#   All done!
+# subquestion: |
+#   Thank you ${users}. Your form is ready to download and deliver.
+# 
+#   View, download and send your form below. Tap the "✎ Review / Edit" button to fix any mistakes.
+# 
+#   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
+# 
+#   ${ al_user_bundle.download_list_html() }
+# 
+#   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+# ---
 generic object: ALDocumentBundle
 template: x.send_email_template
 subject: |
