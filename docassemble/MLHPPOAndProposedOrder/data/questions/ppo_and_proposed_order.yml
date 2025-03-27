@@ -4662,7 +4662,7 @@ subquestion: |
 
   You **do not** need to refresh your screen. Hang in there!
 ---
-id: email confirmation ETCSent
+id: email confirmation ETCSent1
 continue button field: email_status_sent
 prevent going back: True
 question: |
@@ -4685,7 +4685,7 @@ under: |
 
   ${ sign_in_message }
 ---
-id: email not sent ETCFailed
+id: email not sent ETCFailed1
 continue button field: email_status_failed
 question: |
   Email Error
@@ -4700,7 +4700,7 @@ under: |
 
   ${ sign_in_message }
 ---
-id: email to court success screen
+id: email to court success screen ETCSent2
 progress: 100
 prevent going back: True
 event: ETC_success
@@ -4725,7 +4725,7 @@ subquestion: |
   Answer below or [open the survey in a new tab](${ survey_link_url_only }).
   ${ survey_embed_script }
 ---
-id: email to court error screen
+id: email to court error screen ETCFailed2
 event: ETC_error
 question: |
   E-mail error!
@@ -4734,14 +4734,14 @@ subquestion: |
 
   Tap **${ MLH_back_button_label }** to try again. You can also download your forms below. 
 
-  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
-
+  <h2 class="h3">Download or e-mail your ${ MLH_form_type }</h2>
   ${ al_user_bundle.download_list_html() }
-
-  &nbsp;
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
+  <h2 class="h3">Take our quick survey!</h2>
+  Answer below or [open the survey in a new tab](${ survey_link_url_only }).
+  ${ survey_embed_script }
 ---
 code: |
   stuff_to_snapshot['ETC_sent'] = showifdef('clerk_email_sent_ok')
