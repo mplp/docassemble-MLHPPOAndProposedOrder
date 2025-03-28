@@ -564,6 +564,7 @@ review:
           - reset_confidential_contact_details
           - ETC_county_status
           - reset_ex_parte
+          - identifying_information.enabled
     button: |
       **Court you will file in**:
       
