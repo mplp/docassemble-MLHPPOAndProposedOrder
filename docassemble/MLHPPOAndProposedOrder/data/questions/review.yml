@@ -556,17 +556,20 @@ review:
       % endif
       PPO. To change the petition type, use the **Undo** button or start over.
       % endif
-#  - Edit:
-#      - county_choice
-#      - recompute:
-#          - court_index
-#          - the_court
-#    button: |
-#      **Court you will file in**:
-#      
-#      ${ the_court }, ${ county_choice } County
-  - note: |
-       **Court you will file in**: ${ the_court }, ${ county_choice } County
+  - Edit:
+      - county_choice
+      - recompute:
+          - court_index
+          - the_court
+          - reset_confidential_contact_details
+          - ETC_county_status
+          - reset_ex_parte
+    button: |
+      **Court you will file in**:
+      
+      ${ the_court }, ${ county_choice } County
+  # - note: |
+  #      **Court you will file in**: ${ the_court }, ${ county_choice } County
   - raw html: |
       ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
     show if: defined('pending_actions.there_are_any')
