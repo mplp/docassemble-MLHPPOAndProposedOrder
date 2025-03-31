@@ -152,6 +152,8 @@ code: |
       if respondent_is_petitioners_child:
         respondent_petitioners_child_kickout
 
+  check_ages_correct
+
   set_relationship_choices
 
   ppo_type_info
@@ -1124,6 +1126,24 @@ code: |
   check_parties_living_together = True
 ---
 #################### Overridden AL Questions Start #####################
+id: check ages correct
+continue button field: check_ages_correct
+continue button label: The age/birthdate information is correct
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
+question: |
+  Double-check the age/birthdate information you entered
+subquestion: |
+  **Your birthdate:** ${ users[0].birthdate }
+  
+  % if knows_respondents_birthdate:
+    **Respondent's birthdate:** ${ other_parties[0].birthdate }[BR]
+  % else:
+    **Respondent's estimated age:** ${ other_parties[0].estimated_age }[BR]
+  % endif
+
+  The age/birthdate information you entered for yourself and the {respondent} cannot be edited later in the interview. Please make sure the information is correct before you continue. If the information is wrong, please tap **${ MLH_back_button_label }** and change them.
 ---
 id: your name
 sets:
