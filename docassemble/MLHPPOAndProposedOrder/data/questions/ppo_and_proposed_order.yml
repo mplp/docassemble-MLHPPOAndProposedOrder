@@ -871,8 +871,6 @@ code: |
     if not defined('wants_confidential_contact_details'):
       wants_confidential_contact_details
 
-  safe_contact_info_notice = True
-
   reset_confidential_contact_details = True
 ---
 code: |
