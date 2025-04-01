@@ -873,20 +873,6 @@ code: |
 
   reset_confidential_contact_details = True
 ---
-code: |
-  if county_choice != "Oakland":
-    undefine('user_alias.there_are_any') 
-    undefine('user_alias')
-    undefine('other_party_alias.there_are_any') 
-    undefine('other_party_alias')
-  else:
-    if user_alias.there_are_any:
-      user_alias.gather()
-    if other_party_alias.there_are_any:
-      other_party_alias.gather()
-
-  reset_aliases = True
----
 #################### Other Code Blocks End #####################
 ---
 # NOTE: for users and other_parties
@@ -4875,6 +4861,7 @@ code: |
 code: |
   if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
     wants_ex_parte_order = True
+    undefine('need_ex_parte')
     ex_parte_required_county = True
   else:
     if ex_parte_required_county == True:
