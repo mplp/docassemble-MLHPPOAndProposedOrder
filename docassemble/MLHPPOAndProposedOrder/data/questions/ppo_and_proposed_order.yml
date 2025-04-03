@@ -4859,16 +4859,17 @@ code: |
     identifying_information.enabled = False
 ---
 code: |
-  if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
-    wants_ex_parte_order = True
-    undefine('need_ex_parte')
-    ex_parte_required_county = True
-  else:
-    if ex_parte_required_county == True:
-      undefine('wants_ex_parte_order')
-      undefine('ex_parte_yes_screen')
-    ex_parte_required_county = False
-
+  if defined('ex_parte_required_county'):
+    if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
+      wants_ex_parte_order = True
+      undefine('need_ex_parte')
+      ex_parte_required_county = True
+    else:
+      if ex_parte_required_county == True:
+        undefine('wants_ex_parte_order')
+        undefine('ex_parte_yes_screen')
+      ex_parte_required_county = False
+  
   reset_ex_parte = True
 ---
 code: |
