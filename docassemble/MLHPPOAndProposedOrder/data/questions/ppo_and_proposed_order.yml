@@ -330,9 +330,11 @@ code: |
   wants_other_request
 
   if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
+    ex_parte_required_county = True
     need_ex_parte
     set_ex_parte
   else:
+    ex_parte_required_county = False
     if wants_ex_parte_order:
       ex_parte_yes_screen
 
@@ -863,6 +865,15 @@ code: |
       relationship_to_respondent_exp
   
   reset_relationship_description = True
+---
+code: |
+  if county_choice != "Oakland":
+    undefine('wants_confidential_contact_details')
+  else:
+    if not defined('wants_confidential_contact_details'):
+      wants_confidential_contact_details
+
+  reset_confidential_contact_details = True
 ---
 #################### Other Code Blocks End #####################
 ---
@@ -4867,6 +4878,20 @@ code: |
     identifying_information.enabled = True
   else:
     identifying_information.enabled = False
+---
+code: |
+  if defined('ex_parte_required_county'):
+    if county_choice == "Ingham" or county_choice == "Jackson" or county_choice == "Wayne" or county_choice == "Saginaw":
+      wants_ex_parte_order = True
+      undefine('need_ex_parte')
+      ex_parte_required_county = True
+    else:
+      if ex_parte_required_county == True:
+        undefine('wants_ex_parte_order')
+        undefine('ex_parte_yes_screen')
+      ex_parte_required_county = False
+  
+  reset_ex_parte = True
 ---
 code: |
   if ppo_type == "domestic":
