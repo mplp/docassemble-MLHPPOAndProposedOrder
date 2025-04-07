@@ -34,7 +34,7 @@ code: |
 ---
 id: interview config code block
 code: |
-  github_repo_name = "docassemble-MLHPPOAndProposedOrder"
+  github_repo_name = 'docassemble-MLHPPOAndProposedOrder' if get_config('debug') else 'docassemble-UserFeedback'
   MLH_court_forms = True
   MLH_time_min = 40
   MLH_time_max = 60
@@ -4670,9 +4670,9 @@ code: |
 template: clerk_email
 subject: |
   % if len(next_friends.complete_elements()) > 0:
-  MLH TEST PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] } MLH TEST
+  PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
   % else:
-  MLH TEST PPO Petition by ${ users[0] } MLH TEST
+  PPO Petition by ${ users[0] }
   % endif
 content: |
   % if len(next_friends.complete_elements()) > 0:
