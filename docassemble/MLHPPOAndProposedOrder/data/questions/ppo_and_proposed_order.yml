@@ -4777,6 +4777,7 @@ subquestion: |
 code: |
   stuff_to_snapshot['ETC_sent'] = showifdef('clerk_email_sent_ok')
   stuff_to_snapshot['ETC_county'] = showifdef('county_choice')
+  stuff_to_snapshot['ETC_time'] = str(current_datetime().format_datetime(format='yyyy-MM-dd h:mm a'))
   reconsider('snapshot_interview_state')
   snapshot_ETC = True
 ---
