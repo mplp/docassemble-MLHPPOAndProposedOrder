@@ -4776,6 +4776,7 @@ subquestion: |
 ---
 code: |
   stuff_to_snapshot['ETC_sent'] = showifdef('clerk_email_sent_ok')
+  stuff_to_snapshot['ETC_county'] = showifdef('county_choice')
   reconsider('snapshot_interview_state')
   snapshot_ETC = True
 ---
