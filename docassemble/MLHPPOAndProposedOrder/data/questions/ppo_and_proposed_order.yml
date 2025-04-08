@@ -5299,7 +5299,7 @@ attachments:
         % if not knows_respondents_birthdate:
         ${ other_parties[0].estimated_age } est.
         % else:
-        ${ other_parties[0].age_in_years() }
+        ${ other_parties[0].birthdate }
         % endif
     - other_parties1_hair_color: ${ other_parties[0].hair_color }
     - other_parties1_eye_color: ${ other_parties[0].eye_color }
