@@ -763,7 +763,7 @@ review:
 
       ${ word(yesno(other_properties.there_are_any)) }
   - Edit:
-      - other_properties.revisit
+      - other_properties[0].address
     button: |
       **Other property (not your residence):**
       % for item in other_properties:
