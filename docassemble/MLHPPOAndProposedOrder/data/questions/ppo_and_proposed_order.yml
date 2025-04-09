@@ -6229,7 +6229,7 @@ attachments:
         % endif
     - users1_phone: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
-        ''
+        ${ '' }
         % else:
         ${ users[0].phone_number }
         % endif
