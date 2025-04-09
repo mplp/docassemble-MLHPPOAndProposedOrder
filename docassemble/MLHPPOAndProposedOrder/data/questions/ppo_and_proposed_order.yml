@@ -6673,9 +6673,9 @@ attachments:
         % endif
     - users1_phone: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
-        Confidential
-        % else:
         ""
+        % else:
+        ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
