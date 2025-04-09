@@ -5529,7 +5529,7 @@ attachments:
         % endif
     - users1_phone: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
-        Confidential
+        ""
         % else:
         ${ users[0].phone_number }
         % endif
@@ -6086,7 +6086,11 @@ attachments:
         ${ users[0].address.line_two() }
         % endif
     - users1_phone_number: |
+        % if county_choice == "Oakland" and wants_confidential_contact_details:
+        ""
+        % else:
         ${ (users[0].phone_number) }
+        % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
@@ -6225,7 +6229,7 @@ attachments:
         % endif
     - users1_phone: |
         % if county_choice == "Oakland" and wants_confidential_contact_details:
-        Confidential
+        ''
         % else:
         ${ users[0].phone_number }
         % endif
@@ -6671,7 +6675,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         Confidential
         % else:
-        ${ users[0].phone_number }
+        ""
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
