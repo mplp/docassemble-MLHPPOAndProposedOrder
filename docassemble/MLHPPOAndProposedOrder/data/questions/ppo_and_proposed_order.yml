@@ -4660,11 +4660,13 @@ under: |
 
   ${ sign_in_message }
 ---
+only sets: clerk_email_sent_ok
 code: |
   recipient = get_config(f'{ county_choice } ETC address')
   clerk_email_sent_ok = al_court_bundle.send_email(to=recipient, cc=contact_email, template=clerk_email) 
   if clerk_email_sent_ok:
     prevent_going_back()
+    ETC_submitted_county = county_choice
 ---
 template: clerk_email
 subject: |
@@ -4699,18 +4701,18 @@ prevent going back: True
 question: |
   Your forms were e-mailed to the court!
 subquestion: |
-  Your forms **were e-mailed** to the ${ county_choice } County Circuit Court. 
-  % if county_choice == "Oakland":
-  If you do not get an email from the PPO Office within 1 business day, please call ${ ETC_court_phones[county_choice] }.
-  % elif county_choice in ETC_court_phones:
-  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
+  Your forms **were e-mailed** to the ${ ETC_submitted_county } County Circuit Court. 
+  % if ETC_submitted_county == "Oakland":
+  If you do not get an email from the PPO Office within 1 business day, please call ${ ETC_court_phones[ETC_submitted_county] }.
+  % elif ETC_submitted_county in ETC_court_phones:
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[ETC_submitted_county] }.
   % endif
 
   **Important:** Read the **Instructions** document for what to do next. 
 
-  To get a copy of your forms or instructions, tap **${MLH_continue_button_label}**. 
+  Changes made to answers in this program **will not** appear on the court's copy of your forms unless you resubmit them to the court.
 
-  Now that you emailed your forms to the clerk, changes made to answers in this program **will not** appear on the court's copy of your forms.
+  To get a copy of your forms or instructions, or if you need to resubmit your forms to the court, tap **${MLH_continue_button_label}**. 
 under: |
   It may **take a few minutes** to get to the next screen. You do not need to refresh.
 
@@ -4738,23 +4740,66 @@ event: ETC_success
 question: |
   Your forms were e-mailed to the court!
 subquestion: |
-  Your forms **were e-mailed** to the ${ county_choice } County Circuit Court. 
-  % if county_choice == "Oakland":
-  If you do not get an email from the PPO Office within 1 business day, please call ${ ETC_court_phones[county_choice] }.
-  % elif county_choice in ETC_court_phones:
-  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[county_choice] }.
+  Your forms **were e-mailed** to the ${ ETC_submitted_county } County Circuit Court. 
+  % if ETC_submitted_county == "Oakland":
+  If you do not get an email from the PPO Office within 1 business day, please call ${ ETC_court_phones[ETC_submitted_county] }.
+  % elif ETC_submitted_county in ETC_court_phones:
+  You can contact the court to confirm your forms were processed at: ${ ETC_court_phones[ETC_submitted_county] }.
   % endif
 
-  You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy.
+  You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy unless you resubmit your forms to the court.
 
   <h2 class="h3">Download or e-mail your ${ MLH_form_type }</h2>
   ${ al_user_bundle.download_list_html() }
 
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  ${ collapse_template(email_to_self_post_ETC_submission) }
+
+  ${ collapse_template(resubmit_option) } 
 
   <h2 class="h3">Take our quick survey!</h2>
   Answer below or [open the survey in a new tab](${ survey_link_url_only }).
   ${ survey_embed_script }
+---
+template: email_to_self_post_ETC_submission
+subject: |
+  Want to email these forms to yourself or someone you trust?
+content: |
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+  This is to send a copy to yourself or someone you trust. To resubmit to the court, tap **Need to resubmit your forms to the court?**.
+---
+template: resubmit_option
+subject: |
+  Need to resubmit your forms to the court?
+content: |
+  If the court told you to resubmit your forms, you can use the button below. If you need to make edits, tap "✎ Review / Edit" first to make your changes. 
+
+  You should only use the **Resubmit** button if the court told you to resubmit your forms.
+
+  ${ action_button_html(url_action('resubmit_ETC'),
+                        label='Resubmit forms now',
+                        size='md',
+                        color='warning') }
+---
+event: resubmit_ETC
+code: |
+  al_court_bundle.send_email(to=recipient, cc=contact_email, template=resubmit_clerk_email) 
+---
+template: resubmit_clerk_email
+subject: |
+  % if len(next_friends.complete_elements()) > 0:
+  Resubmitted PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
+  % else:
+  Resubmitted PPO Petition by ${ users[0] }
+  % endif
+content: |
+  % if len(next_friends.complete_elements()) > 0:
+  ${ next_friends[0] } (next friend for ${ users[0] }) is **resubmitting** a PPO petition via MLH-forms.
+  % else:
+  ${ users[0] } is **resubmitting** a PPO petition via MLH-Forms.
+  % endif
+
+  Petitioner contact information: ${ contact_email }
 ---
 id: email to court error screen ETCFailed2
 event: ETC_error
