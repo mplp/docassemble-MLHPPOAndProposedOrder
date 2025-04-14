@@ -4756,7 +4756,7 @@ subquestion: |
   <h2 class="h3">Download, e-mail, or resubmit your ${ MLH_form_type }</h2>
   ${ al_user_bundle.download_list_html() }
 
-  ${ collapse_template(email_to_self_post_ETC_submission) }
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
   ${ collapse_template(resubmit_option) } 
 
@@ -4764,21 +4764,13 @@ subquestion: |
   Answer below or [open the survey in a new tab](${ survey_link_url_only }).
   ${ survey_embed_script }
 ---
-template: email_to_self_post_ETC_submission
-subject: |
-  Want to email these forms to yourself or someone you trust?
-content: |
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
-
-  This is to send a copy to yourself or someone you trust. To resubmit to the court, tap **Need to resubmit your forms to the court?**.
----
 template: resubmit_option
 subject: |
   Need to **resubmit** your forms to the court?
 content: |
   You should only use the **Resubmit** button if ${ ETC_submitted_county } County court staff told you to resubmit your forms.
   
-  If you need to make edits, tap "✎ Review / Edit" first to make your changes. 
+  If you need to make edits, tap "✎ Review / Edit" **before** you resubmit. 
 
   ${ action_button_html(url_action('resubmit_ETC'),
                         label='Resubmit forms now',
