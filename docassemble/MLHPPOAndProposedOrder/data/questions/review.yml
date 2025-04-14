@@ -141,6 +141,7 @@ review:
       
       * They are your parent and you live, or used to live, together.
       % endif
+    show if: petitioner_respondent_relationship.any_true()
   - Edit: relationship_to_respondent_exp
     button: |-
       **Describe Your Relationship to the Respondent:**
