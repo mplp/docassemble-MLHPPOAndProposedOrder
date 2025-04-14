@@ -4668,6 +4668,10 @@ code: |
     prevent_going_back()
     ETC_submitted_county = county_choice
 ---
+# this is a transitional step because anyone who submitted forms prior to 1.0.5 will not have ETC_submitted_county defined
+code: |
+  ETC_submitted_county = county_choice
+---
 template: clerk_email
 subject: |
   % if len(next_friends.complete_elements()) > 0:
@@ -4749,7 +4753,7 @@ subquestion: |
 
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy unless you resubmit your forms to the court.
 
-  <h2 class="h3">Download or e-mail your ${ MLH_form_type }</h2>
+  <h2 class="h3">Download, e-mail, or resubmit your ${ MLH_form_type }</h2>
   ${ al_user_bundle.download_list_html() }
 
   ${ collapse_template(email_to_self_post_ETC_submission) }
@@ -4770,11 +4774,11 @@ content: |
 ---
 template: resubmit_option
 subject: |
-  Need to resubmit your forms to the court?
+  Need to **resubmit** your forms to the court?
 content: |
-  If the court told you to resubmit your forms, you can use the button below. If you need to make edits, tap "✎ Review / Edit" first to make your changes. 
-
-  You should only use the **Resubmit** button if the court told you to resubmit your forms.
+  You should only use the **Resubmit** button if ${ ETC_submitted_county } County court staff told you to resubmit your forms.
+  
+  If you need to make edits, tap "✎ Review / Edit" first to make your changes. 
 
   ${ action_button_html(url_action('resubmit_ETC'),
                         label='Resubmit forms now',
