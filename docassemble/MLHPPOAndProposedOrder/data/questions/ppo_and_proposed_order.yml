@@ -4490,22 +4490,6 @@ under: |
 
   ${ sign_in_message }
 ---
-id: ETC required, collect email
-continue button field: ETC_required_email_collect
-question: |
-  Contact E-mail
-subquestion: |
-  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
-  Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
-
-  When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail ${ next_friends[0] } at this address.
-  % else:
-  Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
-  % endif
-fields:
-  - Contact e-mail address: contact_email
-    datatype: email
----
 id: ETC review and download docs DownloadScreen
 continue button field: ETC_review_docs_screen
 progress: 99
@@ -4660,6 +4644,23 @@ under: |
 
   ${ sign_in_message }
 ---
+# must be below clerk_email_prep so that this screen gets used if contact_email is edited on review screen post-submission
+id: ETC required, collect email
+continue button field: ETC_required_email_collect
+question: |
+  Contact E-mail
+subquestion: |
+  % if is_incapacitated_adult or (petitioner_is_minor and (not petitioner_is_emancipated_minor)):
+  Enter an e-mail address that **${ next_friends[0] }** checks often and does not share with anyone else.
+
+  When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail ${ next_friends[0] } at this address.
+  % else:
+  Enter an e-mail address that you check often and do not share with anyone else. When you send your forms to the court, a copy will go to this e-mail address. Court staff may also e-mail you at this address.
+  % endif
+fields:
+  - Contact e-mail address: contact_email
+    datatype: email
+---
 only sets: clerk_email_sent_ok
 code: |
   recipient = get_config(f'{ county_choice } ETC address')
@@ -4768,18 +4769,26 @@ template: resubmit_option
 subject: |
   Need to **resubmit** your forms to the court?
 content: |
-  You should only use the **Resubmit** button if ${ ETC_submitted_county } County court staff told you to resubmit your forms.
+  You should only use the **Resubmit** button if ${ ETC_submitted_county } County court staff told you to resubmit your forms. 
   
   If you need to make edits, tap "✎ Review / Edit" **before** you resubmit. 
 
   ${ action_button_html(url_action('resubmit_ETC'),
-                        label='Resubmit forms now',
+                        label=':file-export: Resubmit forms now',
                         size='md',
                         color='warning') }
+  
+  You (${ contact_email }) and the court will both get an e-mail with the resubmitted forms. It may **take a few minutes** to get the e-mail.
 ---
 event: resubmit_ETC
 code: |
-  al_court_bundle.send_email(to=recipient, cc=contact_email, template=resubmit_clerk_email) 
+  resubmit_success = al_court_bundle.send_email(to=recipient, cc=contact_email, template=resubmit_clerk_email) 
+  if resubmit_success:
+    # Exact phrase below is in Docassemble's words dictionary
+    log(word('E-mail was sent to') + ' ' + recipient ,'success')
+  else:
+    # E-mail failed is not in the default Docassemble words dictionary
+    log(word('E-mail failed'), 'error')
 ---
 template: resubmit_clerk_email
 subject: |

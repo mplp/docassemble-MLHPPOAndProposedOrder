@@ -42,6 +42,12 @@ review:
         **Phone:** ${ word("None") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: 
+      - contact_email
+    button: |-
+      **Contact e-mail:**
+      
+      ${ contact_email }
+  - Edit: 
       - user_alias.there_are_any
       - recompute:
         - check_user_alias_list
