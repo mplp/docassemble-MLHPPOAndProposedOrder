@@ -4335,7 +4335,7 @@ subquestion: |
   % elif ppo_type == "nondomestic":
   This includes sending you messages through **any method**, including the Internet or any electronic medium. 
 
-  ${ other_parties[0].name } would be prohibited from using social media, such as Facebook or Twitter, or falsely using your name to send messages to other people in order to harass you.
+  ${ other_parties[0].name } would be prohibited from using social media, such as Facebook, X, or Instagram, or falsely using your name to send messages to other people in order to harass you.
   % endif
 fields:
   - Do you want protection from harassing messages?: wants_no_message_posting
