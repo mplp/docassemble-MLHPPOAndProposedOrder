@@ -42,6 +42,12 @@ review:
         **Phone:** ${ word("None") if item.no_phone_number else item.phone_numbers() }
       % endfor
   - Edit: 
+      - contact_email
+    button: |-
+      **Contact e-mail:**
+      
+      ${ contact_email }
+  - Edit: 
       - user_alias.there_are_any
       - recompute:
         - check_user_alias_list
@@ -141,6 +147,7 @@ review:
       
       * They are your parent and you live, or used to live, together.
       % endif
+    show if: petitioner_respondent_relationship.any_true()
   - Edit: relationship_to_respondent_exp
     button: |-
       **Describe Your Relationship to the Respondent:**
