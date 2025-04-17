@@ -3518,7 +3518,7 @@ fields:
     show if: 
       variable: respondent_sexual_assault_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
@@ -3573,7 +3573,7 @@ fields:
     show if: 
       variable: obscene_material_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
@@ -3583,7 +3583,7 @@ fields:
     show if: 
       variable: fears_future_sexual_assault
       is: False
-  - Please explain what happened: obscene_material_exp
+  - Please explain what happened.: obscene_material_exp
     input type: area
     show if:
       variable: obscene_material_provided
