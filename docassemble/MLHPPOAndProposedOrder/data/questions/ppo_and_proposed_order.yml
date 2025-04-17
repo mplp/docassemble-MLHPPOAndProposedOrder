@@ -4767,7 +4767,7 @@ subquestion: |
 ---
 template: resubmit_option
 subject: |
-  Need to **resubmit** your forms to the court?
+  Need to **resubmit** your forms to ${ ETC_submitted_county } County Circuit Court?
 content: |
   You should only use the **Resubmit** button if ${ ETC_submitted_county } County court staff told you to resubmit your forms. 
   
