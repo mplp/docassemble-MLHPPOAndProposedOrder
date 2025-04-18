@@ -4540,7 +4540,11 @@ question: |
   Have you attached all the documents you want the judge to see?
 review:
   - note: |
-      Review your answers below and add any documents you want the judge to see (starting with the oldest). When you're finished, tap **${MLH_continue_button_label}**.
+      Review your answers below and add any documents you want the judge to see (starting with the oldest). 
+
+      % if county_choice != "Oakland" and not wants_ex_parte_order:
+      You need to fill out and upload the *Notice of Hearing CC-381*. Review Step 1 of the Instructions to learn how to fill it out. (Tap **${ MLH_back_button_label }** if you need to download the *Notice of Hearing* or the Instructions.)
+      % endif
   - Edit:
       - exhibit_attachment.exhibits.has_exhibits
     button: |
