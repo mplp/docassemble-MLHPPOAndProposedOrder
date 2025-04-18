@@ -2486,7 +2486,7 @@ subquestion: |
   % elif respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and petitioner_lives_in_michigan and (not respondent_lives_in_michigan):
   Because the Respondent is a minor and does not live in Michigan, you must file your PPO case in the county **where you live**.
   % else:
-  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the {Respondent} lives, because there may be future hearings to attend.
+  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the {Respondent} lives, because you may have to go to the court in person for a hearing.
 
   If the Respondent doesn’t know what county you live in and you want to keep your location a secret, it’s probably best to file in a different county.
   % endif
