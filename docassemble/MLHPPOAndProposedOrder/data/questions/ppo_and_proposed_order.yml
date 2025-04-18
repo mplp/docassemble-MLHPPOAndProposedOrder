@@ -2056,7 +2056,7 @@ fields:
   - Do you have any documents you want to upload?: x.has_exhibits
     datatype: yesnoradio
   - note: |
-      **Okay**. You can upload multiple documents. You can also add more pages to this document.
+      **Okay**. You can upload multiple documents. Please upload documents in order starting with the oldest one first. You can also add more pages to this document.
 
       ${ collapse_template(preferred_file_types) }
     show if: x.has_exhibits
@@ -2486,7 +2486,7 @@ subquestion: |
   % elif respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and petitioner_lives_in_michigan and (not respondent_lives_in_michigan):
   Because the Respondent is a minor and does not live in Michigan, you must file your PPO case in the county **where you live**.
   % else:
-  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the {Respondent} lives, because there may be future hearings to attend.
+  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the {Respondent} lives, because you may have to go to the court in person for a hearing.
 
   If the Respondent doesn’t know what county you live in and you want to keep your location a secret, it’s probably best to file in a different county.
   % endif
@@ -3518,7 +3518,7 @@ fields:
     show if: 
       variable: respondent_sexual_assault_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
@@ -3573,7 +3573,7 @@ fields:
     show if: 
       variable: obscene_material_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
@@ -3583,7 +3583,7 @@ fields:
     show if: 
       variable: fears_future_sexual_assault
       is: False
-  - Please explain what happened: obscene_material_exp
+  - Please explain what happened.: obscene_material_exp
     input type: area
     show if:
       variable: obscene_material_provided
@@ -4335,7 +4335,7 @@ subquestion: |
   % elif ppo_type == "nondomestic":
   This includes sending you messages through **any method**, including the Internet or any electronic medium. 
 
-  ${ other_parties[0].name } would be prohibited from using social media, such as Facebook or Twitter, or falsely using your name to send messages to other people in order to harass you.
+  ${ other_parties[0].name } would be prohibited from using social media, such as Facebook, X, or Instagram, or falsely using your name to send messages to other people in order to harass you.
   % endif
 fields:
   - Do you want protection from harassing messages?: wants_no_message_posting
@@ -4540,7 +4540,11 @@ question: |
   Have you attached all the documents you want the judge to see?
 review:
   - note: |
-      Review your answers below and add any documents you want the court to see. When you're finished, tap **${MLH_continue_button_label}**.
+      Review your answers below and add any documents you want the judge to see (starting with the oldest). 
+
+      % if county_choice != "Oakland" and not wants_ex_parte_order:
+      You need to fill out and upload the *Notice of Hearing CC-381*. Review Step 1 of the Instructions to learn how to fill it out. (Tap **${ MLH_back_button_label }** if you need to download the *Notice of Hearing* or the Instructions.)
+      % endif
   - Edit:
       - exhibit_attachment.exhibits.has_exhibits
     button: |
@@ -4613,13 +4617,13 @@ subquestion: |
   % endif
   % endif
 fields:
-  - Contact e-mail address: contact_email
+  - Contact e-mail address:: contact_email
     default: |
       % if defined('contact_email'):
       ${ contact_email }
       % endif
     datatype: email
-  - Notes for the court clerk (optional): notes_to_clerk
+  - Notes for the court clerk (optional):: notes_to_clerk
     input type: area
     rows: 3
     maxlength: 200
@@ -4831,23 +4835,6 @@ code: |
   reconsider('snapshot_interview_state')
   snapshot_ETC = True
 ---
-# if no ETC, trying out sending to MLH_download
-# id: download screen
-# event: personal_protection_order_download
-# progress: 100
-# question: |
-#   All done!
-# subquestion: |
-#   Thank you ${users}. Your form is ready to download and deliver.
-# 
-#   View, download and send your form below. Tap the "✎ Review / Edit" button to fix any mistakes.
-# 
-#   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
-# 
-#   ${ al_user_bundle.download_list_html() }
-# 
-#   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
-# ---
 generic object: ALDocumentBundle
 template: x.send_email_template
 subject: |
@@ -6559,7 +6546,7 @@ attachments:
     - users1_name: ${ users[0].name_full() }
     - users1_address: ${ users[0].address.address }
     - users1_city_state_zip: |
-        ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
+        ${ users[0].address.city }, ${ users[0].address.state } ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
     - users1_email: ${ contact_email }
     - users1_signature: |
