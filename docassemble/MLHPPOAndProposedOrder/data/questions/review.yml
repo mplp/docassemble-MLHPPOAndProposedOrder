@@ -1075,11 +1075,26 @@ review:
       ${ end_accordion() }
     show if: is_incapacitated_adult or not is_incapacitated_adult
 ---
+if: len(exhibit_attachment.exhibits) > 1
 generic object: ALExhibitList
 table: exhibit_attachment.exhibits.add_delete_exhibits_table
 rows: exhibit_attachment.exhibits
 allow reordering: True
 delete buttons: True
+columns:
+  - ${ al_exhibit_title_label }: |
+      row_item.title
+  - ${ al_exhibit_preview_label }: |
+      row_item.pages.show(width="50%")
+  - ${ al_exhibit_total_pages_label }: |
+      row_item.pages.num_pages()
+---
+if: len(exhibit_attachment.exhibits) == 1
+generic object: ALExhibitList
+table: exhibit_attachment.exhibits.add_delete_exhibits_table
+rows: exhibit_attachment.exhibits
+allow reordering: True
+delete buttons: False
 columns:
   - ${ al_exhibit_title_label }: |
       row_item.title
@@ -1105,6 +1120,13 @@ subject: |
   View your uploaded documents
 content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
+---
+generic object: ALExhibitList
+template: exhibit_attachment.exhibits.etc_exhibit_review
+subject: |
+  View your uploaded documents
+content: |
+  ${ exhibit_attachment.exhibits.add_delete_exhibits_table }
 ---
 generic object: ALExhibitList
 template: exhibit_attachment.exhibits.add_delete_exhibits
