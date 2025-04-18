@@ -371,6 +371,7 @@ code: |
     snapshot_download
     ETC_review_docs_screen
     ETC_review_exhibits
+    reset_exhibit_TOC
     clerk_email_prep
     if ETC_county_status == "optional":
       ETC_esign
@@ -2226,6 +2227,11 @@ content: |
   It's OK to upload photos or screenshots from phones.
 
   Accepted file types: PDF, JPG, PNG, and word-processing files such as DOCX.
+---
+code: |
+  undefine('exhibit_attachment.table_of_contents')
+  
+  reset_exhibit_TOC = True
 ---
 id: petitioner or respondent living in michigan
 question: |
@@ -4559,7 +4565,7 @@ review:
       **Uploaded Documents**
 
       % if exhibit_attachment.exhibits.there_are_any:
-      ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
+      ${ collapse_template(exhibit_attachment.exhibits.add_delete_exhibits) }
       % else:
       You have not uploaded any documents yet.
       % endif
