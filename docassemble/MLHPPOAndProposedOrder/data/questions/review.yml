@@ -1122,13 +1122,6 @@ content: |
   ${ exhibit_attachment.exhibits.rearrange_exhibits_table }
 ---
 generic object: ALExhibitList
-template: exhibit_attachment.exhibits.etc_exhibit_review
-subject: |
-  View your uploaded documents
-content: |
-  ${ exhibit_attachment.exhibits.add_delete_exhibits_table }
----
-generic object: ALExhibitList
 template: exhibit_attachment.exhibits.add_delete_exhibits
 subject: |
   View your uploaded documents
