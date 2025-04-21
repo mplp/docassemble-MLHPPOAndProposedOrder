@@ -2492,7 +2492,7 @@ subquestion: |
   % elif respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child) and petitioner_lives_in_michigan and (not respondent_lives_in_michigan):
   Because the Respondent is a minor and does not live in Michigan, you must file your PPO case in the county **where you live**.
   % else:
-  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the {Respondent} lives, because there may be future hearings to attend.
+  You may file your PPO case in any county in Michigan. However, it will probably be most convenient for you to file either where you live or where the {Respondent} lives, because you may have to go to the court in person for a hearing.
 
   If the Respondent doesn’t know what county you live in and you want to keep your location a secret, it’s probably best to file in a different county.
   % endif
@@ -3524,7 +3524,7 @@ fields:
     show if: 
       variable: respondent_sexual_assault_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
@@ -3579,7 +3579,7 @@ fields:
     show if: 
       variable: obscene_material_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }: potential_sexual_assault_exp
+  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
@@ -3589,7 +3589,7 @@ fields:
     show if: 
       variable: fears_future_sexual_assault
       is: False
-  - Please explain what happened: obscene_material_exp
+  - Please explain what happened.: obscene_material_exp
     input type: area
     show if:
       variable: obscene_material_provided
@@ -4623,13 +4623,13 @@ subquestion: |
   % endif
   % endif
 fields:
-  - Contact e-mail address: contact_email
+  - Contact e-mail address:: contact_email
     default: |
       % if defined('contact_email'):
       ${ contact_email }
       % endif
     datatype: email
-  - Notes for the court clerk (optional): notes_to_clerk
+  - Notes for the court clerk (optional):: notes_to_clerk
     input type: area
     rows: 3
     maxlength: 200
@@ -6550,9 +6550,9 @@ attachments:
   pdf template file: ppo_contact_information_sheet.pdf
   fields:
     - users1_name: ${ users[0].name_full() }
-    - users1_address: ${ users[0].address.address }
+    - users1_address: ${ users[0].address.line_one() }
     - users1_city_state_zip: |
-        ${ users[0].address.city }, ${ users[0].address.state }, ${ users[0].address.zip }
+        ${ users[0].address.city }, ${ users[0].address.state } ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
     - users1_email: ${ contact_email }
     - users1_signature: |
