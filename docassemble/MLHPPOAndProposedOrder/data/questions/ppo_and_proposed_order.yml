@@ -6544,7 +6544,7 @@ attachments:
   pdf template file: ppo_contact_information_sheet.pdf
   fields:
     - users1_name: ${ users[0].name_full() }
-    - users1_address: ${ users[0].address.address }
+    - users1_address: ${ users[0].address.line_one() }
     - users1_city_state_zip: |
         ${ users[0].address.city }, ${ users[0].address.state } ${ users[0].address.zip }
     - users1_phone_number: ${ users[0].phone_number }
