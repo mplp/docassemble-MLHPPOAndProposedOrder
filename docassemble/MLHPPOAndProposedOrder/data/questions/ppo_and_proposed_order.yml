@@ -121,7 +121,8 @@ code: |
   petitioner_lives_in_michigan
 
   for user in users:
-    user.birthdate
+    user.age
+  enable_age_edit_screen
 
   check_if_petitioner_minor
   if petitioner_is_minor:
@@ -966,6 +967,12 @@ code: |
   
   enable_custody_review_screen = True
 ---
+only sets: enable_age_edit_screen
+code: |
+  edit_user_age = True
+
+  enable_age_edit_screen = True
+---
 code: |
   petitioner_other_children[i].name.first
   if petitioner_other_children[i].knows_other_child_birthdate:
@@ -1147,7 +1154,7 @@ terms:
 question: |
   Double-check the age/birthdate information you entered
 subquestion: |
-  **Your birthdate:** ${ users[0].birthdate }
+  **Your age:** ${ users[0].age}
   
   % if knows_respondents_birthdate:
     **Respondent's birthdate:** ${ other_parties[0].birthdate }[BR]
@@ -1846,10 +1853,10 @@ content: |
 ---
 id: user birthdate
 question: |
-  Date of birth
+  User age
 fields:
-  - Enter your date of birth: users[0].birthdate
-    datatype: BirthDate
+  - Enter your age: users[0].age
+    datatype: integer
     required: True
 ---
 id: emancipated minor

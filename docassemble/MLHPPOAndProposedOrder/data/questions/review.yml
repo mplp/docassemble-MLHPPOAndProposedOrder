@@ -27,6 +27,7 @@ review:
   - Edit: 
       - users[0].name.first
       - users[0].address.address
+      - edit_user_age
       - recompute:
         - check_parties_living_together
         - check_user_no_phone
@@ -35,7 +36,6 @@ review:
         **${ item }**
 
         **Age:** ${ users[0].age_in_years() }[BR]
-        (If you need to change your age, please use the **Undo** button or start over from the beginning.)
 
         **Address:** ${ item.address.on_one_line() }
 
@@ -1429,3 +1429,24 @@ edit:
   - name.first
 confirm: True
 ---
+id: user birthdate adult
+if: users[0].age_in_years() >= 18
+continue button field: edit_user_age
+question: |
+  Your age
+fields:
+  - Enter your age: users[0].age
+    datatype: integer
+    required: True
+    min: 18
+---
+id: user birthdate minor
+if: users[0].age_in_years() < 18
+continue button field: edit_user_age
+question: |
+  Your age
+fields:
+  - Enter your age: users[0].age
+    datatype: integer
+    required: True
+    max: 17
