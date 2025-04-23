@@ -7,6 +7,7 @@ A motion regarding change of domicile in Michigan
 * Rami Lorca
 
 ## Changelog:
+* 4/23/25  1.0.9 remove references to notarizing proof of service in instructions; other instructions updates
 * 4/21/25  1.0.8 exhibit upload improvements: fix deletion bug; for ETC counties, improve exhibit review and reset TOC
 * 4/21/25  1.0.7 add missing address unit to contact info sheet; update language on domestic SOF
 * 4/18/25  1.0.6 minor formatting and language/instruction updates
