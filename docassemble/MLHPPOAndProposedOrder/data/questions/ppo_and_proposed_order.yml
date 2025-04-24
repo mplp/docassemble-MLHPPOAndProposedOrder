@@ -122,7 +122,6 @@ code: |
 
   for user in users:
     user.age
-  enable_age_edit_screen
 
   check_if_petitioner_minor
   if petitioner_is_minor:
@@ -143,6 +142,7 @@ code: |
           minor_kickout
 
   knows_respondents_birthdate
+  enable_age_edit_screens
 
   check_if_respondent_minor
   if respondent_is_minor:
@@ -433,26 +433,14 @@ code: |
   check_petitioner_under_fourteen = True
 ---
 code: |
-  if knows_respondents_birthdate:
-    if other_parties[0].age_in_years() < 18:
-      respondent_is_minor = True
-    else:
-      respondent_is_minor = False
-    if other_parties[0].age_in_years() < 10:
-      respondent_under_ten = True
-    else: 
-      respondent_under_ten = False
-  elif (not knows_respondents_birthdate):
-    if other_parties[0].estimated_age < 18:
-      respondent_is_minor = True
-    else:
-      respondent_is_minor = False
-    if other_parties[0].estimated_age < 10:
-      respondent_under_ten = True
-    else: 
-      respondent_under_ten = False
+  if other_parties[0].age_in_years() < 18:
+    respondent_is_minor = True
   else:
     respondent_is_minor = False
+  if other_parties[0].age_in_years() < 10:
+    respondent_under_ten = True
+  else: 
+    respondent_under_ten = False
 
   check_if_respondent_minor = True
 ---
@@ -972,11 +960,12 @@ code: |
   
   enable_custody_review_screen = True
 ---
-only sets: enable_age_edit_screen
+only sets: enable_age_edit_screens
 code: |
   edit_user_age = True
+  edit_respondent_age = True
 
-  enable_age_edit_screen = True
+  enable_age_edit_screens = True
 ---
 code: |
   petitioner_other_children[i].name.first
@@ -1164,7 +1153,7 @@ subquestion: |
   % if knows_respondents_birthdate:
     **Respondent's birthdate:** ${ other_parties[0].birthdate }[BR]
   % else:
-    **Respondent's estimated age:** ${ other_parties[0].estimated_age }[BR]
+    **Respondent's estimated age:** ${ other_parties[0].age }[BR]
   % endif
 
   The age/birthdate information you entered for yourself and the {respondent} cannot be edited later in the interview. Please make sure the information is correct before you continue. If the information is wrong, please tap **${ MLH_back_button_label }** and change them.
@@ -2284,7 +2273,7 @@ fields:
       variable: knows_respondents_birthdate
       is: True
     label above field: True
-  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].estimated_age
+  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].age
     datatype: integer
     show if:
       variable: knows_respondents_birthdate
@@ -5352,7 +5341,7 @@ attachments:
     - other_parties1_gender: ${ other_parties[0].gender }
     - other_parties1_birthdate: |
         % if not knows_respondents_birthdate:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % else:
         ${ other_parties[0].birthdate }
         % endif
@@ -5430,7 +5419,7 @@ attachments:
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % else:
         ${ other_parties[0].age_in_years() }
         % endif
@@ -5621,7 +5610,7 @@ attachments:
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % else:
         ${ other_parties[0].age_in_years() }
         % endif
@@ -5887,7 +5876,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -5950,7 +5939,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6024,7 +6013,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6086,7 +6075,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6179,7 +6168,7 @@ attachments:
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % else:
         ${ other_parties[0].age_in_years() }
         % endif
@@ -6321,7 +6310,7 @@ attachments:
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % else:
         ${ other_parties[0].age_in_years() }
         % endif
@@ -6441,7 +6430,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6501,7 +6490,7 @@ attachments:
         % if knows_respondents_birthdate: 
         ${ other_parties[0].birthdate }
         % else:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6655,7 +6644,7 @@ attachments:
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % else:
         ${ other_parties[0].age_in_years() }
         % endif
@@ -6765,7 +6754,7 @@ attachments:
         % endif
     - other_parties1_age: |
         % if not knows_respondents_birthdate:
-        ${ other_parties[0].estimated_age } est.
+        ${ other_parties[0].age } est.
         % else:
         ${ other_parties[0].age_in_years() }
         % endif
