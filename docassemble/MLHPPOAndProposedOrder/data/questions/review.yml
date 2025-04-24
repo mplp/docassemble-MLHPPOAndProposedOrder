@@ -31,6 +31,7 @@ review:
       - recompute:
         - check_parties_living_together
         - check_user_no_phone
+        - check_petitioner_under_fourteen
     button: |-
       % for item in users:
         **${ item }**
@@ -1429,7 +1430,7 @@ edit:
   - name.first
 confirm: True
 ---
-id: user birthdate adult
+id: user age adult
 if: users[0].age_in_years() >= 18
 continue button field: edit_user_age
 question: |
@@ -1439,8 +1440,15 @@ fields:
     datatype: integer
     required: True
     min: 18
+    validation messages:
+      min: |
+        ${ adult_age_edit_validation }
 ---
-id: user birthdate minor
+template: adult_age_edit_validation
+content: |
+  Earlier, you said you were OVER 18. If you are a minor, please use the Undo button or start over.  
+---
+id: user age minor
 if: users[0].age_in_years() < 18
 continue button field: edit_user_age
 question: |
@@ -1450,3 +1458,42 @@ fields:
     datatype: integer
     required: True
     max: 17
+    validation messages:
+      max: |
+        ${ minor_age_edit_validation }
+  - note: |
+      ${ collapse_template(turned_18) }
+---
+template: minor_age_edit_validation
+content: |
+  Earlier, you said you were UNDER 18. If you are an adult, please use the Undo button or start over.  
+---
+template: turned_18
+subject: |
+  What if I turned 18?
+content: |
+  If you turned 18, you need to use the **${ MLH_back_button_label }** or start over. We're very sorry for the inconvenience. This is because there are different requirements for minor and adult petitioners.
+---
+id: user age emancipated minor
+if: petitioner_is_emancipated_minor
+continue button field: edit_user_age
+question: |
+  Your age
+fields:
+  - Enter your age: users[0].age
+    datatype: integer
+    required: True
+    min: 16
+    max: 17
+    validation messages:
+      max: |
+        ${ minor_age_edit_validation }
+      min: |
+        ${ emancipated_minor_age_edit_validation }
+  - note: |
+      ${ collapse_template(turned_18) }
+---
+template: emancipated_minor_age_edit_validation
+content: |
+  Earlier, you said you were an emancipated minor. Emancipated minors must be at least 16. If you are under 16, please use the Undo button or start over.  
+---
