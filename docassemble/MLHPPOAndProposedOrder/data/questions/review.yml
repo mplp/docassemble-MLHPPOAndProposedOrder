@@ -1481,7 +1481,7 @@ content: |
   If the respondent turned 18, you need to use the **${ MLH_back_button_label }** button or start over. This is because there are different forms and requirements for minor and adult respondents. We're very sorry for the inconvenience. 
 ---
 id: user age emancipated minor
-if: petitioner_is_emancipated_minor
+if: users[0].age_in_years() < 18 and petitioner_is_emancipated_minor
 continue button field: edit_user_age
 question: |
   Your age
