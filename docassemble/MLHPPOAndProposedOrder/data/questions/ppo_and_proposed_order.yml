@@ -122,7 +122,9 @@ code: |
 
   for user in users:
     user.age
-
+  if users[0].age == 17:
+    user_17_warning
+  
   check_if_petitioner_minor
   if petitioner_is_minor:
     if is_incapacitated_adult:
@@ -142,6 +144,8 @@ code: |
           minor_kickout
 
   knows_respondents_birthdate
+  if other_parties[0].age_in_years() == 17:
+    respondent_17_warning
   enable_age_edit_screens
 
   check_if_respondent_minor
@@ -151,8 +155,6 @@ code: |
     if (not respondent_is_emancipated_minor):
       if respondent_is_petitioners_child:
         respondent_petitioners_child_kickout
-
-  check_ages_correct
 
   set_relationship_choices
 
@@ -437,6 +439,7 @@ code: |
     respondent_is_minor = True
   else:
     respondent_is_minor = False
+    respondent_is_emancipated_minor = False
   if other_parties[0].age_in_years() < 10:
     respondent_under_ten = True
   else: 
@@ -1139,24 +1142,39 @@ code: |
   check_parties_living_together = True
 ---
 #################### Overridden AL Questions Start #####################
-id: check ages correct
-continue button field: check_ages_correct
-continue button label: The age/birthdate information is correct
+id: user 17 age warning
+if: users[0].age == 17
+continue button field: user_17_warning
+continue button label: I understand and want to continue
+question: |
+  Will you file before you turn 18?
+subquestion: |
+  There are different requirements for minors (people under 18) and adults who need a personal protection order (PPO).
+
+  You said you are 17. This means you will need to file your forms **before you turn 18.** After you turn 18, you will need to start over from the beginning to get updated forms.
+
+  If you plan to wait until you turn 18 to file, use the **${ MLH_back_button_label }** button and list your age as 18 instead.
+---
+id: respondent 17 age warning
+if: other_parties[0].age_in_years() == 17
 terms:
   Respondent: |
     The Respondent is the person you want to be protected from.
+  Respondents: |
+    The Respondent is the person you want to be protected from.
+continue button field: respondent_17_warning
+continue button label: I understand and want to continue
 question: |
-  Double-check the age/birthdate information you entered
+  Will you file before the respondent turns 18?
 subquestion: |
-  **Your age:** ${ users[0].age}
-  
-  % if knows_respondents_birthdate:
-    **Respondent's birthdate:** ${ other_parties[0].birthdate }[BR]
-  % else:
-    **Respondent's estimated age:** ${ other_parties[0].age }[BR]
-  % endif
+  There are different forms and requirements for minor and adult {respondents}.
 
-  The age/birthdate information you entered for yourself and the {respondent} cannot be edited later in the interview. Please make sure the information is correct before you continue. If the information is wrong, please tap **${ MLH_back_button_label }** and change them.
+  % if knows_respondents_birthdate:
+  According to the birthdate you entered, the {respondent} is 17. 
+  % else: 
+  You said the {respondent} is 17. 
+  % endif
+  If you complete your forms now, you must file them **before the respondent turn 18.** After they turn 18, you will need to start over from the beginning to get updated forms. 
 ---
 id: your name
 sets:

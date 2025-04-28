@@ -103,6 +103,7 @@ review:
       - recompute:
         - check_parties_living_together
         - check_respondent_address_missing
+        - avoid_conflicting_respondent_age
       - follow up:
         - respondent_contact_info_kickout
     button: |-
@@ -1587,7 +1588,7 @@ content: |
   Earlier, you said the respondent was UNDER 18. If the respondent is an adult, please use the ${ MLH_back_button_label } button or start over.
 ---
 id: edit respondent birthdate emancipated minor
-if: respondent_is_emancipated_minor
+if: other_parties[0].age_in_years() < 18 and respondent_is_emancipated_minor
 continue button field: edit_respondent_age
 question: |
   Respondent's date of birth
@@ -1629,3 +1630,9 @@ fields:
 template: emancipated_OP_min_age_validation
 content: |
   Earlier, you said the respondent was an emancipated minor. Emancipated minors must be at least 16. If the respondent is under 16, please use the Undo button or start over.  
+---
+code: |
+  if knows_respondents_birthdate:
+    undefine('other_parties[0].age')
+
+  avoid_conflicting_respondent_age = True
