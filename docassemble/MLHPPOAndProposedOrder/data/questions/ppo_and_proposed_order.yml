@@ -130,7 +130,7 @@ code: |
     if is_incapacitated_adult:
       inconsistent_age_kickout
     else:
-      if petitioner_at_least_sixteen:
+      if users[0].age_in_years() >= 16:
         petitioner_is_emancipated_minor
 
       if not petitioner_is_emancipated_minor:
@@ -419,10 +419,7 @@ code: |
   else:
     petitioner_is_minor = False
   check_petitioner_under_fourteen
-  if users[0].age_in_years() >= 16:
-    petitioner_at_least_sixteen = True
-  else:
-    petitioner_at_least_sixteen = False
+  if users[0].age_in_years() < 16:
     petitioner_is_emancipated_minor = False
   check_if_petitioner_minor = True
 ---
@@ -1877,26 +1874,26 @@ question: |
 subquestion: |
   ${ collapse_template(emancipated_minor_explained) }
 fields:
-  - Are you an emancipated minor?: petitioner_is_emancipated_minor
-    datatype: yesnoradio
+  - Are you an **emancipated** minor?: petitioner_is_emancipated_minor
+    datatype: radio
+    choices:
+      - Yes, I am legally emancipated.: True
+      - No: False
+  - note: |
+      **Are you sure?** Emancipation is unusual. Only choose yes if you have been legally emancipated.
+    show if:
+      variable: petitioner_is_emancipated_minor
+      is: True
 ---
 template: emancipated_minor_explained
 subject: |
   What does "emancipated" mean?
 content: |
-  An emancipated minor is a person under 18 years old whose parents no longer have legal authority over them. 
+  An emancipated minor is a person under 18 years old who has become **legally independent** from their parents. **This is unusual.**
 
-  Emancipation gives the minor some of the rights and responsibilities of an adult. Emancipation does not make a minor into an adult and does not give the minor adult status for all things. Sometimes a minor is automatically emancipated, and other times a minor is emancipated by a judge. For more information read [What is Emancipation?](https://michiganlegalhelp.org/resources/family/what-emancipation)
+  Emancipation gives the minor some of the rights and responsibilities of an adult. Sometimes a minor is automatically emancipated, and other times a minor is emancipated by a judge. To learn more, read [What Is Emancipation?](https://michiganlegalhelp.org/resources/family/what-emancipation)
 
   If you are under 18 years old, you cannot file this petition by yourself unless you are emancipated. You need help from someone called a next friend. A next friend is usually a parent or other adult whom you trust. Your next friend must file the *Petition for Personal Protection Order* for you.
----
-template: emancipated_respondent_minor_explained
-subject: |
-  What does "emancipated" mean?
-content: |
-  An emancipated minor is a person under 18 years old whose parents no longer have legal authority over them. 
-
-  Emancipation gives the minor some of the rights and responsibilities of an adult. Emancipation does not make a minor into an adult and does not give the minor adult status for all things. Sometimes a minor is automatically emancipated, and other times a minor is emancipated by a judge. For more information read [What is Emancipation?](https://michiganlegalhelp.org/resources/family/what-emancipation)
 ---
 id: next friend
 question: |
@@ -2344,12 +2341,20 @@ fields:
 ---
 id: respondent emancipated minor
 question: |
-  Respondent's status as minor
+  Respondent's status as a minor
 subquestion: |
   ${ collapse_template(emancipated_respondent_minor_explained) }
 fields:
-  - Is the {Respondent} an emancipated minor?: respondent_is_emancipated_minor
-    datatype: yesnoradio
+  - Is the {Respondent} an **emancipated** minor?: respondent_is_emancipated_minor
+    datatype: radio
+    choices:
+      - Yes, the respondent is legally emancipated.: True
+      - No, or I don't know.: False
+  - note: |
+      **Are you sure?** Emancipation is unusual. Only choose yes if you're sure the respondent has been legally emancipated.
+    show if:
+      variable: respondent_is_emancipated_minor
+      is: True
   - Is the {Respondent} your child?: respondent_is_petitioners_child
     datatype: yesnoradio
     show if:
@@ -2358,6 +2363,14 @@ fields:
 terms:
   Respondent: |
     The Respondent is the person you want to be protected from.
+---
+template: emancipated_respondent_minor_explained
+subject: |
+  What does "emancipated" mean?
+content: |
+  An emancipated minor is a person under 18 years old who has become **legally independent** from their parents. **This is unusual.**
+
+  Emancipation gives the minor some of the rights and responsibilities of an adult. Sometimes a minor is automatically emancipated, and other times a minor is emancipated by a judge. To learn more, read [What Is Emancipation?](https://michiganlegalhelp.org/resources/family/what-emancipation)
 ---
 id: need respondent parents
 question: |
