@@ -28,15 +28,16 @@ review:
   - Edit: 
       - users[0].name.first
       - users[0].address.address
+      - edit_user_age
       - recompute:
         - check_parties_living_together
         - check_user_no_phone
+        - check_petitioner_under_fourteen
     button: |-
       % for item in users:
         **${ item }**
 
         **Age:** ${ users[0].age_in_years() }[BR]
-        (If you need to change your age, please use the **Undo** button or start over from the beginning.)
 
         **Address:** ${ item.address.on_one_line() }
 
@@ -102,19 +103,19 @@ review:
       - other_parties[0].name.first
       - other_parties[0].address.address
       - other_parties[0].no_phone_number
+      - edit_respondent_age
       - recompute:
         - check_parties_living_together
         - check_respondent_address_missing
+        - avoid_conflicting_respondent_age
       - follow up:
         - respondent_contact_info_kickout
     button: |-
       **${ other_parties[0] }**, 
       % if knows_respondents_birthdate:
-      **Age:** ${ other_parties[0].age_in_years() }[BR]
-      (If you need to change ${ other_parties[0].name }'s age, please use the **Undo** button or start over from the beginning.)
+      **Birthdate:** ${ other_parties[0].birthdate }[BR]
       % else:
-      **Est. Age:** ${ other_parties[0].estimated_age }[BR]
-      (If you need to change ${ other_parties[0].name }'s age, please use the **Undo** button or start over from the beginning.)
+      **Est. Age:** ${ other_parties[0].age }[BR]
       % endif
       
       **Address:** ${ other_parties[0].address.on_one_line() }
@@ -1433,3 +1434,209 @@ edit:
   - name.first
 confirm: True
 ---
+id: user age adult
+if: users[0].age_in_years() >= 18
+continue button field: edit_user_age
+question: |
+  Your age
+fields:
+  - Enter your age: users[0].age
+    datatype: integer
+    required: True
+    min: 18
+    validation messages:
+      min: |
+        ${ adult_user_age_validation }
+---
+template: adult_user_age_validation
+content: |
+  Earlier, you said you were 18 or older. If you are a minor, please use the Undo button or start over.  
+---
+id: user age minor
+if: users[0].age_in_years() < 18 and not petitioner_is_emancipated_minor
+continue button field: edit_user_age
+question: |
+  Your age
+fields:
+  - Enter your age: users[0].age
+    datatype: integer
+    required: True
+    max: 17
+    validation messages:
+      max: |
+        ${ minor_user_age_validation }
+  - note: |
+      ${ collapse_template(user_turned_18) }
+---
+template: minor_user_age_validation
+content: |
+  Earlier, you said you were UNDER 18. If you are an adult, please use the Undo button or start over.  
+---
+template: user_turned_18
+subject: |
+  What if I turned 18?
+content: |
+  If you turned 18, you need to use the **${ MLH_back_button_label }** button or start over. This is because there are different requirements for minor and adult petitioners. We're very sorry for the inconvenience. 
+---
+template: respondent_turned_18
+subject: |
+  What if they turned 18?
+content: |
+  If the respondent turned 18, you need to use the **${ MLH_back_button_label }** button or start over. This is because there are different forms and requirements for minor and adult respondents. We're very sorry for the inconvenience. 
+---
+id: user age emancipated minor
+if: users[0].age_in_years() < 18 and petitioner_is_emancipated_minor
+continue button field: edit_user_age
+question: |
+  Your age
+fields:
+  - Enter your age: users[0].age
+    datatype: integer
+    required: True
+    min: 16
+    max: 17
+    validation messages:
+      max: |
+        ${ minor_user_age_validation }
+      min: |
+        ${ emancipated_minor_user_age_validation }
+  - note: |
+      ${ collapse_template(user_turned_18) }
+---
+template: emancipated_minor_user_age_validation
+content: |
+  Earlier, you said you were an emancipated minor. Emancipated minors must be at least 16. If you are under 16, please use the Undo button or start over.  
+---
+id: edit respondent birthdate adult
+if: other_parties[0].age_in_years() >= 18
+continue button field: edit_respondent_age
+question: |
+  Respondent's date of birth
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
+fields:
+  - Do you know the {Respondent}'s exact date of birth?: knows_respondents_birthdate
+    datatype: yesnoradio
+    label above field: True
+  - Enter the Respondent's date of birth: other_parties[0].birthdate
+    datatype: BirthDate
+    show if:
+      variable: knows_respondents_birthdate
+      is: True
+    label above field: True
+    alMax: ${ format_date( today() - date_interval(years=18), format='MM/dd/yyyy') }
+    alMaxMessage: |
+      ${ adult_OP_age_validation }
+  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].age
+    datatype: integer
+    show if:
+      variable: knows_respondents_birthdate
+      is: False
+    label above field: True
+    min: 18
+    validation messages:
+      min: |
+        ${ adult_OP_age_validation }
+---
+template: adult_OP_age_validation
+content: |
+  Earlier, you said the respondent was at least 18. If the respondent is a minor, please use the ${ MLH_back_button_label } button or start over.
+---
+id: edit respondent birthdate minor
+if: other_parties[0].age_in_years() < 18 and not respondent_is_emancipated_minor
+continue button field: edit_respondent_age
+question: |
+  Respondent's date of birth
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
+fields:
+  - Do you know the {Respondent}'s exact date of birth?: knows_respondents_birthdate
+    datatype: yesnoradio
+    label above field: True
+  - Enter the Respondent's date of birth: other_parties[0].birthdate
+    datatype: BirthDate
+    show if:
+      variable: knows_respondents_birthdate
+      is: True
+    label above field: True
+    alMax: ${ format_date( today() - date_interval(years=10), format='MM/dd/yyyy') }
+    alMaxMessage: |
+      ${ minor_OP_min_age_validation }
+    alMin: ${ format_date( today() - date_interval(years=18) + date_interval(days=1), format='MM/dd/yyyy') }
+    alMinMessage: |
+      ${ minor_OP_max_age_validation }
+  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].age
+    datatype: integer
+    show if:
+      variable: knows_respondents_birthdate
+      is: False
+    label above field: True
+    min: 10
+    max: 17
+    validation messages:
+      min: |
+        ${ minor_OP_min_age_validation }
+      max: |
+        ${ minor_OP_max_age_validation }
+  - note: |
+      ${ collapse_template(respondent_turned_18) }
+---
+template: minor_OP_min_age_validation
+content: |
+  You cannot get a PPO against someone younger than 10 years old.
+---
+template: minor_OP_max_age_validation
+content: |
+  Earlier, you said the respondent was UNDER 18. If the respondent is an adult, please use the ${ MLH_back_button_label } button or start over.
+---
+id: edit respondent birthdate emancipated minor
+if: other_parties[0].age_in_years() < 18 and respondent_is_emancipated_minor
+continue button field: edit_respondent_age
+question: |
+  Respondent's date of birth
+terms:
+  Respondent: |
+    The Respondent is the person you want to be protected from.
+fields:
+  - Do you know the {Respondent}'s exact date of birth?: knows_respondents_birthdate
+    datatype: yesnoradio
+    label above field: True
+  - Enter the Respondent's date of birth: other_parties[0].birthdate
+    datatype: BirthDate
+    show if:
+      variable: knows_respondents_birthdate
+      is: True
+    label above field: True
+    alMax: ${ format_date( today() - date_interval(years=16), format='MM/dd/yyyy') }
+    alMaxMessage: |
+      ${ emancipated_OP_min_age_validation }
+    alMin: ${ format_date( today() - date_interval(years=18) + date_interval(days=1), format='MM/dd/yyyy') }
+    alMinMessage: |
+      ${ minor_OP_max_age_validation }
+  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].age
+    datatype: integer
+    show if:
+      variable: knows_respondents_birthdate
+      is: False
+    label above field: True
+    min: 16
+    max: 17
+    validation messages:
+      min: |
+        ${ emancipated_OP_min_age_validation }
+      max: |
+        ${ minor_OP_max_age_validation }
+  - note: |
+      ${ collapse_template(respondent_turned_18) }
+---
+template: emancipated_OP_min_age_validation
+content: |
+  Earlier, you said the respondent was an emancipated minor. Emancipated minors must be at least 16. If the respondent is under 16, please use the Undo button or start over.  
+---
+code: |
+  if knows_respondents_birthdate:
+    undefine('other_parties[0].age')
+
+  avoid_conflicting_respondent_age = True
