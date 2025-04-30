@@ -19,6 +19,13 @@ metadata:
 features:
   labels above fields: True
 ---
+terms:
+  - phrases:
+      - respondent
+      - respondents
+    definition: |
+      The Respondent is the person you want to be protected from.
+---
 sections:
   - signpost_intro: "Introduction"
   - review_petitioner_info: "Petitioner Information"
@@ -831,15 +838,15 @@ code: |
 ---
 code: |
   relationship_choices = list() 
-  relationship_choices.append({'live_together':'We **live together** or used to live together'})
+  relationship_choices.append({'live_together':'We live together **or used to** live together', 'help': "This includes roommates, relatives, and any situation where you **ever** lived in the same home together."})
   if parent_choice: 
-    relationship_choices.append({'parent':'They are **my parent** and we live together (or used to live together)'})
-  relationship_choices.append({'dating':'We **dated** or are dating'}) 
-  relationship_choices.append({'have_child':'We have a **child** together'})
+    relationship_choices.append({'parent':'They are my parent and we live together (**or used to** live together)', 'help': "Check this box if the respondent is your parent and you **ever** lived together, even if it was long ago."})
+  relationship_choices.append({'dating':'We dated or are dating'}) 
+  relationship_choices.append({'have_child':'We have a child together'})
   if married_choice:
-    relationship_choices.append({'married':'I am **married** to them'})
+    relationship_choices.append({'married':'I am married to them'})
   if was_married_choice:
-    relationship_choices.append({'was_married':'I was **once married** to them'})
+    relationship_choices.append({'was_married':'I was once married to them'})
 ---
 code: |
   if other_parties_parents[i].shares_respondent_address:
@@ -1142,9 +1149,6 @@ code: |
 id: check ages correct
 continue button field: check_ages_correct
 continue button label: The age/birthdate information is correct
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 question: |
   Double-check the age/birthdate information you entered
 subquestion: |
@@ -2260,9 +2264,6 @@ content: |
 id: respondent birthdate
 question: |
   Respondent's date of birth
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 fields:
   - Do you know the {Respondent}'s exact date of birth?: knows_respondents_birthdate
     datatype: yesnoradio
@@ -2337,9 +2338,6 @@ fields:
     show if:
       variable: respondent_is_emancipated_minor
       is: False
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 ---
 id: need respondent parents
 question: |
@@ -2375,9 +2373,6 @@ content: |
   3. A Personal Protection Order - **Nondomestic** is for someone who does **not** have a domestic relationship with the Respondent.
 
       A nondomestic personal protection order is used to protect someone from stalking or harassing behavior.
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 ---
 id: sexual assault facts
 question: |
@@ -2390,14 +2385,8 @@ fields:
     show if:
       variable: sexual_assault_facts
       is: True
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 ---
 id: two or more noncontinuous incidents
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 question: |
   Stalking or harassment
 subquestion: |
@@ -2436,9 +2425,6 @@ subquestion: |
   Read the article [Overview of Personal Protection Orders ](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn about different kinds of PPOs.
 
   Tap the **${ MLH_back_button_label }** button to go back and change your answers if one of the PPO types applies to you. Otherwise, return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal resources.
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 ---
 reconsider: relationship_choices
 id: relationship to respondent
@@ -2463,16 +2449,10 @@ subject: |
   What if none of these options apply?
 content: |
   First, carefully read all the options. If none of the options apply, select "None of the above." Then tap **Continue** to see if you can request a different type of PPO.
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 ---
 id: domestic petition double check
 continue button field: domestic_petition_double_check
 continue button label: None of these apply to me.
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 question: |
   Just double-checking
 subquestion: |
@@ -2496,9 +2476,6 @@ content: |
   We use these questions to select the right PPO forms for you. If you **ever** lived with the {respondent} or had any of these relationships with them, Michigan law says you have to ask for a **domestic** personal protection order (PPO). 
   
   Sometimes people miss a checkbox that applies to them and have to start their forms all over again. That's why we double-check to make sure you get the right PPO forms the first time.    
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 ---
 id: ppo court county_choice
 question: |
@@ -2523,9 +2500,6 @@ subquestion: |
 fields:
   - Select the county you will file your PPO case in: county_choice
     code: court_list._load_courts()["address_county"].unique()
-terms:
-  Respondent: |
-    The Respondent is the person you want to be protected from.
 ---
 code: |
   if defined('county_choice') and (respondent_is_minor and (not respondent_is_emancipated_minor) and (not respondent_is_petitioners_child)) and (not petitioner_lives_in_michigan or not respondent_lives_in_michigan):
