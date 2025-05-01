@@ -153,7 +153,6 @@ code: |
   knows_respondents_birthdate
   if other_parties[0].age_in_years() == 17:
     respondent_17_warning
-  enable_age_edit_screens
 
   check_if_respondent_minor
   if respondent_is_minor:
@@ -168,6 +167,8 @@ code: |
   ppo_type_info
   petitioner_respondent_relationship
   set_petitioner_respondent_relationship
+  enable_special_edit_screens
+  
   if parent_choice and petitioner_respondent_relationship['parent'] and petitioner_is_minor and not petitioner_is_emancipated_minor:
     petitioner_respondents_child_kickout
   if petitioner_respondent_relationship.all_false():
@@ -968,12 +969,13 @@ code: |
   
   enable_custody_review_screen = True
 ---
-only sets: enable_age_edit_screens
+only sets: enable_special_edit_screens
 code: |
   edit_user_age = True
   edit_respondent_age = True
+  edit_petitioner_respondent_relationship = True
 
-  enable_age_edit_screens = True
+  enable_special_edit_screens = True
 ---
 code: |
   petitioner_other_children[i].name.first
@@ -2503,7 +2505,7 @@ template: why_checking_domestic
 subject: |
   Why are you asking this again?
 content: |
-  We use these questions to select the right PPO forms for you. If you **ever** lived with the {respondent} or had any of these relationships with them, Michigan law says you have to ask for a **domestic** personal protection order (PPO). 
+  We use these questions to select the right personal protection order (PPO) forms for you. If you **ever** lived with the {respondent} or had any of these relationships with them, Michigan law says you have to ask for a **domestic** PPO. 
   
   Sometimes people miss a checkbox that applies to them and have to start their forms all over again. That's why we double-check to make sure you get the right PPO forms the first time.    
 ---
