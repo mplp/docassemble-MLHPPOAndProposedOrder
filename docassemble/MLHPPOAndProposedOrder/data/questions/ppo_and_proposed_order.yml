@@ -2484,7 +2484,7 @@ content: |
 ---
 id: domestic petition double check
 continue button field: domestic_petition_double_check
-continue button label: None of these apply to me.
+continue button label: None of these apply to me
 question: |
   Just double-checking
 subquestion: |
@@ -2640,7 +2640,7 @@ id: petitioner and respondent living together
 question: |
   Shared home
 fields:
-  - Do you and ${ other_parties[0].name.first } live together?: petitioner_and_respondent_living_together
+  - Do you and ${ other_parties[0] } live together?: petitioner_and_respondent_living_together
     datatype: yesnoradio
 ---
 id: respondent race
