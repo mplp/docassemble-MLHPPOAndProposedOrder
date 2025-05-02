@@ -861,10 +861,10 @@ code: |
 ---
 code: |
   if defined('relationship_to_respondent_exp'):
-    if any(petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+    if any(petitioner_respondent_relationship.get(key, "False") for key in ['married', 'was_married', 'have_child', 'dating']):
       undefine('relationship_to_respondent_exp')
   else:
-    if petitioner_respondent_relationship.any_true() and all(not petitioner_respondent_relationship.get(key) for key in ['married', 'was_married', 'have_child', 'dating']):
+    if petitioner_respondent_relationship.any_true() and all(not petitioner_respondent_relationship.get(key, "False") for key in ['married', 'was_married', 'have_child', 'dating']):
       relationship_to_respondent_exp
   
   reset_relationship_description = True
