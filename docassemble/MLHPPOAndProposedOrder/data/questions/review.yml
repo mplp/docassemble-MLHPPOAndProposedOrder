@@ -122,7 +122,7 @@ review:
       
       **Phone:** ${ word("Unknown") if other_parties[0].no_phone_number else other_parties[0].phone_number }
   - Edit: 
-      - petitioner_respondent_relationship
+      - edit_petitioner_respondent_relationship
       - recompute:
         - reset_relationship_description
         - set_petitioner_respondent_relationship
@@ -1640,3 +1640,26 @@ code: |
     undefine('other_parties[0].age')
 
   avoid_conflicting_respondent_age = True
+---
+# restrict editing of relationship to avoid triggering different petition type, since we have not yet built petition-type editing
+reconsider: relationship_choices
+continue button field: edit_petitioner_respondent_relationship
+id: edit relationship to respondent
+question: |
+  Have you ever lived with the respondent, **or** had a relationship with them?
+fields:
+  - Select **all** that apply: petitioner_respondent_relationship
+    datatype: checkboxes
+    none of the above: False
+    code: |
+      relationship_choices
+under: |
+  ${ collapse_template(what_if_no_domestic_relationship_review) }
+
+  ${ sign_in_message }
+---
+template: what_if_no_domestic_relationship_review
+subject: What if none of these options apply?
+content: |
+  If none of these apply, use the **${ MLH_back_button_label }** button or start over. This is to make sure you fill out the right type of personal protection order (PPO) forms for your situation.
+---
