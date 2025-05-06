@@ -7,6 +7,7 @@ A motion regarding change of domicile in Michigan
 * Rami Lorca
 
 ## Changelog:
+* 5/6/25   1.0.11 various instruction edits/fixes
 * 5/1/25   1.0.10 add some ability to edit ages; improve language for emancipation questions; improve domestic petition screening question
 * 4/23/25  1.0.9 remove references to notarizing proof of service in instructions; other instructions updates
 * 4/21/25  1.0.8 exhibit upload improvements: fix deletion bug; for ETC counties, improve exhibit review and reset TOC
