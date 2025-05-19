@@ -189,7 +189,6 @@ code: |
     else:
       safe_contact_info_notice
     user.address.address
-    check_user_no_phone
     if user_alias.there_are_any:
       user_alias.gather()
     check_user_alias_list
@@ -405,13 +404,6 @@ generic object: ALIndividual
 code: |
   if x.no_phone_number:
     x.phone_number = "Unknown phone"
----
-code: |
-  if users[0].no_phone_number:
-    users[0].phone_number = "Has no phone"
-  else:
-    users[0].phone_number = phone_number_formatted(users[0].phone_number)
-  check_user_no_phone = True
 ---
 code: |
   users.there_is_another = False
@@ -1231,17 +1223,15 @@ question: |
 subquestion: |
   % if county_choice == "Oakland" and wants_confidential_contact_details:
   *Remember - this information will only appear on a confidential form that is filed with the court. The Respondent will not have access to this information.*
+
+  *If you don't have access to a safe phone, you can enter someone else's number who can safely pass on messages to you. Tell this person that you are using their number on your court forms.*
+  % else:
+  *If you don't have a phone, you can enter someone else's number who can safely pass on messages to you. Tell this person that you are using their number on your court forms.*
   % endif
 fields:
   - code: |
       users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=False)
   - Phone: users[0].phone_number
-    show if:
-      variable: users[0].no_phone_number
-      is: False
-  - I do not have a phone number: users[0].no_phone_number
-    required: False
-    datatype: yesno
 ---
 id: next friend name
 sets:
@@ -6162,7 +6152,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ (users[0].phone_number) }
+        ${ users[0].phone_number }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
