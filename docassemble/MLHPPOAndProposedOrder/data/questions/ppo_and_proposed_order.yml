@@ -1223,11 +1223,9 @@ question: |
 subquestion: |
   % if county_choice == "Oakland" and wants_confidential_contact_details:
   *Remember - this information will only appear on a confidential form that is filed with the court. The Respondent will not have access to this information.*
-
-  *If you don't have access to a safe phone, you can enter someone else's number who can safely pass on messages to you. Tell this person that you are using their number on your court forms.*
-  % else:
-  *If you don't have a phone, you can enter someone else's number who can safely pass on messages to you. Tell this person that you are using their number on your court forms.*
   % endif
+
+  ${ collapse_template(safe_phone_address_message) }
 fields:
   - code: |
       users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=False)
@@ -2625,6 +2623,23 @@ question: |
 subquestion: |
   Answer the questions as best you can. If you don't know the exact answers, in most places it is OK to estimate or to give the best information you have.
 continue button field: respondent_intro_screen
+---
+template: safe_phone_address_message
+subject: |
+  What phone number and address should I use for this?
+content: |
+  % if county_choice == "Oakland" and wants_confidential_contact_details:
+  The address and phone number you enter here will only appear on a confidential form that is filed with the court. The {Respondent} will not have access to this information. 
+
+  The court may contact you at this address or phone number. Please enter an address and phone number where it is safe for the court to contact you. 
+  % else:
+    You should enter an address and phone number where it is:
+  
+  * safe for the court to contact you, and
+  * safe for the {respondent} to see the contact information on your court forms.
+  % endif
+  
+  If needed, you can use a post office box or the address and phone number of a relative or friend who has agreed to pass on messages to you.
 ---
 id: petitioner and respondent living together
 question: |
