@@ -31,7 +31,6 @@ review:
       - edit_user_age
       - recompute:
         - check_parties_living_together
-        - check_user_no_phone
         - check_petitioner_under_fourteen
     button: |-
       % for item in users:
@@ -41,7 +40,7 @@ review:
 
         **Address:** ${ item.address.on_one_line() }
 
-        **Phone:** ${ word("None") if item.no_phone_number else item.phone_numbers() }
+        **Phone:** ${ item.phone_numbers() }
       % endfor
   - Edit: 
       - contact_email

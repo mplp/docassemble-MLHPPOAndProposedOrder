@@ -5197,7 +5197,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
@@ -5342,7 +5342,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
@@ -5403,7 +5403,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -5594,7 +5594,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -5873,7 +5873,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age }
     - other_parties1_name: ${ other_parties[0].name_full() }
@@ -5936,7 +5936,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6012,7 +6012,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6073,7 +6073,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6152,7 +6152,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -6294,7 +6294,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -6430,7 +6430,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6490,7 +6490,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6573,7 +6573,7 @@ attachments:
     - users1_address: ${ users[0].address.line_one() }
     - users1_city_state_zip: |
         ${ users[0].address.city }, ${ users[0].address.state } ${ users[0].address.zip }
-    - users1_phone_number: ${ users[0].phone_number }
+    - users1_phone_number: ${ phone_number_formatted(users[0].phone_number) }
     - users1_email: ${ contact_email }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
@@ -6628,7 +6628,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -6738,7 +6738,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |

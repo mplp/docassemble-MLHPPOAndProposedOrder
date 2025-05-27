@@ -7,6 +7,7 @@ A motion regarding change of domicile in Michigan
 * Rami Lorca
 
 ## Changelog:
+* 5/27/25  1.0.12 remove option for user not to enter phone number
 * 5/6/25   1.0.11 various instruction edits/fixes
 * 5/5/25   1.0.10 add ability to edit ages; improve language for emancipation questions; improve domestic petition screening question; improve P-R relationship editing
 * 4/23/25  1.0.9 remove references to notarizing proof of service in instructions; other instructions updates
