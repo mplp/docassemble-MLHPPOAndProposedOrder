@@ -189,7 +189,6 @@ code: |
     else:
       safe_contact_info_notice
     user.address.address
-    check_user_no_phone
     if user_alias.there_are_any:
       user_alias.gather()
     check_user_alias_list
@@ -405,13 +404,6 @@ generic object: ALIndividual
 code: |
   if x.no_phone_number:
     x.phone_number = "Unknown phone"
----
-code: |
-  if users[0].no_phone_number:
-    users[0].phone_number = "Has no phone"
-  else:
-    users[0].phone_number = phone_number_formatted(users[0].phone_number)
-  check_user_no_phone = True
 ---
 code: |
   users.there_is_another = False
@@ -1232,16 +1224,12 @@ subquestion: |
   % if county_choice == "Oakland" and wants_confidential_contact_details:
   *Remember - this information will only appear on a confidential form that is filed with the court. The Respondent will not have access to this information.*
   % endif
+
+  ${ collapse_template(safe_phone_address_message) }
 fields:
   - code: |
       users[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=False)
   - Phone: users[0].phone_number
-    show if:
-      variable: users[0].no_phone_number
-      is: False
-  - I do not have a phone number: users[0].no_phone_number
-    required: False
-    datatype: yesno
 ---
 id: next friend name
 sets:
@@ -2635,6 +2623,23 @@ question: |
 subquestion: |
   Answer the questions as best you can. If you don't know the exact answers, in most places it is OK to estimate or to give the best information you have.
 continue button field: respondent_intro_screen
+---
+template: safe_phone_address_message
+subject: |
+  What phone number and address should I use for this?
+content: |
+  % if county_choice == "Oakland" and wants_confidential_contact_details:
+  The address and phone number you enter here will only appear on a confidential form that is filed with the court. The {Respondent} will not have access to this information. 
+
+  The court may contact you at this address or phone number. Please enter an address and phone number where it is safe for the court to contact you. 
+  % else:
+    You should enter an address and phone number where it is:
+  
+  * safe for the court to contact you, and
+  * safe for the {respondent} to see the contact information on your court forms.
+  % endif
+  
+  If needed, you can use a post office box or the address and phone number of a relative or friend who has agreed to pass on messages to you.
 ---
 id: petitioner and respondent living together
 question: |
@@ -5207,7 +5212,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
@@ -5352,7 +5357,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_address_block: |
         ${ other_parties[0].name_full() }
@@ -5413,7 +5418,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -5604,7 +5609,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -5883,7 +5888,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age }
     - other_parties1_name: ${ other_parties[0].name_full() }
@@ -5946,7 +5951,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6022,7 +6027,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6083,7 +6088,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6162,7 +6167,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ (users[0].phone_number) }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -6304,7 +6309,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -6440,7 +6445,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6500,7 +6505,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - other_parties1_name: ${ other_parties[0].name_full() }
     - other_parties1_name__1: ${ other_parties[0].name_full() }
@@ -6583,7 +6588,7 @@ attachments:
     - users1_address: ${ users[0].address.line_one() }
     - users1_city_state_zip: |
         ${ users[0].address.city }, ${ users[0].address.state } ${ users[0].address.zip }
-    - users1_phone_number: ${ users[0].phone_number }
+    - users1_phone_number: ${ phone_number_formatted(users[0].phone_number) }
     - users1_email: ${ contact_email }
     - users1_signature: |
         % if (is_incapacitated_adult or (petitioner_is_minor and not petitioner_is_emancipated_minor)) and next_friend_agrees_to_sign:
@@ -6638,7 +6643,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
@@ -6748,7 +6753,7 @@ attachments:
         % if county_choice == "Oakland" and wants_confidential_contact_details:
         ${ '' }
         % else:
-        ${ users[0].phone_number }
+        ${ phone_number_formatted(users[0].phone_number) }
         % endif
     - users1_age: ${ users[0].age_in_years() }
     - users1_signature: |
