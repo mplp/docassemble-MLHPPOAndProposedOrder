@@ -773,15 +773,21 @@ review:
       **Do you want the judge to order ${ other_parties[0] } to not enter another property (not your residence)?**
 
       ${ word(yesno(other_properties.there_are_any)) }
-  - Edit:
-      - other_properties[0].address
+  - Edit: 
+      - other_properties.revisit
     button: |
-      **Other property (not your residence):**
+      % if len(other_properties.complete_elements()) > 0:
+      **I want to ask the judge to order ${ other_parties[0] } not to enter the following properties (not my residence):**
       % for item in other_properties:
 
-      ${ item }
+      * ${ item }
 
       % endfor
+      % else:
+
+      *You have not listed any properties yet*
+
+      % endif
     show if: other_properties.there_are_any
   - Edit:
       - wants_no_harming_petitioner
@@ -1431,6 +1437,23 @@ columns:
       row_item.name if defined('row_item.name.first') else ''
 edit:
   - name.first
+confirm: True
+---
+continue button field: other_properties.revisit
+question: |
+  Other properties you want to prohibit ${ other_parties[0] }'s access to
+subquestion: |
+  ${ other_properties.table }
+
+  ${ other_properties.add_action() }
+---
+table: other_properties.table
+rows: other_properties
+columns:
+  - Address: |
+      row_item.on_one_line() if defined('row_item.on_one_line()') else ''
+edit:
+  - address
 confirm: True
 ---
 id: user age adult

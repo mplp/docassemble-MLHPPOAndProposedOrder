@@ -557,6 +557,8 @@ code: |
     wants_no_entering_other_property = True
   else:
     wants_no_entering_other_property = False
+    other_properties.clear()
+
   check_wants_no_entering_other_property = True
 ---
 code: |
@@ -5132,7 +5134,7 @@ code: |
   len(ppo_harm_protectees_list.complete_elements()) > 1 or \
   len(ppo_threat_protectees_list.complete_elements()) > 1 or \
   wants_other_request or \
-  len(other_properties.complete_elements()) > 1):
+  len(other_properties.complete_elements()) > 0):
     cc_375_attachment.enabled = True
   else:
     cc_375_attachment.enabled = False
@@ -5149,7 +5151,7 @@ code: |
   orders_judgments_re_parties_yes or \
   len(ppo_sexual_assault_threat_protectees_list) > 1 or \
   wants_other_request or \
-  len(other_properties.complete_elements()) > 1):
+  len(other_properties.complete_elements()) > 0):
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
