@@ -391,6 +391,7 @@ code: |
       email_status_sent
       ETC_success
     else:
+      snapshot_ETC
       email_status_failed
       ETC_error
 
