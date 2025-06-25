@@ -1569,13 +1569,14 @@ sets:
   - other_properties[i].zip
   - other_properties[i].unit
   - other_properties[i].state
-  #- other_properties[i].country
 question: |
   % if len(other_properties.complete_elements()) < 1:
-  Enter the address of the other property
+  Property you want ${ other_parties[0] } to stay away from
   % else:
-  Enter the address of the ${ ordinal(i) } other property
+  ${ capitalize(ordinal(i)) } property you want ${ other_parties[0] } to stay away from
   % endif
+subquestion: |
+  Do **not** enter your home address here. There is a separate question about excluding ${ other_parties[0] } from your home address.
 fields:
   - code: |
       other_properties[i].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=False)
