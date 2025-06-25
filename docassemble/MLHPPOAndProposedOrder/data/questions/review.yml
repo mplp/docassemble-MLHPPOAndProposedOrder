@@ -775,6 +775,8 @@ review:
       ${ word(yesno(other_properties.there_are_any)) }
   - Edit: 
       - other_properties.revisit
+      - recompute:
+        - check_wants_no_entering_other_property_2
     button: |
       % if len(other_properties.complete_elements()) > 0:
       **I want to ask the judge to order ${ other_parties[0] } not to enter the following properties (not my residence):**
