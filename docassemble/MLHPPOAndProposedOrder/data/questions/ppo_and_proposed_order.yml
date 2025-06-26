@@ -554,14 +554,21 @@ code: |
   incidents.there_are_any = True
 ---
 code: |
-  other_properties.there_is_another = False
+  if not other_properties.there_are_any:
+    other_properties.clear()
+    wants_no_entering_other_property = False
+  else:
+    wants_no_entering_other_property = True
+
+  check_wants_no_entering_other_property = True
 ---
 code: |
-  if other_properties.there_are_any:
-    wants_no_entering_other_property = True
-  else:
+  if len(other_properties.complete_elements()) < 1:
     wants_no_entering_other_property = False
-  check_wants_no_entering_other_property = True
+  else:
+    wants_no_entering_other_property = True
+
+  check_wants_no_entering_other_property_2 = True
 ---
 code: |
   if wants_no_harming_petitioner or ppo_harm_protectees.there_are_any:
@@ -1566,17 +1573,46 @@ content: |
 ---
 id: other property address
 sets:
-  - other_properties[0].address
-  - other_properties[0].city
-  - other_properties[0].zip
-  - other_properties[0].unit
-  - other_properties[0].state
-  #- other_properties[0].country
+  - other_properties[i].address
+  - other_properties[i].city
+  - other_properties[i].zip
+  - other_properties[i].unit
+  - other_properties[i].state
 question: |
-  Enter the address of the other property
+  % if len(other_properties.complete_elements()) < 1:
+  Property you want ${ other_parties[0] } to stay away from
+  % else:
+  ${ capitalize(ordinal(i)) } property you want ${ other_parties[0] } to stay away from
+  % endif
+subquestion: |
+  Do **not** enter your home address here. There is a separate question about excluding ${ other_parties[0] } from your home address.
 fields:
   - code: |
-      other_properties[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=False)
+      other_properties[i].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE, show_country=False)
+---
+id: other property there_is_another
+question: |
+  Access to other properties
+subquestion: |
+  ${ collapse_template(other_properties_list) }
+fields:
+  - Do you want to ask the judge to order ${ other_parties[0] } not to enter **another** property (not your residence)?: other_properties.there_is_another
+    datatype: yesnoradio
+---
+template: other_properties_list
+subject: Which other properties have I listed so far?
+content: |
+  % if len(other_properties.complete_elements()) > 0:
+  So far, you've added the following other properties:
+
+  % for item in other_properties:
+
+    * ${ item.on_one_line() }
+  
+  % endfor
+  % else:
+  You haven't added any properties.
+  % endif
 ---
 id: ppo_harm_protectees name
 sets:
@@ -4114,11 +4150,11 @@ continue button field: cannot_prohibit_respondent_entering_property
 ---
 id: wants no entering other property
 question: |
-  Access to other property
+  Access to other properties
 subquestion: |
   ${ collapse_template(wants_no_entering_other_property_explained) }
 fields:
-  - Do you want the judge to order ${ other_parties[0].name } not to enter other property (not your residence)?: other_properties.there_are_any
+  - Do you want the judge to order ${ other_parties[0].name } not to enter another property (not your residence)?: other_properties.there_are_any
     datatype: yesnoradio
     label above field: True
 ---
@@ -5102,7 +5138,13 @@ code: |
     ppo_cc_381.enabled = True
 ---
 code: |
-  if ppo_type == "domestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_harm_protectees_list.complete_elements()) > 1 or len(ppo_threat_protectees_list.complete_elements()) > 1 or wants_other_request):
+  if ppo_type == "domestic" and \
+  (pending_actions_between_parties_yes or \
+  orders_judgments_re_parties_yes or \
+  len(ppo_harm_protectees_list.complete_elements()) > 1 or \
+  len(ppo_threat_protectees_list.complete_elements()) > 1 or \
+  wants_other_request or \
+  len(other_properties.complete_elements()) > 0):
     cc_375_attachment.enabled = True
   else:
     cc_375_attachment.enabled = False
@@ -5114,7 +5156,12 @@ code: |
     cc_377_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic_sexual_assault" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or len(ppo_sexual_assault_threat_protectees_list) > 1 or wants_other_request):
+  if ppo_type == "nondomestic_sexual_assault" and \
+  (pending_actions_between_parties_yes or \
+  orders_judgments_re_parties_yes or \
+  len(ppo_sexual_assault_threat_protectees_list) > 1 or \
+  wants_other_request or \
+  len(other_properties.complete_elements()) > 0):
     cc_395_attachment.enabled = True
   else:
     cc_395_attachment.enabled = False
@@ -5464,7 +5511,7 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
     - other_properties1_address: |
         % if other_properties.there_are_any:
-        ${ other_properties[0].on_one_line() }
+        Please see "Relief Requested" in Attachment.
         % endif
     - pending_actions1_docket_number: |
         % if pending_actions_between_parties_yes:
@@ -5655,7 +5702,7 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
     - other_properties1_address: |
         % if other_properties.there_are_any:
-        ${ other_properties[0].on_one_line() }
+        Please see "Relief Requested" in Attachment.
         % endif
     - pending_actions1_docket_number: |
         % if pending_actions_between_parties_yes:
@@ -6213,7 +6260,7 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
     - other_properties1_address: |
         % if other_properties.there_are_any:
-        ${ other_properties[0].on_one_line() }
+        Please see "Relief Requested" in Attachment.
         % endif
     - pending_actions_see_attached: |
         % if pending_actions_between_parties_yes:
@@ -6355,7 +6402,7 @@ attachments:
     - trial_court_phone_number: ${ the_court.phone }
     - other_properties1_address: |
         % if other_properties.there_are_any:
-        ${ other_properties[0].on_one_line() }
+        Please see "Relief Requested" in Attachment.
         % endif
     - pending_actions_see_attached: |
         % if pending_actions_between_parties_yes:

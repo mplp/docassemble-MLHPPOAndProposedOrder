@@ -7,6 +7,7 @@ A motion regarding change of domicile in Michigan
 * Rami Lorca
 
 ## Changelog:
+* 6/26/25  1.0.14 allow excluding respondent from multiple other properties; update display title for download bundle; add snapshot of failed email-to-court attempts
 * 5/28/25  1.0.13 fix minor instructions language mistake
 * 5/27/25  1.0.12 remove option for user not to enter phone number
 * 5/6/25   1.0.11 various instruction edits/fixes
