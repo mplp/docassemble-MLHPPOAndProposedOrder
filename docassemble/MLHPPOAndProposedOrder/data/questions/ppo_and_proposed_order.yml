@@ -3560,16 +3560,31 @@ fields:
     show if: 
       variable: respondent_sexual_assault_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
+  - "Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }. Include a date or timeframe for all incidents.": potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
       is: True
   - note: |
+      ${ collapse_template(incident_date_explained) }
       ${ collapse_template(fears_future_sexual_assault_explained) }
     show if:
       variable: fears_future_sexual_assault
       is: True
+  - Did you include dates or timeframes in your explanation above?: sexual_assault_dates_check
+    datatype: yesnoradio
+    show if:
+      variable: fears_future_sexual_assault
+      is: True
+  - note: |
+        Please include dates or timeframes in your explanation above.
+        
+        Fill in the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time ${ today().year - 2 }."
+
+        Once you add dates or timeframes, please update your answer to the last question above. Then you will be able to continue.
+    show if:
+      variable: sexual_assault_dates_check
+      is: False
   - note: |
         We're sorry, you cannot use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
 
@@ -3587,6 +3602,8 @@ fields:
 validation code: |
   if not respondent_sexual_assault_conviction and not fears_future_sexual_assault:
     validation_error("You can't continue unless one of these things is true.")
+  elif not respondent_sexual_assault_conviction and not sexual_assault_dates_check:
+    validation_error("You must include dates or timeframes. Once you add dates or timeframes, update your answer to the final question on this page to continue.")
 ---
 id: respondent sexual assault basis, minor petitioner
 if: petitioner_is_minor
@@ -3660,9 +3677,9 @@ validation code: |
 ---
 template: fears_future_sexual_assault_explained
 subject: |
-  More information about how to answer this question.
+  More information about how to answer these questions.
 content: |
-  Be as specific as you can about facts like dates and locations. However, if you are not sure of a date or other fact, do not guess. It is okay to give an approximate date or time, or to put a time of year, like "last summer."
+  Be as specific as you can about facts like locations. 
 
   If you have any documents you want to show the judge, such as police reports, medical records, photos, copies of letters, texts, or email messages, you can attach copies to your petition. However, this is not necessary. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
