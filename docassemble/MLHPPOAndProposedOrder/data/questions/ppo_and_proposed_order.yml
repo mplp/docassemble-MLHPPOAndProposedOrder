@@ -25,6 +25,10 @@ terms:
       - respondents
     definition: |
       The Respondent is the person you want to be protected from.
+  - phrases:
+      - obscene material
+    definition: |
+      "Obscene material" may include things like a pornographic image or video. You may want to talk to a lawyer if you're not sure what happened would be considered giving obscene material.
 ---
 sections:
   - signpost_intro: "Introduction"
@@ -2371,7 +2375,7 @@ id: ppo type info
 question: |
   Type of Personal Protection Order (PPO)
 subquestion: |
-  In Michigan, there are three kinds of PPO. On the next few screens, we will ask questions to figure out if there is a PPO type that fits your situation. 
+  In Michigan, there are three kinds of PPOs. On the next few screens, we will ask questions to figure out if there is a PPO type that fits your situation. 
 
   ${ collapse_template(ppo_types_explained) }
 continue button field: ppo_type_info
@@ -2411,15 +2415,29 @@ fields:
 id: sexual assault facts (minor)
 if: petitioner_is_minor
 question: |
-  Sexual assault or obscene materials
+  Sexual assault or obscene material
 fields:
-  - "Has the {respondent} sexually assaulted you, threatened to sexually assault you, or given you obscene materials?": sexual_assault_facts
+  - "Has the {respondent} sexually assaulted you, threatened to sexually assault you, or given you obscene material?": sexual_assault_facts
     datatype: yesnoradio
+  - note: |
+      ${ collapse_template(minor_SA_screening_info) }
   - note: |
       OK, you will fill out the forms to request a **Nondomestic Sexual Assault** PPO.
     show if:
       variable: sexual_assault_facts
       is: True
+---
+template: minor_SA_screening_info
+subject: |
+  More information about answering this question
+content: |
+  Please answer "Yes" if the {respondent} did **any** of these things:
+
+  * sexually assaulted you;
+  * threatened to sexually assault you; **or**
+  * gave you {obscene material}.
+  
+  Any one of these things is enough to answer "Yes."
 ---
 id: two or more noncontinuous incidents
 question: |
@@ -3421,7 +3439,7 @@ question: |
   % if respondent_sexual_assault_conviction:
   Sexual assault conviction case number
   % else:
-  Obscene materials conviction case number
+  Obscene material conviction case number
   % endif
 subquestion: |
   Leave blank if unknown.
@@ -3448,13 +3466,13 @@ question: |
   % if respondent_sexual_assault_conviction:
   Court and county of sexual assault conviction
   % else:
-  Court and county of obscene materials conviction
+  Court and county of obscene material conviction
   % endif
 subquestion: |
   % if respondent_sexual_assault_conviction:
   Enter the name of the court and county where the sexual assault case was filed, if known.
   % else:
-  Enter the name of the court and county where the obscene materials case was filed, if known.
+  Enter the name of the court and county where the obscene material case was filed, if known.
   % endif
 fields:
   - Court name: orders_judgments[0].court_name
@@ -3593,7 +3611,7 @@ fields:
   - note: |
         Please add a **date or timeframe** to your explanation above. ${ incident_date_explained }
 
-        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**
+        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**.
     show if:
       variable: dates_check
       is: False
@@ -3629,7 +3647,7 @@ fields:
     show if:
       variable: respondent_sexual_assault_conviction
       is: True
-  - Was ${ other_parties[0].name } convicted of giving obscene material to you?: obscene_material_conviction
+  - Was ${ other_parties[0].name } convicted of giving {obscene material} to you?: obscene_material_conviction
     datatype: yesnoradio
     show if: 
       variable: respondent_sexual_assault_conviction
@@ -3649,7 +3667,7 @@ fields:
     show if:
       variable: fears_future_sexual_assault
       is: True
-  - Did ${ other_parties[0].name } give you obscene material?: obscene_material_provided
+  - Did ${ other_parties[0].name } give you {obscene material}?: obscene_material_provided
     datatype: yesnoradio
     show if: 
       variable: fears_future_sexual_assault
@@ -3671,7 +3689,7 @@ fields:
   - note: |
         Please add a **date or timeframe** to your explanation above. ${ incident_date_explained }
 
-        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**
+        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**.
     show if:
       variable: dates_check
       is: False
