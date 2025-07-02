@@ -20,7 +20,7 @@ review:
       ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>') }
     show if: is_incapacitated_adult or not is_incapacitated_adult
   - note: |
-      The person who needs a PPO is an **incapacitated adult**. *(If you need to change this, please start over from the beginning.)*
+      A **guardian or power of attorney** is filing on behalf of ${ users[0] }. *(If you need to change this, please start over from the beginning.)*
     show if: is_incapacitated_adult
   - note: |
       You are an **emancipated** minor. *(If you need to change this, please start over from the beginning.)*

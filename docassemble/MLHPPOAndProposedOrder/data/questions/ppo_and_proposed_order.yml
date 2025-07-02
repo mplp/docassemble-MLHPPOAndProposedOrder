@@ -1806,28 +1806,28 @@ fields:
     datatype: radio
     choices:
       - I need a PPO to protect **myself**.: False
-      - "A **legally incapacitated adult** needs a PPO, and I am their guardian or power of attorney.": True
+      - I am the **legal guardian or power of attorney** for an **adult** who needs a PPO. I will apply and sign the petition for them.: True
+        help: |
+          Choose this answer if the person who needs protection is an **adult** and:
+          
+          * they signed a valid **power of attorney** form that allows you to file for them, or
+          * they are unable to make their own informed decisions and you have a valid **guardianship** order.
       - "**Someone else** (child or adult) needs a PPO and I'm helping them.": False
-  - note: |
-      ${ collapse_template(incapacitated_adult_explained) }
-  - Do you have authority to file a PPO petition for the legally incapacitated adult?: next_friends.there_are_any
+  - Do you have authority to file a PPO petition for this adult?: next_friends.there_are_any
     datatype: radio
     choices:
-      - Yes, I was named the person's guardian by court order.: True
-      - Yes, I have a power of attorney that allows me to file for the person.: True
+      - Yes, I was named their **guardian** by court order.: True
+      - Yes, I have a **power of attorney** that allows me to file for them.: True
       - Neither of these applies.: False
     show if:
       variable: is_incapacitated_adult
       is: True
     label above field: True
----
-template: incapacitated_adult_explained
-subject: |
-  What does "legally incapacitated adult" mean?
-content: |
-  An adult can become a "legally incapacitated adult" if they are unable to make their own informed decisions due to mental or physical illness or disability, or other causes. There must be a **court order** appointing a guardian or saying that they are incapacitated.
-  
-  Only a legal guardian or someone with a valid Power of Attorney can file a PPO petition on behalf of a legally incapacitated adult.
+  - note: |
+      **You must attach** guardianship or power of attorney paperwork to the petition.
+    show if:
+      variable: next_friends.there_are_any
+      is: True
 ---
 id: unauthorized to file for legally incapacitated adult kickout
 event: unauthorized_to_file_for_lii_kickout
