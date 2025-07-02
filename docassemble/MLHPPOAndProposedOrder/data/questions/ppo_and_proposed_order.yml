@@ -1806,7 +1806,7 @@ fields:
     datatype: radio
     choices:
       - I need a PPO to protect **myself**.: False
-      - I am the **legal guardian or power of attorney** for an **adult** who needs a PPO. I will apply and sign the petition for them.: True
+      - I am the **power of attorney or legal guardian** for an **adult** who needs a PPO. I will apply and sign the petition for them.: True
         help: |
           Choose this answer if the person who needs protection is an **adult** and:
           
@@ -1843,11 +1843,11 @@ subquestion: |
 id: inconsistent age kickout
 event: inconsistent_age_kickout
 question: |
-  You cannot continue using this tool
+  Is ${ users[0] } an adult or a minor?
 subquestion: |
-  You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0] }'s birthday makes them a **minor**.
+  You previously said you were filling out this form on behalf of an **adult**, but you entered an age younger than 18 for ${ users[0] }.
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answers.
+  Please start over or use the **${ MLH_back_button_label }** button to go back and change your answers.
 ---
 id: continue as next friend for incapacitated adult
 question: |
