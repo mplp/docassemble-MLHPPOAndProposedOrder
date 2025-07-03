@@ -1806,7 +1806,7 @@ fields:
     datatype: radio
     choices:
       - I need a PPO to protect **myself**.: False
-      - I am the **legal guardian or power of attorney** for an **adult** who needs a PPO. I will sign and file the petition for them.: True
+      - I am the **legal guardian** or I have **power of attorney** for an **adult** who needs a PPO. I will sign and file the petition for them.: True
         help: |
           Choose this answer if the person who needs protection is an **adult** and:
           
@@ -1824,7 +1824,7 @@ fields:
       is: True
     label above field: True
   - note: |
-      **You must attach** guardianship or power of attorney paperwork to the petition.
+      **You must attach** guardianship or power of attorney documents to the petition.
     show if:
       variable: next_friends.there_are_any
       is: True
