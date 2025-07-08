@@ -25,6 +25,10 @@ terms:
       - respondents
     definition: |
       The Respondent is the person you want to be protected from.
+  - phrases:
+      - obscene material
+    definition: |
+      "Obscene material" may include things like a pornographic image or video. You may want to talk to a lawyer if you're not sure what happened would be considered giving obscene material.
 ---
 sections:
   - signpost_intro: "Introduction"
@@ -1186,9 +1190,17 @@ sets:
   - users[0].name.suffix
 question: |
   Enter your name
+subquestion: |
+  ${ collapse_template(what_if_helper) }
 fields:
   - code: |
       users[0].name_fields()
+---
+template: what_if_helper
+subject: |
+  What if I'm helping someone else fill this out?
+content: |
+  When a question says “you” or "your", it refers to the person who needs the PPO, NOT the helper. So in this case, enter the name of the person who needs the PPO.
 ---
 id: petitioner alias
 sets:
@@ -1824,29 +1836,34 @@ fields:
 ---
 id: is petitioner legally incapacitated adult
 question: |
-  Legally incapacitated adult
+  Who needs protection?
 fields:
-  - Will you be filing this PPO petition on behalf of a legally incapacitated adult?: is_incapacitated_adult
-    datatype: yesnoradio
-    label above field: True
-  - note: |
-      ${ collapse_template(incapacitated_adult_explained) }
-  - Have you been named the guardian of this person by court order **OR** do you have a power of attorney that allows you to file for them?: next_friends.there_are_any
-    datatype: yesnoradio
+  - Who needs a personal protection order (PPO)?: is_incapacitated_adult
+    datatype: radio
+    choices:
+      - I need a PPO to protect **myself**.: False
+      - I am the **legal guardian** or I have **power of attorney** for an **adult** who needs a PPO. I will sign and file the petition for them.: True
+        help: |
+          Choose this answer if the person who needs protection is an **adult** and:
+          
+          * they signed a valid **power of attorney** form that allows you to file for them, or
+          * they are unable to make their own informed decisions and you have a valid **guardianship** order.
+      - "**Someone else** (child or adult) needs a PPO and I'm helping them.": False
+  - Do you have authority to file a PPO petition for this adult?: next_friends.there_are_any
+    datatype: radio
+    choices:
+      - Yes, I was named their **guardian** by court order.: True
+      - Yes, I have a **power of attorney** that allows me to file for them.: True
+      - Neither of these applies.: False
     show if:
       variable: is_incapacitated_adult
       is: True
     label above field: True
----
-template: incapacitated_adult_explained
-subject: |
-  What does this mean?
-content: |
-  Answer "Yes" if the person who **needs protection** is a legally incapacitated adult.
-
-  A legally incapacitated adult is an adult who is unable to make their own informed decisions due to mental or physical illness or disability, or other causes. Only a legal guardian or someone with a valid Power of Attorney can file a PPO petition on behalf of a legally incapacitated adult.
-  
-  Answer "No" if you want a PPO to protect yourself, or if you are helping a child fill this out.
+  - note: |
+      **You must attach** guardianship or power of attorney documents to the petition.
+    show if:
+      variable: next_friends.there_are_any
+      is: True
 ---
 id: unauthorized to file for legally incapacitated adult kickout
 event: unauthorized_to_file_for_lii_kickout
@@ -1862,11 +1879,11 @@ subquestion: |
 id: inconsistent age kickout
 event: inconsistent_age_kickout
 question: |
-  You cannot continue using this tool
+  Is ${ users[0] } an adult or a minor?
 subquestion: |
-  You previously indicated you were filling out this form on behalf of an incapacitated **adult**, but the date you entered for ${ users[0] }'s birthday makes them a **minor**.
+  You previously said you were filling out this form on behalf of an **adult**, but you entered an age younger than 18 for ${ users[0] }.
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answers.
+  Please start over or use the **${ MLH_back_button_label }** button to go back and change your answers.
 ---
 id: continue as next friend for incapacitated adult
 question: |
@@ -2407,7 +2424,7 @@ id: ppo type info
 question: |
   Type of Personal Protection Order (PPO)
 subquestion: |
-  In Michigan, there are three kinds of PPO. On the next few screens, we will ask questions to figure out if there is a PPO type that fits your situation. 
+  In Michigan, there are three kinds of PPOs. On the next few screens, we will ask questions to figure out if there is a PPO type that fits your situation. 
 
   ${ collapse_template(ppo_types_explained) }
 continue button field: ppo_type_info
@@ -2431,7 +2448,8 @@ content: |
 
       A nondomestic personal protection order is used to protect someone from stalking or harassing behavior.
 ---
-id: sexual assault facts
+id: sexual assault facts (adult)
+if: not petitioner_is_minor
 question: |
   Sexual assault 
 fields:
@@ -2442,6 +2460,33 @@ fields:
     show if:
       variable: sexual_assault_facts
       is: True
+---
+id: sexual assault facts (minor)
+if: petitioner_is_minor
+question: |
+  Sexual assault or obscene material
+fields:
+  - "Has the {respondent} sexually assaulted you, threatened to sexually assault you, or given you obscene material?": sexual_assault_facts
+    datatype: yesnoradio
+  - note: |
+      ${ collapse_template(minor_SA_screening_info) }
+  - note: |
+      OK, you will fill out the forms to request a **Nondomestic Sexual Assault** PPO.
+    show if:
+      variable: sexual_assault_facts
+      is: True
+---
+template: minor_SA_screening_info
+subject: |
+  More information about answering this question
+content: |
+  Please answer "Yes" if the {respondent} did **any** of these things:
+
+  * sexually assaulted you;
+  * threatened to sexually assault you; **or**
+  * gave you {obscene material}.
+  
+  Any one of these things is enough to answer "Yes."
 ---
 id: two or more noncontinuous incidents
 question: |
@@ -3443,7 +3488,7 @@ question: |
   % if respondent_sexual_assault_conviction:
   Sexual assault conviction case number
   % else:
-  Obscene materials conviction case number
+  Obscene material conviction case number
   % endif
 subquestion: |
   Leave blank if unknown.
@@ -3470,13 +3515,13 @@ question: |
   % if respondent_sexual_assault_conviction:
   Court and county of sexual assault conviction
   % else:
-  Court and county of obscene materials conviction
+  Court and county of obscene material conviction
   % endif
 subquestion: |
   % if respondent_sexual_assault_conviction:
   Enter the name of the court and county where the sexual assault case was filed, if known.
   % else:
-  Enter the name of the court and county where the obscene materials case was filed, if known.
+  Enter the name of the court and county where the obscene material case was filed, if known.
   % endif
 fields:
   - Court name: orders_judgments[0].court_name
@@ -3596,16 +3641,29 @@ fields:
     show if: 
       variable: respondent_sexual_assault_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
+  - "Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }. Include a date or timeframe.": potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
       is: True
   - note: |
+      ${ collapse_template(incident_date_explained) }
       ${ collapse_template(fears_future_sexual_assault_explained) }
     show if:
       variable: fears_future_sexual_assault
       is: True
+  - Did you include a date or timeframe in your explanation above?: dates_check
+    datatype: yesnoradio
+    show if:
+      variable: fears_future_sexual_assault
+      is: True
+  - note: |
+        Please add a **date or timeframe** to your explanation above. ${ incident_date_explained }
+
+        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**.
+    show if:
+      variable: dates_check
+      is: False
   - note: |
         We're sorry, you cannot use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
 
@@ -3623,6 +3681,8 @@ fields:
 validation code: |
   if not respondent_sexual_assault_conviction and not fears_future_sexual_assault:
     validation_error("You can't continue unless one of these things is true.")
+  elif not respondent_sexual_assault_conviction and not dates_check:
+    validation_error("Please add a date or timeframe to your explanation. Then select 'Yes' to continue.", field="dates_check")
 ---
 id: respondent sexual assault basis, minor petitioner
 if: petitioner_is_minor
@@ -3636,7 +3696,7 @@ fields:
     show if:
       variable: respondent_sexual_assault_conviction
       is: True
-  - Was ${ other_parties[0].name } convicted of giving obscene material to you?: obscene_material_conviction
+  - Was ${ other_parties[0].name } convicted of giving {obscene material} to you?: obscene_material_conviction
     datatype: yesnoradio
     show if: 
       variable: respondent_sexual_assault_conviction
@@ -3651,31 +3711,37 @@ fields:
     show if: 
       variable: obscene_material_conviction
       is: False
-  - Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }.: potential_sexual_assault_exp
+  - "Please explain what happened that made you afraid of being sexually assaulted by ${ other_parties[0].name }. Include a date or timeframe.": potential_sexual_assault_exp
     input type: area
     show if:
       variable: fears_future_sexual_assault
       is: True
-  - Did ${ other_parties[0].name } give you obscene material?: obscene_material_provided
+  - Did ${ other_parties[0].name } give you {obscene material}?: obscene_material_provided
     datatype: yesnoradio
     show if: 
       variable: fears_future_sexual_assault
       is: False
-  - Please explain what happened.: obscene_material_exp
+  - Please explain what happened. Include a date or timeframe.: obscene_material_exp
     input type: area
     show if:
       variable: obscene_material_provided
       is: True
   - note: |
+      ${ collapse_template(incident_date_explained) }
       ${ collapse_template(fears_future_sexual_assault_explained) }
-    show if:
-      variable: fears_future_sexual_assault
-      is: True
+    js show if:
+      val("fears_future_sexual_assault") == true || val("obscene_material_provided") == true
+  - Did you include a date or timeframe in your explanation above?: dates_check
+    datatype: yesnoradio
+    js show if:
+      val("fears_future_sexual_assault") == true || val("obscene_material_provided") == true
   - note: |
-      ${ collapse_template(fears_future_sexual_assault_explained) }
+        Please add a **date or timeframe** to your explanation above. ${ incident_date_explained }
+
+        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**.
     show if:
-      variable: obscene_material_provided
-      is: True
+      variable: dates_check
+      is: False
   - note: |
         We're sorry, you cannot use this tool to prepare a nondomestic sexual assault *Personal Protection Order*.
 
@@ -3693,12 +3759,16 @@ fields:
 validation code: |
   if not respondent_sexual_assault_conviction and not obscene_material_conviction and not fears_future_sexual_assault and not obscene_material_provided:
     validation_error("You can't continue unless one of these things is true.")
+  elif not respondent_sexual_assault_conviction and not obscene_material_conviction and not dates_check:
+    validation_error("Please add a date or timeframe to your explanation. Then select 'Yes' to continue.", field="dates_check")
 ---
 template: fears_future_sexual_assault_explained
 subject: |
   More information about how to answer this question.
 content: |
-  Be as specific as you can about facts like dates and locations. However, if you are not sure of a date or other fact, do not guess. It is okay to give an approximate date or time, or to put a time of year, like "last summer."
+  One incident is enough to ask for a personal protection order (PPO). If there has been more than one incident, please include them all, with dates or timeframes. 
+  
+  Be as specific as you can about facts like dates and locations. However, if you are not sure of a fact, do not guess. Instead, describe it as well as you can.  
 
   If you have any documents you want to show the judge, such as police reports, medical records, photos, copies of letters, texts, or email messages, you can attach copies to your petition. However, this is not necessary. The judge shouldn't deny a petition just because you don't have any documents to attach.
 ---
@@ -3836,7 +3906,7 @@ template: incident_date_explained
 subject: |
   Do I need an exact date?
 content: |
-  Fill in the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time ${ today().year - 2 }."
+  Give the exact date if you know it. Otherwise, be as specific as you can, but don't guess. It is okay to give an approximate date or time or to put a time of year, like "last summer" or "Christmas time ${ today().year - 2 }."
 ---
 id: incidents location
 question: |
