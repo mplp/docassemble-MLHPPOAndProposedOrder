@@ -2130,7 +2130,7 @@ validation code: |
     except:
       validation_error("Unable to convert this file. Please upload a new one.")
     x[0].pages.complete_attribute = 'ok'
-    x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
+#    x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
 ---
 # overriding version from ql_baseline
 generic object: ALExhibitList
@@ -2240,7 +2240,7 @@ validation code: |
     pdf_concatenate(x[i].pages)
   except:
     validation_error("Unable to convert this file. Please upload a new one.")
-  x[i].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
+#  x[i].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
 ---
 template: audiovisual_evidence
 subject: |
