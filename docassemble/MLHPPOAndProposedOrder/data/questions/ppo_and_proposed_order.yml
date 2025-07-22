@@ -2103,7 +2103,7 @@ fields:
   - Do you have any documents you want to upload?: x.has_exhibits
     datatype: yesnoradio
   - note: |
-      **Okay**. You can upload multiple documents. Please upload documents in order starting with the oldest one first. You can also add more pages to this document.
+      **Okay**. You can upload multiple documents. Please upload documents in order starting with the oldest one first. 
 
       ${ collapse_template(preferred_file_types) }
     show if: x.has_exhibits
@@ -2130,64 +2130,7 @@ validation code: |
     except:
       validation_error("Unable to convert this file. Please upload a new one.")
     x[0].pages.complete_attribute = 'ok'
-#    x[0].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
----
-# overriding version from ql_baseline
-generic object: ALExhibitList
-id: exhibit i has additional pages
-question: |
-  Add more pages to "**${ x[i] }**"?
-subquestion: |
-  % if hasattr(x, 'maximum_size'):
-  The total size of all exhibits must be less than ${ humanize.naturalsize(x.maximum_size) }.
-  You can upload ${ humanize.naturalsize(x.maximum_size - x.size_in_bytes() - sum(ap.size_in_bytes() for ap in x[i].pages.complete_elements()))} more.
-  % endif
-
-  ${ collapse_template(x[i].in_progress_template )}
-  
-fields: 
-  - Do you want to add more pages to "**${ x[i] }**"?: x[i].pages.there_is_another
-    datatype: radio
-    choices:
-      - Yes, I want to add more pages to "${ x[i] }".: True
-      - No, there are no more pages to add to "${ x[i] }".: False
-    label above field: True
----
-# overriding version from ql_baseline (only changed max image size)
-sets:
-  - x[i].pages[j].initialized
-  - x[i].pages[j].mimetype
-  - x[i].pages[j].ok
-generic object: ALExhibitList
-id: exhibit additional page
-question: |
-  Upload the ${ ordinal(j) } part of your ${ x[i].title } document
-subquestion: |
-  ${ collapse_template(preferred_file_types) }
-fields:
-  - Upload a PDF, Word, or image file: x[i].pages[j]
-    datatype: file
-    maximum image size: 2048
-    image upload type: jpeg
-    accept: |
-      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
-validation code: |
-  page_size = x[i].pages[j].size_in_bytes()
-  if page_size > (15 * 1024 * 1024):
-    validation_error("Upload a file smaller than 15 MB.")
-  if hasattr(x, 'maximum_size'):
-    # this_doc_size already includes `page_size`
-    this_doc_size = sum(a_page.size_in_bytes() for a_page in x[i].pages.complete_elements())
-    full_size = x.size_in_bytes() + this_doc_size
-    if full_size > x.maximum_size:
-      suggested_size = x.maximum_size - (full_size - page_size)
-      validation_error(f"All exhibits combined must be smaller than {humanize.naturalsize(x.maximum_size)}. Upload a file smaller than {humanize.naturalsize(suggested_size)}.")
-  try:
-    pdf_concatenate(x[i].pages[j])
-  except:
-    validation_error("Unable to convert this file. Please upload a new one.")
-
-  x[i].pages[j] = unpack_dafilelist(x[i].pages[j])
+#    x[0].pages.reset_gathered()  # docassemble sets this attribute but AL has this code forcing gathering of additional pages. MLH does not want to force gathering additional pages
 ---
 # overriding version from ql_baseline
 generic object: ALExhibitList
@@ -2209,13 +2152,16 @@ fields:
       - No, I'm done adding documents.: False
     label above field: True
 ---
-# overriding version from ql_baseline (only changed max image size and text)
+# overriding version from ql_baseline (changed text and max image size, added max size info to subQ, and got rid of code that triggers additional page gathering)
 generic object: ALExhibitList
 id: exhibit i
 question: |
   Upload the ${ ordinal(i) } document
 subquestion: |
-  You will have a chance to upload more pages for this document later.
+  % if hasattr(x, 'maximum_size'):
+  The total size of all exhibits must be less than ${ humanize.naturalsize(x.maximum_size) }.
+  You can upload ${ humanize.naturalsize(x.maximum_size - x.size_in_bytes())} more.
+  % endif
 
   ${ collapse_template(preferred_file_types) }
 fields:
@@ -2240,7 +2186,7 @@ validation code: |
     pdf_concatenate(x[i].pages)
   except:
     validation_error("Unable to convert this file. Please upload a new one.")
-#  x[i].pages.reset_gathered()  # docassemble sets this attribute but we want to force gathering additional pages
+#  x[i].pages.reset_gathered()  # docassemble sets this attribute but AL has this code to force gathering additional pages. MLH does not want to force gathering additional pages.
 ---
 template: audiovisual_evidence
 subject: |
