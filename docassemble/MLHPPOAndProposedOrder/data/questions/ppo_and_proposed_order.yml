@@ -4583,7 +4583,7 @@ review:
       **Uploaded Documents**
 
       % if exhibit_attachment.exhibits.there_are_any:
-      ${ collapse_template(exhibit_attachment.exhibits.add_delete_exhibits) }
+      ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
       % else:
       You have not uploaded any documents yet.
       % endif

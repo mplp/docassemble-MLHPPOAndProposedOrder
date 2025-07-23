@@ -1118,6 +1118,7 @@ columns:
 generic object: ALExhibitList
 table: exhibit_attachment.exhibits.rearrange_exhibits_table
 rows: exhibit_attachment.exhibits
+allow reordering: True
 columns:
   - ${ al_exhibit_title_label }: |
       row_item.title
