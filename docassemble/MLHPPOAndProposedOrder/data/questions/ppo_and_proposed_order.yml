@@ -392,7 +392,7 @@ code: |
     clerk_email_prep
     if ETC_county_status == "optional":
       ETC_esign
-    log('PPO clerk_email_sent_ok: starting to assemble PPO documents')
+    log('PPO clerk_email_sent_ok: starting ETC sending process')
     if clerk_email_sent_ok:
       snapshot_ETC
       email_status_sent
@@ -401,6 +401,7 @@ code: |
     else:
       snapshot_ETC
       email_status_failed
+      log('PPO ETC_error (not sent): starting to assemble PPO documents')
       ETC_error
 
   interview_ppo_and_proposed_order = True
