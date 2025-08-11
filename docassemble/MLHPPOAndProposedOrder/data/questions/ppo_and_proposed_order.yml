@@ -380,19 +380,23 @@ code: |
     MLH_outro_filing_information
     have_patience_download
     snapshot_download
+    log('PPO MLH_download: starting to assemble PPO documents')
     MLH_download
   else: 
     have_patience_download
     snapshot_download
+    log('PPO ETC_review_docs_screen: starting to assemble PPO documents')
     ETC_review_docs_screen
     ETC_review_exhibits
     reset_exhibit_TOC
     clerk_email_prep
     if ETC_county_status == "optional":
       ETC_esign
+    log('PPO clerk_email_sent_ok: starting to assemble PPO documents')
     if clerk_email_sent_ok:
       snapshot_ETC
       email_status_sent
+      log('PPO ETC_success: starting to assemble PPO documents')
       ETC_success
     else:
       snapshot_ETC
