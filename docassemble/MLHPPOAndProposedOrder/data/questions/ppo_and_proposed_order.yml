@@ -2273,6 +2273,8 @@ content: |
 id: respondent birthdate
 question: |
   Respondent's date of birth
+subquestion: |
+  ${ collapse_template(respondent_dob) }
 fields:
   - Do you know the {Respondent}'s exact date of birth?: knows_respondents_birthdate
     datatype: yesnoradio
@@ -2289,6 +2291,14 @@ fields:
       variable: knows_respondents_birthdate
       is: False
     label above field: True
+---
+template: respondent_dob
+subject: |
+  Does it matter if I don't know the Respondent's date of birth?
+content: |
+  If you want your PPO to prevent the Respondent from buying guns, the Respondent's birthdate is needed for the national law enforcement database. 
+
+  **Without including their date of birth, the Respondent could still buy guns.**
 ---
 id: petitioner other child birthdate
 question: |
