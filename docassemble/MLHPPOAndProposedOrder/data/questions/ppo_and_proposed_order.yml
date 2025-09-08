@@ -5985,12 +5985,8 @@ attachments:
         % else:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_birthdate: |
-        % if knows_respondents_birthdate: 
-        ${ other_parties[0].birthdate }
-        % else:
-        ${ other_parties[0].age } est.
-        % endif
+    - other_parties1_birthdate: ${ other_parties[0].birthdate }
+    - other_parties1_age: ${ other_parties[0].age } est.
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
     - other_parties1_weight: ${ other_parties[0].weight }
