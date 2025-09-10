@@ -1537,6 +1537,8 @@ if: other_parties[0].age_in_years() >= 18
 continue button field: edit_respondent_age
 question: |
   Respondent's date of birth
+subquestion: |
+  ${ collapse_template(respondent_dob) }
 terms:
   Respondent: |
     The Respondent is the person you want to be protected from.
@@ -1573,6 +1575,8 @@ if: other_parties[0].age_in_years() < 18 and not respondent_is_emancipated_minor
 continue button field: edit_respondent_age
 question: |
   Respondent's date of birth
+subquestion: |
+  ${ collapse_template(respondent_dob) }
 terms:
   Respondent: |
     The Respondent is the person you want to be protected from.
@@ -1621,6 +1625,8 @@ if: other_parties[0].age_in_years() < 18 and respondent_is_emancipated_minor
 continue button field: edit_respondent_age
 question: |
   Respondent's date of birth
+subquestion: |
+  ${ collapse_template(respondent_dob) }
 terms:
   Respondent: |
     The Respondent is the person you want to be protected from.
