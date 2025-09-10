@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docassemble.MLHPPOAndProposedOrder"
-version = "1.0.17"
+version = "1.0.18"
 description = "A Personal Protection Order for use in Michigan Courts"
 readme = "README.md"
 authors = [
