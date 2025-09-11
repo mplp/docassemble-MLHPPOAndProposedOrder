@@ -1,3 +1,8 @@
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
+
 [build-system]
 requires = [
     "setuptools>=80.9.0",
@@ -6,15 +11,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docassemble.MLHPPOAndProposedOrder"
-version = "1.0.17"
+version = "1.0.18"
 description = "A Personal Protection Order for use in Michigan Courts"
 readme = "README.md"
 authors = [
     { name = "Rami Lorca", email = "rami@lemmalegal.com" },
-]
-license = "MIT"
-license-files = [
-    "LICENSE",
 ]
 dependencies = []
 

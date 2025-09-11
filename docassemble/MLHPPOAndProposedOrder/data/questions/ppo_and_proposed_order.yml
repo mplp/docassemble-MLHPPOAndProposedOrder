@@ -2273,6 +2273,8 @@ content: |
 id: respondent birthdate
 question: |
   Respondent's date of birth
+subquestion: |
+  ${ collapse_template(respondent_dob) }
 fields:
   - Do you know the {Respondent}'s exact date of birth?: knows_respondents_birthdate
     datatype: yesnoradio
@@ -2289,6 +2291,14 @@ fields:
       variable: knows_respondents_birthdate
       is: False
     label above field: True
+---
+template: respondent_dob
+subject: |
+  Does it matter if I don't know the Respondent's date of birth?
+content: |
+  If you want your PPO to prevent the Respondent from buying guns, the Respondent's birthdate is needed for the national law enforcement database. 
+
+  **Without including their date of birth, the Respondent could still buy guns.**
 ---
 id: petitioner other child birthdate
 question: |
@@ -5975,11 +5985,17 @@ attachments:
         % else:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_birthdate: |
-        % if knows_respondents_birthdate: 
+    - other_parties1_birthdate: | 
+        % if knows_respondents_birthdate:
         ${ other_parties[0].birthdate }
         % else:
+        ${ '' }
+        % endif
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
         ${ other_parties[0].age } est.
+        % else:
+        ${ '' }
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6038,11 +6054,17 @@ attachments:
         % else:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_birthdate: |
-        % if knows_respondents_birthdate: 
+    - other_parties1_birthdate: | 
+        % if knows_respondents_birthdate:
         ${ other_parties[0].birthdate }
         % else:
+        ${ '' }
+        % endif
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
         ${ other_parties[0].age } est.
+        % else:
+        ${ '' }
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6069,6 +6091,10 @@ attachments:
         ${ other_parties_parents[1].address.line_two() }
     - other_parties_parents2_phone: |
         ${ phone_number_formatted(other_parties_parents[1].phone_number) }
+    # We are not currently including the respondent's parents' names to the service section of the 
+    # PDF templates. We are leaving the tag below in place, as well as the corresponding PDF template fields, 
+    # in case we decide to include them in the future.
+    # - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Personal Protection Order (Non-Domestic Relationship) - CC 380
@@ -6112,11 +6138,17 @@ attachments:
         % else:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_birthdate: |
-        % if knows_respondents_birthdate: 
+    - other_parties1_birthdate: | 
+        % if knows_respondents_birthdate:
         ${ other_parties[0].birthdate }
         % else:
+        ${ '' }
+        % endif
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
         ${ other_parties[0].age } est.
+        % else:
+        ${ '' }
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6174,11 +6206,17 @@ attachments:
         % else:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_birthdate: |
-        % if knows_respondents_birthdate: 
+    - other_parties1_birthdate: | 
+        % if knows_respondents_birthdate:
         ${ other_parties[0].birthdate }
         % else:
+        ${ '' }
+        % endif
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
         ${ other_parties[0].age } est.
+        % else:
+        ${ '' }
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6204,6 +6242,10 @@ attachments:
         ${ other_parties_parents[1].address.line_two() }
     - other_parties_parents2_phone_number: |
         ${ phone_number_formatted(other_parties_parents[1].phone_number) }
+    # We are not currently including the respondent's parents' names to the service section of the 
+    # PDF templates. We are leaving the tag below in place, as well as the corresponding PDF template fields, 
+    # in case we decide to include them in the future.
+    # - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Petition for Personal Protection Order (Non-Domestic Sexual Assault) - CC 395
@@ -6529,11 +6571,17 @@ attachments:
         % else:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_birthdate: |
-        % if knows_respondents_birthdate: 
+    - other_parties1_birthdate: | 
+        % if knows_respondents_birthdate:
         ${ other_parties[0].birthdate }
         % else:
+        ${ '' }
+        % endif
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
         ${ other_parties[0].age } est.
+        % else:
+        ${ '' }
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6589,11 +6637,17 @@ attachments:
         % else:
         ${ phone_number_formatted(other_parties[0].phone_number) }
         % endif
-    - other_parties1_birthdate: |
-        % if knows_respondents_birthdate: 
+    - other_parties1_birthdate: | 
+        % if knows_respondents_birthdate:
         ${ other_parties[0].birthdate }
         % else:
+        ${ '' }
+        % endif
+    - other_parties1_age: |
+        % if not knows_respondents_birthdate:
         ${ other_parties[0].age } est.
+        % else:
+        ${ '' }
         % endif
     - other_parties1_license_number: ${ other_parties[0].license_number }
     - other_parties1_height: ${ other_parties[0].height }
@@ -6619,6 +6673,10 @@ attachments:
         ${ other_parties_parents[1].address.line_two() }
     - other_parties_parents2_phone_number: |
         ${ phone_number_formatted(other_parties_parents[1].phone_number) }
+    # We are not currently including the respondent's parents' names to the service section of the 
+    # PDF templates. We are leaving the tag below in place, as well as the corresponding PDF template fields, 
+    # in case we decide to include them in the future.
+    # - other_parties1_parent_names: ${ comma_and_list(other_parties_parents) }
 ---
 attachments:
   name: Notice of Hearing
