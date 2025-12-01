@@ -7,6 +7,7 @@ A motion regarding change of domicile in Michigan
 * Rami Lorca
 
 ## Changelog:
+* 12/1/25  1.0.19 update embedded survey code; fix reference to how long forms are kept
 * 9/11/25  1.0.18 update forms and add info about new respondent DOB/age fields 
 * 8/11/25  1.0.17 add logs to show when document assembly starts
 * 7/23/25  1.0.16 add upload size limit, remove additional pages upload function, fix display of upload table
