@@ -4664,17 +4664,18 @@ review:
       % elif not exhibit_attachment.exhibits.has_exhibits:
       No
       % endif
-  - note: |
+  - Edit:
+      - exhibit_attachment.exhibits.revisit
+      - recompute:
+        - exhibit_attachment.table_of_contents
+    button: |
       **Uploaded Documents**
 
-      % if exhibit_attachment.exhibits.there_are_any:
+      % if exhibit_attachment.exhibits.number_gathered() > 0:
       ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
       % else:
       You have not uploaded any documents yet.
       % endif
-
-      ${ exhibit_attachment.exhibits.add_action() }
-
     css class: bg-secondary-subtle
     show if: exhibit_attachment.exhibits.has_exhibits
   - note: |
