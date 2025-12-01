@@ -50,11 +50,10 @@ setup(name='docassemble.MLHPPOAndProposedOrder',
       long_description_content_type='text/markdown',
       author='Rami Lorca',
       author_email='rami@lemmalegal.com',
-      license='MIT',
+      license='',
       url='https://michiganlegalhelp.org/resources/family/do-it-yourself-personal-protection-order',
       packages=find_namespace_packages(),
       install_requires=[],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/MLHPPOAndProposedOrder/', package='docassemble.MLHPPOAndProposedOrder'),
      )
-
