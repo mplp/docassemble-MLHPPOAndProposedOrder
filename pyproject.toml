@@ -1,3 +1,27 @@
 [build-system]
-requires = ["setuptools"]
+requires = [
+    "setuptools==80.9.0",
+]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "docassemble.MLHPPOAndProposedOrder"
+version = "0.0.0"
+description = "A Personal Protection Order for use in Michigan Courts"
+readme = "README.md"
+authors = [
+    { name = "Rami Lorca", email = "rami@lemmalegal.com" },
+]
+dependencies = []
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
+
+[project.urls]
+Homepage = "https://michiganlegalhelp.org/resources/family/do-it-yourself-personal-protection-order"
+
+[tool.setuptools.packages.find]
+where = [
+    ".",
+]
