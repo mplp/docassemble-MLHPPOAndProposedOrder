@@ -4895,8 +4895,6 @@ content: |
 ---
 event: resubmit_ETC
 code: |
-  signature_date = today()
-  
   resubmit_success = al_court_bundle.send_email(to=recipient, cc=contact_email, template=resubmit_clerk_email) 
   if resubmit_success:
     # Exact phrase below is in Docassemble's words dictionary
