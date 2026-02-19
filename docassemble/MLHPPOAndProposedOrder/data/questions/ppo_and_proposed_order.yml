@@ -825,11 +825,7 @@ code: |
   set_no_entering_residential_property = True
 ---
 code: |
-  if petitioner_is_minor and respondent_is_minor and (not respondent_is_emancipated_minor):
-    parent_choice = True
-    was_married_choice = False
-    married_choice = False
-  elif (not petitioner_is_minor) and respondent_is_minor and (not respondent_is_emancipated_minor):
+  if respondent_is_minor and (not respondent_is_emancipated_minor):
     parent_choice = False
     was_married_choice = False
     married_choice = False
@@ -2505,7 +2501,7 @@ fields:
   - note: |
       OK, you will fill out the forms to request a **Domestic** PPO.
     js show if: |
-      val("petitioner_respondent_relationship['married']") || val("petitioner_respondent_relationship['was_married']") || val("petitioner_respondent_relationship['have_child']") || val("petitioner_respondent_relationship['live_together']") || val("petitioner_respondent_relationship['dating']") || (val("petitioner_respondent_relationship['parent']") && ${ "false" if petitioner_is_minor and not petitioner_is_emancipated_minor else "true" } )
+      val("petitioner_respondent_relationship['married']") || val("petitioner_respondent_relationship['was_married']") || val("petitioner_respondent_relationship['have_child']") || val("petitioner_respondent_relationship['live_together']") || val("petitioner_respondent_relationship['dating']") || val("petitioner_respondent_relationship['parent']")
 under: |
   ${ collapse_template(what_if_no_domestic_relationship) }
 
@@ -2646,13 +2642,11 @@ event: petitioner_respondents_child_kickout
 question: |
   You cannot use this tool to request a PPO. Here are more options.
 subquestion: |
-  We're sorry, but you cannot use this tool to prepare a *Petition for a Personal Protection Order*. PPOs are not for problems between children and their parents. You can’t get a PPO against your parent unless you are an emancipated minor. 
+  We're sorry, but you cannot use this tool to prepare a *Petition for a Personal Protection Order*. PPOs are not for problems between children and their parents. You can’t get a PPO against your parent unless you are an emancipated minor. However, you can be protected from a parent by a PPO the court gives your **other parent**. 
 
-  You have options:
-  
-  * You can be protected from a parent by a PPO the court gives your **other parent**. 
-  * If you are being abused by a parent, contact [Children's Protecive Services](https://www.michigan.gov/mdhhs/adult-child-serv/abuse-neglect) at **855-444-3911**, or call your local police.
-  * **If you are in immediate danger, call 911.**
+  If you are a minor who is being abused by a parent, contact [Children's Protecive Services](https://www.michigan.gov/mdhhs/adult-child-serv/abuse-neglect) at **855-444-3911**, or call your local police.
+
+  **If you are in immediate danger, call 911.**
 
   If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
 ---
@@ -5820,7 +5814,6 @@ attachments:
     - petitioner_respondent_have_child: ${ petitioner_respondent_have_child }
     - petitioner_respondent_dating: ${ petitioner_respondent_dating }
     - petitioner_respondent_share_household: ${ petitioner_respondent_share_household }
-    - petitioner_is_minor: ${ petitioner_is_minor and not petitioner_is_emancipated_minor }
     - pending_actions_between_parties_yes: ${ pending_actions_between_parties_yes }
     - pending_actions_between_parties_no: ${ pending_actions_between_parties_no }
     - orders_judgments_re_parties_yes: ${ orders_judgments_re_parties_yes }
