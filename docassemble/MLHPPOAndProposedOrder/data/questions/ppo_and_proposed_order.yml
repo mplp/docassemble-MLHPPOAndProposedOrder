@@ -825,8 +825,12 @@ code: |
   set_no_entering_residential_property = True
 ---
 code: |
-  if respondent_is_minor and (not respondent_is_emancipated_minor):
+  if petitioner_is_minor and respondent_is_minor and (not respondent_is_emancipated_minor):
     parent_choice = True
+    was_married_choice = False
+    married_choice = False
+  elif (not petitioner_is_minor) and respondent_is_minor and (not respondent_is_emancipated_minor):
+    parent_choice = False
     was_married_choice = False
     married_choice = False
   elif (not petitioner_is_minor) and respondent_is_minor and respondent_is_emancipated_minor:
