@@ -10,7 +10,7 @@ version = "1.0.21"
 description = "A Personal Protection Order for use in Michigan Courts"
 readme = "README.md"
 authors = [
-    { name = "Rami Lorca", email = "rami@lemmalegal.com" },
+    { name = "Michigan Legal Help", email = "ekressmiller@lsscm.org" },
 ]
 dependencies = []
 license = "MIT"
