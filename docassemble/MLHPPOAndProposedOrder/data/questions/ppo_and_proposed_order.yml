@@ -4621,7 +4621,7 @@ subquestion: |
 
   Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
 
-  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
+  ${ action_button_html(url_ask([{'undefine': ['al_user_bundle._downloadable_files', 'al_user_bundle.generate_downloads_task']}, 'review_full']), label='✎ Review / Edit', color='info', size="md") }
 
   ${ al_user_bundle.download_list_html(use_previously_cached_files=True, include_full_pdf=True) }
 
