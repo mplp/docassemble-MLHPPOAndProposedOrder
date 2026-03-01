@@ -356,6 +356,7 @@ code: |
     exhibit_attachment.exhibits.gather()
 
   nav.set_section("review_get_forms_info")
+  al_user_bundle.generate_downloads_task
   if ETC_county_status == "optional":
     ETC_optional_info
   elif ETC_county_status == "required":
@@ -380,12 +381,16 @@ code: |
     MLH_outro_filing_information
     have_patience_download
     snapshot_download
-    log('PPO MLH_download: starting to assemble PPO documents')
+    if not al_user_bundle.generate_downloads_task.ready():
+      al_download_waiting_screen
+    log('PPO MLH_download: using background-assembled PPO documents')
     MLH_download
   else: 
     have_patience_download
     snapshot_download
-    log('PPO ETC_review_docs_screen: starting to assemble PPO documents')
+    if not al_user_bundle.generate_downloads_task.ready():
+      al_download_waiting_screen
+    log('PPO ETC_review_docs_screen: using background-assembled PPO documents')
     ETC_review_docs_screen
     ETC_review_exhibits
     reset_exhibit_TOC
@@ -4616,9 +4621,9 @@ subquestion: |
 
   Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
 
-  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
+  ${ action_button_html(url_ask([{'undefine': ['al_user_bundle._downloadable_files', 'al_user_bundle.generate_downloads_task']}, 'review_full']), label='✎ Review / Edit', color='info', size="md") }
 
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True, include_full_pdf=True) }
 
   ${ collapse_template(email_to_self_option) }
 

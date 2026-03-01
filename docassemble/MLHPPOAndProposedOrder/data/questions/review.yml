@@ -6,7 +6,7 @@ features:
   css: docassemble.demo:data/static/accordion.css
 ---
 id: personal protection order review screen
-event: review_full
+continue button field: review_full
 question: |
   Review your answers
 review:
