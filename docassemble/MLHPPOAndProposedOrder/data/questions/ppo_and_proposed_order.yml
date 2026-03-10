@@ -1075,6 +1075,10 @@ code: |
   orders_judgments[i].court_county
   orders_judgments[i].court_state
   orders_judgments[i].judge
+  if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction:
+    if i == 0:
+      orders_judgments[i].incident_multiple_dates
+
   orders_judgments[i].complete = True
 ---
 code: |
@@ -3448,12 +3452,12 @@ fields:
     required: False
 ---
 id: orders_judgments docket number sexual assault conviction
-if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or   (petitioner_is_minor and obscene_material_conviction))
+if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction))
 sets:
   - orders_judgments[0].docket_number
 question: |
   % if respondent_sexual_assault_conviction:
-  Sexual assault conviction case number
+  Sexual assault conviction case number & incident information
   % else:
   Obscene material conviction case number
   % endif
@@ -3462,6 +3466,19 @@ subquestion: |
 fields:
   - Enter the case number for the conviction: orders_judgments[0].docket_number
     required: False
+  - Did the incident(s) happen on multiple dates?: orders_judgments[0].incident_multiple_dates
+    datatype: yesnoradio
+  - Enter the **first** date the incident(s) happened: orders_judgments[0].incident_start_date
+    datatype: date
+    js show if: |
+      val('orders_judgments[0].incident_multiple_dates') == true || val('orders_judgments[0].incident_multiple_dates') == false
+  - Enter the **last** date the incident(s) happened: orders_judgments[0].incident_end_date
+    datatype: date
+    show if:
+      variable: orders_judgments[0].incident_multiple_dates
+      is: True
+  - Describe the incident: orders_judgments[0].incident_description
+    datatype: area
 ---
 id: orders_judgments court and county
 question: |
@@ -3506,6 +3523,29 @@ question: |
 fields:
   - Judge name: orders_judgments[i].judge
     required: False
+---
+# id: orders_judgments SA conviction details
+# if: ppo_type == "nondomestic_sexual_assault" and (respondent_sexual_assault_conviction or (petitioner_is_minor and obscene_material_conviction))
+# sets:
+#   - orders_judgments[0].incident_multiple_dates
+# question: | 
+#   Enter additional details about this conviction
+# subquestion: |
+#   We need to gather more information about the incident(s) that led to this sexual assault conviction.
+# fields:
+#   - Did the incident(s) happen on multiple dates?: orders_judgments[0].incident_multiple_dates
+#     datatype: yesnoradio
+#   - Enter the **first** date the incident(s) happened: orders_judgments[0].incident_start_date
+#     datatype: date
+#     js show if: |
+#       val('orders_judgments[0].incident_multiple_dates') == true || val('orders_judgments[0].incident_multiple_dates') == false
+#   - Enter the **last** date the incident(s) happened: orders_judgments[0].incident_end_date
+#     datatype: date
+#     show if:
+#       variable: orders_judgments[0].incident_multiple_dates
+#       is: True
+#   - Describe the incident: orders_judgments[0].incident_description
+#     datatype: area
 ---
 id: orders_judgments there_is_another
 question: |
