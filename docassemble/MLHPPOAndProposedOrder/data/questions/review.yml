@@ -1086,6 +1086,8 @@ review:
   - raw html: |
       ${ end_accordion() }
     show if: is_incapacitated_adult or not is_incapacitated_adult
+validation code: |
+  undefine('al_user_bundle._downloadable_files', 'al_user_bundle.generate_downloads_task')
 ---
 if: len(exhibit_attachment.exhibits) > 1
 generic object: ALExhibitList

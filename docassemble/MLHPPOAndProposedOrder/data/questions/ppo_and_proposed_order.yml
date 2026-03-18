@@ -356,7 +356,6 @@ code: |
     exhibit_attachment.exhibits.gather()
 
   nav.set_section("review_get_forms_info")
-  al_user_bundle.generate_downloads_task
   if ETC_county_status == "optional":
     ETC_optional_info
   elif ETC_county_status == "required":
@@ -376,7 +375,8 @@ code: |
     else:
       if MLH_esign:
         signature_date
-       
+
+  al_user_bundle.generate_downloads_task
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
     have_patience_download
@@ -401,12 +401,16 @@ code: |
     if clerk_email_sent_ok:
       snapshot_ETC
       email_status_sent
-      log('PPO ETC_success: starting to assemble PPO documents')
+      if not al_user_bundle.generate_downloads_task.ready():
+        al_download_waiting_screen
+      log('PPO ETC_success: using background-assembled PPO documents')
       ETC_success
     else:
       snapshot_ETC
       email_status_failed
-      log('PPO ETC_error (not sent): starting to assemble PPO documents')
+      if not al_user_bundle.generate_downloads_task.ready():
+        al_download_waiting_screen
+      log('PPO ETC_error (not sent): using background-assembled PPO documents')
       ETC_error
 
   interview_ppo_and_proposed_order = True
@@ -4879,7 +4883,7 @@ subquestion: |
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy unless you resubmit your forms to the court.
 
   <h2 class="h3">Download, e-mail, or resubmit your ${ MLH_form_type }</h2>
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True, include_full_pdf=True) }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
@@ -4942,7 +4946,7 @@ subquestion: |
   Tap **${ MLH_back_button_label }** to try again. You can also download your forms below. 
 
   <h2 class="h3">Download or e-mail your ${ MLH_form_type }</h2>
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True, include_full_pdf=True) }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
