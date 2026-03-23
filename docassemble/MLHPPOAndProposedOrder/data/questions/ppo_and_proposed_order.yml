@@ -352,9 +352,6 @@ code: |
     if wants_ex_parte_order:
       ex_parte_yes_screen
 
-  if exhibit_attachment.exhibits.has_exhibits:
-    exhibit_attachment.exhibits.gather()
-
   nav.set_section("review_get_forms_info")
   if ETC_county_status == "optional":
     ETC_optional_info
@@ -376,6 +373,9 @@ code: |
       if MLH_esign:
         signature_date
 
+  if exhibit_attachment.exhibits.has_exhibits:
+    exhibit_attachment.exhibits.gather()
+
   al_user_bundle.generate_downloads_task
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
@@ -392,8 +392,6 @@ code: |
       al_download_waiting_screen
     log('PPO ETC_review_docs_screen: using background-assembled PPO documents')
     ETC_review_docs_screen
-    ETC_review_exhibits
-    reset_exhibit_TOC
     clerk_email_prep
     if ETC_county_status == "optional":
       ETC_esign
@@ -2099,6 +2097,10 @@ subquestion: |
 
   % if is_incapacitated_adult:
   You **must** upload a copy of either the **guardianship order or Power of Attorney** that gives you authority to file for the petitioner.
+  % endif
+
+  % if county_choice != "Oakland" and not wants_ex_parte_order:
+  You need to fill out and upload the *Notice of Hearing CC-381*. Review Step 1 of the Instructions to learn how to fill it out. (Tap **${ MLH_back_button_label }** if you need to download the *Notice of Hearing* or the Instructions.)
   % endif
 
   % elif ETC_county_status == "optional":
@@ -4657,45 +4659,6 @@ content: |
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
   This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **I want to file now by e-mail** button below.
----
-continue button field: ETC_review_exhibits
-id: exhibit review for ETC optional counties
-question: |
-  Have you attached all the documents you want the judge to see?
-review:
-  - note: |
-      Review your answers below and add any documents you want the judge to see (starting with the oldest). 
-
-      % if county_choice != "Oakland" and not wants_ex_parte_order:
-      You need to fill out and upload the *Notice of Hearing CC-381*. Review Step 1 of the Instructions to learn how to fill it out. (Tap **${ MLH_back_button_label }** if you need to download the *Notice of Hearing* or the Instructions.)
-      % endif
-  - Edit:
-      - exhibit_attachment.exhibits.has_exhibits
-    button: |
-      **Do you have documents you want the judge to see?**:
-
-      % if exhibit_attachment.exhibits.has_exhibits:
-      Yes
-      % elif not exhibit_attachment.exhibits.has_exhibits:
-      No
-      % endif
-  - note: |
-      **Uploaded Documents**
-
-      % if exhibit_attachment.exhibits.there_are_any:
-      ${ collapse_template(exhibit_attachment.exhibits.in_progress_exhibits) }
-      % else:
-      You have not uploaded any documents yet.
-      % endif
-
-      ${ exhibit_attachment.exhibits.add_action() }
-
-    css class: bg-secondary-subtle
-    show if: exhibit_attachment.exhibits.has_exhibits
-  - note: |
-      ${ collapse_template(no_documents) }
-      ${ collapse_template(paper_documents) }
-      ${ collapse_template(audiovisual_evidence) }
 ---
 template: wait_to_file_help
 subject: |
