@@ -689,8 +689,10 @@ review:
       * County: ${ item.court_county }
       * State: ${ item.court_state }
       * Judge: ${ item.judge }
-
-
+      % if ppo_type == "nondomestic_sexual_assault" and respondent_sexual_assault_conviction and loop.index == 0:
+      * What led to the conviction: ${item.incident_description}
+      * Anything else respondent did that makes you afraid: ${item.additional_factors}
+      % endif
       % endfor
       % else:
       % if ppo_type == "nondomestic_sexual_assault":
