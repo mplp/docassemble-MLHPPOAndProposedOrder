@@ -7,6 +7,7 @@ A motion regarding change of domicile in Michigan
 * Rami Lorca
 
 ## Changelog:
+* 4/3/26   1.0.22 adjust emails to clarify when e-filing or not
 * 2/19/26  1.0.21 fix bug with checkbox on cc 375m
 * 2/11/26  1.0.20 update signature date upon Resubmit of forms emailed to court
 * 12/1/25  1.0.19 update embedded survey code; fix reference to how long forms are kept
