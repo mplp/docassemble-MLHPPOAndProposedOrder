@@ -3438,7 +3438,7 @@ id: orders_judgments docket number
 sets:
   - orders_judgments[i].docket_number
 question: |
-  Court order or judgment's case number
+  ${ capitalize(ordinal(i)) } court order or judgment's case number
 subquestion: |
   Leave blank if unknown.
 fields:
@@ -3453,12 +3453,18 @@ question: |
   % if respondent_sexual_assault_conviction:
   Sexual assault conviction case number & incident information
   % else:
-  Obscene material conviction case number
+  Obscene material conviction case number & incident information
   % endif
 fields:
   - Enter the case number for the conviction (if known): orders_judgments[0].docket_number
     required: False
-  - Please explain what ${other_parties[0]} did that led to the sexual assault conviction. Include a date or timeframe.: orders_judgments[0].incident_description
+  - field: orders_judgments[0].incident_description
+    label: |
+      % if respondent_sexual_assault_conviction:
+      Please explain what ${other_parties[0]} did that led to the sexual assault conviction. Include a date or timeframe.
+      % else:
+      Please explain what ${other_parties[0]} did that led to the obscene material conviction. Include a date or timeframe.
+      % endif
     datatype: area
   - "If ${other_parties[0]} has done anything else that makes you fear for your safety, please explain. (For example, contacting you after their conviction, threatening you, etc.)": orders_judgments[0].additional_factors
     datatype: area
@@ -3466,7 +3472,7 @@ fields:
 ---
 id: orders_judgments court and county
 question: |
-  Court and judge
+  Court and judge for ${ ordinal(i) } court order or judgment
 subquestion: |
   Enter the name of the court and county where the case was filed, and the judge's name. Leave blank if unknown.
 fields:
@@ -5178,9 +5184,7 @@ code: |
 ---
 code: |
   if ppo_type == "domestic" and \
-  (pending_actions_between_parties_yes or \
-  orders_judgments_re_parties_yes or \
-  len(ppo_harm_protectees_list.complete_elements()) > 1 or \
+  (len(ppo_harm_protectees_list.complete_elements()) > 1 or \
   len(ppo_threat_protectees_list.complete_elements()) > 1 or \
   wants_other_request or \
   len(other_properties.complete_elements()) > 0):
@@ -5189,16 +5193,14 @@ code: |
     cc_375_attachment.enabled = False
 ---
 code: |
-  if ppo_type == "nondomestic" and (pending_actions_between_parties_yes or orders_judgments_re_parties_yes or wants_other_request):
+  if ppo_type == "nondomestic" and wants_other_request:
     cc_377_attachment.enabled = True
   else:
     cc_377_attachment.enabled = False
 ---
 code: |
   if ppo_type == "nondomestic_sexual_assault" and \
-  (pending_actions_between_parties_yes or \
-  orders_judgments_re_parties_yes or \
-  len(ppo_sexual_assault_threat_protectees_list) > 1 or \
+  (len(ppo_sexual_assault_threat_protectees_list) > 1 or \
   wants_other_request or \
   len(other_properties.complete_elements()) > 0):
     cc_395_attachment.enabled = True
