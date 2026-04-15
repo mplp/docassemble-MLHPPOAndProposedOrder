@@ -4651,9 +4651,9 @@ template: email_to_self_option
 subject: |
   Want to email these forms to yourself or someone you trust?
 content: |
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  This **does not file your forms** with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **I want to file now by e-mail** button below.
 
-  This does **not** file your forms with the court. This is to send a copy to yourself or someone you trust. To file with the court, tap the **I want to file now by e-mail** button below.
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 ---
 continue button field: ETC_review_exhibits
 id: exhibit review for ETC optional counties
@@ -4798,18 +4798,19 @@ code: |
 code: |
   ETC_submitted_county = county_choice
 ---
+# note if subject line of email changes, must update id: "email to self email"
 template: clerk_email
 subject: |
   % if len(next_friends.complete_elements()) > 0:
-  PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
+  E-filing: PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
   % else:
-  PPO Petition by ${ users[0] }
+  E-filing: PPO Petition by ${ users[0] }
   % endif
 content: |
   % if len(next_friends.complete_elements()) > 0:
-  ${ next_friends[0] } (next friend for ${ users[0] }) is filing a PPO petition via MLH-forms.
+  ${ next_friends[0] } (next friend for ${ users[0] }) is e-filing a PPO petition via MLH-forms.
   % else:
-  ${ users[0] } is filing a PPO petition via MLH-Forms.
+  ${ users[0] } is e-filing a PPO petition via MLH-Forms.
   % endif
 
   Petitioner contact information: ${ contact_email }
@@ -4920,9 +4921,9 @@ code: |
 template: resubmit_clerk_email
 subject: |
   % if len(next_friends.complete_elements()) > 0:
-  Resubmitted PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
+  Resubmitted E-filing: PPO Petition by ${ next_friends[0] }, next friend for ${ users[0] }
   % else:
-  Resubmitted PPO Petition by ${ users[0] }
+  Resubmitted E-filing: PPO Petition by ${ users[0] }
   % endif
 content: |
   % if len(next_friends.complete_elements()) > 0:
@@ -4958,12 +4959,17 @@ code: |
   reconsider('snapshot_interview_state')
   snapshot_ETC = True
 ---
+id: email to self email
 generic object: ALDocumentBundle
 template: x.send_email_template
 subject: |
   Your Personal Protection Order petition documents are ready
 content: |
-  The documents you'll need to ask the court for a Personal Protection Order are attached.
+  The documents you'll need to ask the court for a Personal Protection Order are attached. 
+  
+  % if ETC_county_status in ["optional", "required"]:
+  Please note: This email is **NOT** confirmation of e-filing. If you e-file, you should get a separate confirmation email with subject line *"${word(f"E-filing: PPO Petition by { next_friends[0] }, next friend for { users[0] }") if len(next_friends.complete_elements()) > 0 else word(f"E-filing: PPO Petition by { users[0] }")}".* To e-file, please return to the PPO tool, tap "I want to file now by e-mail", and follow the directions. If you logged in when creating your forms, you can [find your saved work here](https://forms.michiganlegalhelp.org/user/sign-in?next=https://forms.michiganlegalhelp.org/interviews).
+  % endif
 ---
 #################### Documents Start #####################
 ---
