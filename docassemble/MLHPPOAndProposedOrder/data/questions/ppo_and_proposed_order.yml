@@ -375,17 +375,22 @@ code: |
     else:
       if MLH_esign:
         signature_date
-       
+
+  al_user_bundle.generate_downloads_task
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
     have_patience_download
     snapshot_download
-    log('PPO MLH_download: starting to assemble PPO documents')
+    if not al_user_bundle.generate_downloads_task.ready():
+      al_download_waiting_screen
+    log('PPO MLH_download: using background-assembled PPO documents')
     MLH_download
   else: 
     have_patience_download
     snapshot_download
-    log('PPO ETC_review_docs_screen: starting to assemble PPO documents')
+    if not al_user_bundle.generate_downloads_task.ready():
+      al_download_waiting_screen
+    log('PPO ETC_review_docs_screen: using background-assembled PPO documents')
     ETC_review_docs_screen
     ETC_review_exhibits
     reset_exhibit_TOC
@@ -396,12 +401,16 @@ code: |
     if clerk_email_sent_ok:
       snapshot_ETC
       email_status_sent
-      log('PPO ETC_success: starting to assemble PPO documents')
+      if not al_user_bundle.generate_downloads_task.ready():
+        al_download_waiting_screen
+      log('PPO ETC_success: using background-assembled PPO documents')
       ETC_success
     else:
       snapshot_ETC
       email_status_failed
-      log('PPO ETC_error (not sent): starting to assemble PPO documents')
+      if not al_user_bundle.generate_downloads_task.ready():
+        al_download_waiting_screen
+      log('PPO ETC_error (not sent): using background-assembled PPO documents')
       ETC_error
 
   interview_ppo_and_proposed_order = True
@@ -4622,9 +4631,9 @@ subquestion: |
 
   Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
 
-  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
+  ${ action_button_html(url_ask([{'undefine': ['al_user_bundle._downloadable_files', 'al_user_bundle.generate_downloads_task']}, 'review_full']), label='✎ Review / Edit', color='info', size="md") }
 
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True, include_full_pdf=True) }
 
   ${ collapse_template(email_to_self_option) }
 
@@ -4881,7 +4890,7 @@ subquestion: |
   You can download your forms or email them to yourself. Any edits you make now will **not** be on the court's copy unless you resubmit your forms to the court.
 
   <h2 class="h3">Download, e-mail, or resubmit your ${ MLH_form_type }</h2>
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True, include_full_pdf=True) }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
@@ -4944,7 +4953,7 @@ subquestion: |
   Tap **${ MLH_back_button_label }** to try again. You can also download your forms below. 
 
   <h2 class="h3">Download or e-mail your ${ MLH_form_type }</h2>
-  ${ al_user_bundle.download_list_html() }
+  ${ al_user_bundle.download_list_html(use_previously_cached_files=True, include_full_pdf=True) }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
