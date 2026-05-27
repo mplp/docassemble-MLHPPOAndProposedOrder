@@ -1,3 +1,7 @@
+---
+translations:
+  - ppo_translation_es.xlsx
+---
 include:
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.mlhframework:mlh_interview_framework.yml
@@ -39,8 +43,21 @@ sections:
   - review_get_forms_info: "Get Your Forms"
   - review_full: "✎ <u>Review / Edit</u>"
 ---
+language: es
+sections:
+  - signpost_intro: "Inicio"
+  - review_petitioner_info: "Información del peticionario"
+  - review_respondent_info: "Información del demandado"
+  - review_abuse_history_info: "Antecedentes de abuso"
+  - review_what_you_want_in_ppo_info: "Que quiere incluir en la PPO"
+  - review_get_forms_info: "Obtenga sus formularios"
+  - review_full: "✎ <u>Revisar / Editar</u>"
+---
 code: |
   al_form_type = "other_form"
+---
+code: |
+  al_interview_languages = ["en", "es"] 
 ---
 id: interview config code block
 code: |
