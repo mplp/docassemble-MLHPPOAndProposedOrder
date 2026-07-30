@@ -59,6 +59,21 @@ code: |
 code: |
   al_interview_languages = ["en", "es"] 
 ---
+initial: true
+code: |
+  if get_language() == "es":
+    MLH_continue_button_label = "Continuar"
+    MLH_back_button_label = "Deshacer"
+  else:
+    MLH_continue_button_label = "Continue"
+    MLH_back_button_label = "Undo"
+
+  set_parts(
+    continue_button_label=MLH_continue_button_label,
+    back_button_label=MLH_back_button_label,
+    corner_back_button_label=MLH_back_button_label,
+  )
+---
 id: interview config code block
 code: |
   github_repo_name = 'docassemble-MLHPPOAndProposedOrder' if get_config('debug') else 'docassemble-UserFeedback'
