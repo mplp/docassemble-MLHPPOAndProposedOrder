@@ -3106,7 +3106,7 @@ content: |
   First we ask who gave birth to ${ children[i].familiar() } because that person is usually a legal parent. It also helps us make follow-up questions a little simpler.
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "petitioner"
-id: child paternity
+id: child paternity birth parent is petitioner
 terms:
   parentage: |
     Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
@@ -3189,7 +3189,7 @@ fields:
       is: by_adoption
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "respondent"
-id: child paternity
+id: child paternity birth parent is respondent
 terms:
   parentage: |
     Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
