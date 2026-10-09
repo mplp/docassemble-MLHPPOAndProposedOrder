@@ -7,7 +7,6 @@ A motion regarding change of domicile in Michigan
 * Rami Lorca
 
 ## Changelog:
-* 10/9/26  1.0.24 update Oakland instructions; update button labels for translation
 * 4/15/26  1.0.23 updates to sexual assault PPO conviction questions; move other case history to Statement of Facts; minor improvements
 * 4/3/26   1.0.22 adjust emails to clarify when e-filing or not
 * 2/19/26  1.0.21 fix bug with checkbox on cc 375m
