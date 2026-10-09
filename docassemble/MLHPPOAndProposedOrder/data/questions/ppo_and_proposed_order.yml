@@ -1191,7 +1191,7 @@ subquestion: |
 
   You said you are 17. This means you will need to file your forms **before you turn 18.** After you turn 18, you will need to start over from the beginning to get updated forms.
 
-  If you plan to wait until you turn 18 to file, use the **${ MLH_back_button_label }** button and list your age as 18 instead.
+  If you plan to wait until you turn 18 to file, use the **${word(MLH_back_button_label)}** button and list your age as 18 instead.
 ---
 id: respondent 17 age warning
 if: other_parties[0].age_in_years() == 17
@@ -1901,7 +1901,7 @@ subquestion: |
 
   Unless you have a guardianship or a power of attorney, you can’t file on behalf of another adult. 
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer.
 ---
 id: inconsistent age kickout
 event: inconsistent_age_kickout
@@ -1910,7 +1910,7 @@ question: |
 subquestion: |
   You previously said you were filling out this form on behalf of an **adult**, but you entered an age younger than 18 for ${ users[0] }.
 
-  Please start over or use the **${ MLH_back_button_label }** button to go back and change your answers.
+  Please start over or use the **${word(MLH_back_button_label)}** button to go back and change your answers.
 ---
 id: continue as next friend for incapacitated adult
 question: |
@@ -1992,7 +1992,7 @@ subquestion: |
 
   Because you are under 18 and not emancipated, you must have a next friend file your petition for you. 
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
 id: minor_respondent_kickout
 event: minor_respondent_kickout
@@ -2001,7 +2001,7 @@ question: |
 subquestion: |
   We're sorry, but you cannot use this tool to prepare a *Petition for Personal Protection Order*. Under Michigan law, you can't get a personal protection order against someone who is younger than 10 years old.
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to change your answer. To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/self-help-tools/personal-safety/minors-and-personal-protection-orders).
 ---
 id: next friend agrees to role
 question: |
@@ -2027,7 +2027,7 @@ subquestion: |
 
   If ${ users[0] } wants to continue preparing PPO forms, they will need to find another adult who is willing to act as their next friend.
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer.
 ---
 id: next friend agrees to sign
 question: |
@@ -2509,7 +2509,7 @@ subquestion: |
   
   Read the article [Overview of Personal Protection Orders ](https://michiganlegalhelp.org/resources/personal-safety/overview-of-personal-protection-orders) to learn about different kinds of PPOs.
 
-  Tap the **${ MLH_back_button_label }** button to go back and change your answers if one of the PPO types applies to you. Otherwise, return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal resources.
+  Tap the **${word(MLH_back_button_label)}** button to go back and change your answers if one of the PPO types applies to you. Otherwise, return to [Michigan Legal Help](https://michiganlegalhelp.org) for other legal resources.
 ---
 reconsider: relationship_choices
 id: relationship to respondent
@@ -2533,7 +2533,7 @@ template: what_if_no_domestic_relationship
 subject: |
   What if none of these options apply?
 content: |
-  First, carefully read all the options. If none of the options apply, select "None of the above." Then tap **Continue** to see if you can request a different type of PPO.
+  First, carefully read all the options. If none of the options apply, select "None of the above." Then tap **${word(MLH_continue_button_label)}** to see if you can request a different type of PPO.
 ---
 id: domestic petition double check
 continue button field: domestic_petition_double_check
@@ -2548,7 +2548,7 @@ subquestion: |
   * had a child with the respondent?
   * been married to the respondent?
 
-  If **any** of these apply to you, tap **${ MLH_back_button_label }** and check one or more boxes.
+  If **any** of these apply to you, tap **${word(MLH_back_button_label)}** and check one or more boxes.
 under: |
   ${ collapse_template(why_checking_domestic) }
 
@@ -2636,7 +2636,7 @@ question: |
 subquestion: |
   Based on your answers, you can't use this tool to prepare a *Petition for Personal Protection Order*. If you do not know the county of residence for a respondent who is a minor, there are complicated legal issues that you will need a lawyer to help you with. Use the [Guide to Legal Help](https://michiganlegalhelp.org/guide-to-legal-help) to find a lawyer or legal services in your area.
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer.
 ---
 template: unknown_minor_respondent_county
 subject: |
@@ -2657,7 +2657,7 @@ subquestion: |
 
   To learn more, read [Minors and Personal Protection Orders](https://michiganlegalhelp.org/resources/personal-safety/minors-and-personal-protection-orders).
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer.
 ---
 id: petitioner is unemancipated minor child of respondent kickout
 event: petitioner_respondents_child_kickout
@@ -2672,7 +2672,7 @@ subquestion: |
   * If you are being abused by a parent, contact [Children's Protecive Services](https://www.michigan.gov/mdhhs/adult-child-serv/abuse-neglect) at **855-444-3911**, or call your local police.
   * **If you are in immediate danger, call 911.**
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer.
 ---
 id: safe_contact_info_notice
 question: |
@@ -2875,7 +2875,7 @@ question: |
 subquestion: |
   Either the Respondent's **address** or **phone number** must be provided in order to inform them of your petition for a protection order.
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer.
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer.
 ---
 id: is there parental info for respondent
 question: |
@@ -3123,7 +3123,7 @@ content: |
   First we ask who gave birth to ${ children[i].familiar() } because that person is usually a legal parent. It also helps us make follow-up questions a little simpler.
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "petitioner"
-id: child paternity
+id: child paternity birth parent is petitioner
 terms:
   parentage: |
     Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
@@ -3206,7 +3206,7 @@ fields:
       is: by_adoption
 ---
 if: not children[i].parties_married_when_born and not children[i].unmarried_adoption and children[i].birthing_parent == "respondent"
-id: child paternity
+id: child paternity birth parent is respondent
 terms:
   parentage: |
     Establishing "parentage" makes someone a legal parent. This is sometimes also called **paternity**.
@@ -3650,7 +3650,7 @@ fields:
   - note: |
         Please add a **date or timeframe** to your explanation above. ${ incident_date_explained }
 
-        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**.
+        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${word(MLH_continue_button_label)}**.
     show if:
       variable: dates_check
       is: False
@@ -3728,7 +3728,7 @@ fields:
   - note: |
         Please add a **date or timeframe** to your explanation above. ${ incident_date_explained }
 
-        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${MLH_continue_button_label}**.
+        Once you add a date or timeframe, update your answer to the last question above to "Yes". Then tap **${word(MLH_continue_button_label)}**.
     show if:
       variable: dates_check
       is: False
@@ -3787,7 +3787,7 @@ subquestion: |
   
   If you need to add a conviction:
   
-  * tap **${MLH_continue_button_label}** below, and 
+  * tap **${word(MLH_continue_button_label)}** below, and 
   * tap **Court Orders and Judgments** on the next screen.
   % endif
 ---
@@ -4205,7 +4205,7 @@ subquestion: |
     2. you do not have a property interest in the home, **and**
     3. ${ other_parties[0].name } has a property interest in the home.
 
-  If you made a mistake, tap the **${ MLH_back_button_label }** button to go back and change your answer. Otherwise, tap Continue to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
+  If you made a mistake, tap the **${word(MLH_back_button_label)}** button to go back and change your answer. Otherwise, tap **${word(MLH_continue_button_label)}** to continue selecting things you want your PPO to prohibit ${ other_parties[0].name } from doing.
 continue button field: cannot_prohibit_respondent_entering_property
 ---
 id: wants no entering other property
@@ -4681,7 +4681,7 @@ review:
       Review your answers below and add any documents you want the judge to see (starting with the oldest). 
 
       % if county_choice != "Oakland" and not wants_ex_parte_order:
-      You need to fill out and upload the *Notice of Hearing CC-381*. Review Step 1 of the Instructions to learn how to fill it out. (Tap **${ MLH_back_button_label }** if you need to download the *Notice of Hearing* or the Instructions.)
+      You need to fill out and upload the *Notice of Hearing CC-381*. Review Step 1 of the Instructions to learn how to fill it out. (Tap **${word(MLH_back_button_label)}** if you need to download the *Notice of Hearing* or the Instructions.)
       % endif
   - Edit:
       - exhibit_attachment.exhibits.has_exhibits
@@ -4839,7 +4839,7 @@ continue button field: have_patience_download
 question: |
   Almost done
 subquestion: |
-  After you tap **${MLH_continue_button_label}**, it may take a few minutes to finish making your forms.
+  After you tap **${word(MLH_continue_button_label)}**, it may take a few minutes to finish making your forms.
 
   You **do not** need to refresh your screen. Hang in there!
 ---
@@ -4860,7 +4860,7 @@ subquestion: |
 
   Changes made to answers in this program **will not** appear on the court's copy of your forms unless you resubmit them to the court.
 
-  To get a copy of your forms or instructions, or if you need to resubmit your forms to the court, tap **${MLH_continue_button_label}**. 
+  To get a copy of your forms or instructions, or if you need to resubmit your forms to the court, tap **${word(MLH_continue_button_label)}**. 
 under: |
   It may **take a few minutes** to get to the next screen. You do not need to refresh.
 
@@ -4873,9 +4873,9 @@ question: |
 subquestion: |
   There was an error with our email system. **Your forms were NOT sent to the court.**
 
-  Tap **${ MLH_back_button_label }** to return to the Submit page and try again. 
+  Tap **${word(MLH_back_button_label)}** to return to the Submit page and try again. 
 
-  Or tap "Continue" to download your forms.
+  Or tap **${word(MLH_continue_button_label)}** to download your forms.
 under: |
   It may **take a few minutes** to get to the next screen. You do not need to refresh.
 
@@ -4958,7 +4958,7 @@ question: |
 subquestion: |
   **Your forms were NOT sent to the court.**
 
-  Tap **${ MLH_back_button_label }** to try again. You can also download your forms below. 
+  Tap **${word(MLH_back_button_label)}** to try again. You can also download your forms below. 
 
   <h2 class="h3">Download or e-mail your ${ MLH_form_type }</h2>
   ${ al_user_bundle.download_list_html() }
