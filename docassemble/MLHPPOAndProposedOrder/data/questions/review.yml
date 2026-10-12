@@ -1686,6 +1686,7 @@ fields:
     none of the above: False
     code: |
       relationship_choices
+    minlength: 1
 under: |
   ${ collapse_template(what_if_no_domestic_relationship_review) }
 
