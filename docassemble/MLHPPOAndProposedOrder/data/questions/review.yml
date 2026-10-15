@@ -17,7 +17,7 @@ review:
       ${ review_empty_explainer }
       % endif
   - raw html: |
-      ${ start_accordion('<h2 class="h5">Petitioner (you)</h2>') }
+      ${ start_accordion('<h2>Petitioner (you)</h2>') }
     show if: is_incapacitated_adult or not is_incapacitated_adult
   - note: |
       A **guardian or someone with a power of attorney** is filing on behalf of ${ users[0] }. *(If you need to change this, please start over from the beginning.)*
@@ -93,7 +93,7 @@ review:
       **Next Friend:**  ${ next_friends[0] }
     show if: next_friends.there_are_any
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Respondent</h2>') }
+      ${ next_accordion('<h2>Respondent</h2>') }
     show if: respondent_lives_in_michigan or not respondent_lives_in_michigan
   - note: |
       The respondent is an **emancipated** minor. *(If you need to change this, please start over from the beginning.)*
@@ -268,7 +268,7 @@ review:
 
       ${ word(yesno(respondent_lives_in_michigan)) }
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Children</h2>') }
+      ${ next_accordion('<h2>Children</h2>') }
     show if: (petitioner_respondent_have_child and (len(children.complete_elements()) > 0)) or defined('petitioner_has_other_children')
   - Edit: 
       - children.revisit
@@ -488,7 +488,7 @@ review:
   - note: |
       % if defined('petitioner_has_other_children'):
       <hr>
-      <h2 class='h5'>Other Children Living with You</h2>
+      <h2>Other Children Living with You</h2>
       % endif
   - Edit: petitioner_has_other_children
     button: |
@@ -516,7 +516,7 @@ review:
   - note: |
       % if defined('respondent_has_other_children'):
       <hr>
-      <h2 class='h5'>Other Children Living with ${ other_parties[0] }</h2>
+      <h2>Other Children Living with ${ other_parties[0] }</h2>
       % endif
   - Edit: 
       - respondent_has_other_children
@@ -553,7 +553,7 @@ review:
 
       % endfor
   - raw html: |
-      ${ next_accordion('<h2 class="h5">PPO Type and Court</h2>') }
+      ${ next_accordion('<h2>PPO Type and Court</h2>') }
     show if: defined('ppo_type')
   - note: |
       % if defined('ppo_type'):
@@ -583,7 +583,7 @@ review:
       
       ${ the_court }, ${ county_choice } County
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Pending Legal Cases</h2>') }
+      ${ next_accordion('<h2>Pending Legal Cases</h2>') }
     show if: defined('pending_actions.there_are_any')
   - Edit: 
       - pending_actions.there_are_any
@@ -618,7 +618,7 @@ review:
       % endif
     show if: pending_actions.there_are_any
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Sexual Assault History</h2>') }
+      ${ next_accordion('<h2>Sexual Assault History</h2>') }
     show if: defined('respondent_sexual_assault_conviction')
   - Edit: 
       - respondent_sexual_assault_conviction
@@ -663,7 +663,7 @@ review:
       % endif
       % endif
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Court Orders and Judgments</h2>') }
+      ${ next_accordion('<h2>Court Orders and Judgments</h2>') }
     show if: defined('orders_judgments.there_are_any')
   - note: |
       % if ppo_type == "nondomestic_sexual_assault":
@@ -703,7 +703,7 @@ review:
       % endif
     show if: orders_judgments.there_are_any or not orders_judgments.there_are_any
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Past Incidents</h2>') }
+      ${ next_accordion('<h2>Past Incidents</h2>') }
     show if: len(incidents.complete_elements()) > 0
   - Edit:
       - incidents.revisit
@@ -751,7 +751,7 @@ review:
       % endif
     show if: defined('other_details')
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Requests for the Court</h2>') }
+      ${ next_accordion('<h2>Requests for the Court</h2>') }
     show if: defined('wants_no_entering_residential_property') or defined('no_stalking_choices')
   - Edit:
       - wants_no_entering_residential_property
@@ -1025,7 +1025,7 @@ review:
       ${ word(yesno(wants_ex_parte_order)) }
     show if: county_choice not in ["Ingham", "Jackson", "Wayne", "Saginaw"]
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Uploaded Documents</h2>') }
+      ${ next_accordion('<h2>Uploaded Documents</h2>') }
     show if: defined('exhibit_attachment.exhibits.has_exhibits')
   - Edit:
       - exhibit_attachment.exhibits.has_exhibits
@@ -1052,7 +1052,7 @@ review:
     css class: bg-secondary-subtle
     show if: exhibit_attachment.exhibits.has_exhibits
   - raw html: |
-      ${ next_accordion('<h2 class="h5">Electronic Signature</h2>') }
+      ${ next_accordion('<h2>Electronic Signature</h2>') }
     show if: (defined('MLH_esign') or defined('next_friend_agrees_to_sign')) and ETC_county_status != "required"
   - Edit:
       - MLH_esign
