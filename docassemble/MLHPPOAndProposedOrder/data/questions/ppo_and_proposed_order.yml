@@ -355,6 +355,11 @@ code: |
   if exhibit_attachment.exhibits.has_exhibits:
     exhibit_attachment.exhibits.gather()
 
+  if county_choice == "Wayne":
+    ETC_county_status = "required"
+  else: 
+    ETC_county_status = "not_allowed"
+  
   nav.set_section("review_get_forms_info")
   if ETC_county_status == "optional":
     ETC_optional_info
@@ -375,7 +380,10 @@ code: |
     else:
       if MLH_esign:
         signature_date
-       
+
+  if county_choice in ["Oakland"]:
+    ETC_outage_warning
+  
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
     have_patience_download
@@ -423,6 +431,14 @@ code: |
 ---
 code: |
   other_parties.there_is_another = False
+---
+id: outage warning
+question: E-mail filing is temporarily unavailable!
+subquestion: |
+  At this time, the Oakland County PPO Office email is down. **Please use MIFILE** to file your petition instead of attempting to send it by email.
+
+  [Oakland County E-filing info](https://www.oaklandcountymi.gov/government/clerk-register-of-deeds/court-records/efiling)
+continue button field: ETC_outage_warning
 ---
 code: |
   if users[0].age_in_years() < 18:
@@ -4529,12 +4545,11 @@ subquestion: |
 continue button field: ex_parte_yes_screen
 ---
 code: |
-  if county_choice == "Wayne" or county_choice == "Oakland":
+  if county_choice == "Wayne":
     ETC_county_status = "required"
-  elif county_choice == "Cass" or county_choice == "Gogebic" or county_choice == "Ionia" or county_choice == "Iosco" or county_choice == "Marquette" or county_choice == "Montcalm":
-    ETC_county_status = "optional"
-  else:
+  else: 
     ETC_county_status = "not_allowed"
+    
   ETC_status_check = True
 ---
 code: |
