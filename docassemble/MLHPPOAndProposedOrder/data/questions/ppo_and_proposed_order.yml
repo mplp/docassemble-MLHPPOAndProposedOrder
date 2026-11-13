@@ -355,10 +355,7 @@ code: |
   if exhibit_attachment.exhibits.has_exhibits:
     exhibit_attachment.exhibits.gather()
 
-  if county_choice == "Wayne":
-    ETC_county_status = "required"
-  else: 
-    ETC_county_status = "not_allowed"
+  ETC_status_check # November 2026 reset ETC_county_status post temporarily turning it off for all counties but Wayne due to Outlook outage.
   
   nav.set_section("review_get_forms_info")
   if ETC_county_status == "optional":
@@ -380,9 +377,6 @@ code: |
     else:
       if MLH_esign:
         signature_date
-
-  if county_choice in ["Oakland"]:
-    ETC_outage_warning
   
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
@@ -431,50 +425,6 @@ code: |
 ---
 code: |
   other_parties.there_is_another = False
----
-id: DownloadScreen
-event: MLH_download
-question: |
-  Get your ${ MLH_form_type }
-subquestion: |
-  You can **view**, **download**, or **e-mail** your ${ MLH_form_type } to yourself below. Tap the "✎ Review / Edit" button to fix any mistakes.
-
-  % if county_choice == "Oakland":
-  ## Oakland County Filing Information
-  
-  At this time, the Oakland County PPO Office email is down due to a Microsoft outage.
-  
-  Usually, Oakland County requires filing by email using this tool. We have temporarily disabled email filing for Oakland County due to the outage. During the email outage, **please use MIFILE** to file your petition instead of attempting to file by email. 
-
-  [Oakland County E-filing info](https://www.oaklandcountymi.gov/government/clerk-register-of-deeds/court-records/efiling)
-
-  The Oakland County PPO office can be reached at 248-303-1534.
-  % endif
-    
-  ## Download or e-mail your ${ MLH_form_type }
-
-  ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info') }
-  
-  ${ al_user_bundle.download_list_html() }
-
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
-  
-  ${ sign_in_message }
-
-under: |
-  <h2 id="survey-title">Take our quick survey!</h2>
-  Answer below or [open the survey in a new tab](${ survey_link_url_only }).
-
-  <iframe class="surveyiframe" src="${survey_link_url_only}" aria-labelledby="survey-title"></iframe>
-progress: 100
----
-id: outage warning
-question: E-mail filing is temporarily unavailable!
-subquestion: |
-  At this time, the Oakland County PPO Office email is down. **Please use MIFILE** to file your petition instead of attempting to send it by email.
-
-  [Oakland County E-filing info](https://www.oaklandcountymi.gov/government/clerk-register-of-deeds/court-records/efiling)
-continue button field: ETC_outage_warning
 ---
 code: |
   if users[0].age_in_years() < 18:
@@ -4581,10 +4531,15 @@ subquestion: |
 continue button field: ex_parte_yes_screen
 ---
 code: |
-  if county_choice == "Wayne":
+  if county_choice == "Wayne" or county_choice == "Oakland":
     ETC_county_status = "required"
-  else: 
+  elif county_choice == "Cass" or county_choice == "Gogebic" or county_choice == "Ionia" or county_choice == "Iosco" or county_choice == "Marquette" or county_choice == "Montcalm":
+    ETC_county_status = "optional"
+  else:
     ETC_county_status = "not_allowed"
+
+  if county_choice in ["Oakland"] and not defined("ETC_outage_warning"):
+    ETC_outage_warning = False # temporary response to Nov. 2026 issue
     
   ETC_status_check = True
 ---
@@ -4672,6 +4627,18 @@ subquestion: |
   <h2 class="h3">Review and Finalize Your Forms </h2>
 
   Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
+
+  % if county_choice == "Oakland" and ETC_outage_warning:
+  ## Oakland County Filing Information
+  
+  On November 12 and 13, 2026, Oakland's email filing was turned off due...
+  
+  Usually, Oakland County requires filing by email using this tool. We have temporarily disabled email filing for Oakland County due to the outage. During the email outage, **please use MIFILE** to file your petition instead of attempting to file by email. 
+
+  [Oakland County E-filing info](https://www.oaklandcountymi.gov/government/clerk-register-of-deeds/court-records/efiling)
+
+  The Oakland County PPO office can be reached at 248-303-1534.
+  % endif
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
 
