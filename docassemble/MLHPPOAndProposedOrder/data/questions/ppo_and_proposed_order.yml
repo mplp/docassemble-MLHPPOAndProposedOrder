@@ -355,8 +355,6 @@ code: |
   if exhibit_attachment.exhibits.has_exhibits:
     exhibit_attachment.exhibits.gather()
 
-  ETC_set # November 2026 reset ETC_county_status post temporarily turning it off for all counties but Wayne due to Outlook outage.
-  
   nav.set_section("review_get_forms_info")
   if ETC_county_status == "optional":
     ETC_optional_info
@@ -377,7 +375,7 @@ code: |
     else:
       if MLH_esign:
         signature_date
-  
+       
   if ETC_county_status == "not_allowed":
     MLH_outro_filing_information
     have_patience_download
@@ -4531,17 +4529,13 @@ subquestion: |
 continue button field: ex_parte_yes_screen
 ---
 code: |
-  if county_choice in ["Wayne", "Oakland"]:
+  if county_choice == "Wayne" or county_choice == "Oakland":
     ETC_county_status = "required"
-  elif county_choice in ["Cass", "Gogebic", "Ionia", "Iosco", "Marquette", "Montcalm"]:
+  elif county_choice == "Cass" or county_choice == "Gogebic" or county_choice == "Ionia" or county_choice == "Iosco" or county_choice == "Marquette" or county_choice == "Montcalm":
     ETC_county_status = "optional"
   else:
     ETC_county_status = "not_allowed"
-
-  if not defined("ETC_outage_warning"):
-    ETC_outage_warning = False # temporary response to Nov. 2026 issue
-    
-  ETC_set = True
+  ETC_status_check = True
 ---
 code: |
   if ETC_county_status == "optional" or ETC_county_status == "not_allowed":
@@ -4627,18 +4621,6 @@ subquestion: |
   <h2 class="h3">Review and Finalize Your Forms </h2>
 
   Your forms are ready. View or download your forms below. Tap **✎ Review / Edit** to fix any mistakes.
-
-  % if county_choice == "Oakland" and ETC_outage_warning:
-  ## Oakland County Filing Information
-  
-  Between November 12 and November 16, we turned off email filing in this tool for Oakland County due to email issues caused by a Microsoft outage. You finished creating your PPO petition during the outage. 
-  
-  You may have already filed using MiFILE (a separate website). If you already filed with MiFILE, you don't need to file again.
-
-  If have not yet filed your PPO petition, tap the **I want to file now by e-mail** button below to file using this tool.
-  
-  If you're not sure whether you already filed, contact the Oakland County PPO office at 248-303-1534.
-  % endif
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
 
