@@ -355,7 +355,7 @@ code: |
   if exhibit_attachment.exhibits.has_exhibits:
     exhibit_attachment.exhibits.gather()
 
-  ETC_status_check # November 2026 reset ETC_county_status post temporarily turning it off for all counties but Wayne due to Outlook outage.
+  ETC_set # November 2026 reset ETC_county_status post temporarily turning it off for all counties but Wayne due to Outlook outage.
   
   nav.set_section("review_get_forms_info")
   if ETC_county_status == "optional":
@@ -4531,9 +4531,9 @@ subquestion: |
 continue button field: ex_parte_yes_screen
 ---
 code: |
-  if county_choice == "Wayne" or county_choice == "Oakland":
+  if county_choice in ["Wayne", "Oakland"]:
     ETC_county_status = "required"
-  elif county_choice == "Cass" or county_choice == "Gogebic" or county_choice == "Ionia" or county_choice == "Iosco" or county_choice == "Marquette" or county_choice == "Montcalm":
+  elif county_choice in ["Cass", "Gogebic", "Ionia", "Iosco", "Marquette", "Montcalm"]:
     ETC_county_status = "optional"
   else:
     ETC_county_status = "not_allowed"
@@ -4541,7 +4541,7 @@ code: |
   if not defined("ETC_outage_warning"):
     ETC_outage_warning = False # temporary response to Nov. 2026 issue
     
-  ETC_status_check = True
+  ETC_set = True
 ---
 code: |
   if ETC_county_status == "optional" or ETC_county_status == "not_allowed":
