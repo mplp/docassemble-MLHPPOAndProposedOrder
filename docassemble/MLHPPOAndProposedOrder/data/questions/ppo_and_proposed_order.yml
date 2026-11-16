@@ -4538,7 +4538,7 @@ code: |
   else:
     ETC_county_status = "not_allowed"
 
-  if county_choice in ["Oakland"] and not defined("ETC_outage_warning"):
+  if not defined("ETC_outage_warning"):
     ETC_outage_warning = False # temporary response to Nov. 2026 issue
     
   ETC_status_check = True
@@ -4631,13 +4631,13 @@ subquestion: |
   % if county_choice == "Oakland" and ETC_outage_warning:
   ## Oakland County Filing Information
   
-  On November 12 and 13, 2026, Oakland's email filing was turned off due...
+  Between November 12 and November 16, we turned off email filing in this tool for Oakland County due to email issues caused by a Microsoft outage. You finished creating your PPO petition during the outage. 
   
-  Usually, Oakland County requires filing by email using this tool. We have temporarily disabled email filing for Oakland County due to the outage. During the email outage, **please use MIFILE** to file your petition instead of attempting to file by email. 
+  You may have already filed using MiFILE (a separate website). If you already filed with MiFILE, you don't need to file again.
 
-  [Oakland County E-filing info](https://www.oaklandcountymi.gov/government/clerk-register-of-deeds/court-records/efiling)
-
-  The Oakland County PPO office can be reached at 248-303-1534.
+  If have not yet filed your PPO petition, tap the **I want to file now by e-mail** button below to file using this tool.
+  
+  If you're not sure whether you already filed, contact the Oakland County PPO office at 248-303-1534.
   % endif
 
   ${ action_button_html(url_action('review_full'), label='✎ Review / Edit', color='info', size="md") }
