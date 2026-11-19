@@ -1924,6 +1924,7 @@ question: |
   User age
 fields:
   - Enter your age: users[0].age
+    max: 130
     datatype: integer
     required: True
 ---
@@ -2292,12 +2293,18 @@ fields:
       variable: knows_respondents_birthdate
       is: True
     label above field: True
-  - Even if you do not know the Respondent's exact date of birth, you must provide your best guess of their age: other_parties[0].age
+  - How old do you think the Respondent is?: other_parties[0].age
+    max: 130
     datatype: integer
     show if:
       variable: knows_respondents_birthdate
       is: False
     label above field: True
+  - note: |
+      Give your best guess of their age in years, even if you're not sure.
+    show if:
+      variable: knows_respondents_birthdate
+      is: False 
 ---
 template: respondent_dob
 subject: |
